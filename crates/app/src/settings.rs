@@ -15,7 +15,7 @@ use gpui_kit::*;
 use xilo_models::{CommandDef, CommandRequest, Confirmed, Danger, Group, Input, ModelSpec};
 
 use crate::device_view::DeviceView;
-use crate::widgets::{caption, card, section};
+use crate::widgets::{caption, card, divided, section};
 
 const MANUAL_URL: &str = "https://charging-tutorial.anker.com/navigation?app=anker_power&lang=en-US&country=US&hideNavBar=true&pn=";
 
@@ -60,18 +60,12 @@ pub fn render(
             .filter(|c| c.group == group && model.is_visible(c, &snap.fields))
             .cloned()
             .collect();
-        let mut list = v_flex();
-        for command in commands {
-            list = list.child(command_row(
-                &model,
-                &command,
-                &snap.fields,
-                connected,
-                view,
-                cx,
-            ));
-        }
-        list
+        commands
+            .iter()
+            .map(|command| {
+                command_row(&model, command, &snap.fields, connected, view, cx).into_any_element()
+            })
+            .collect::<Vec<_>>()
     };
     let function = rows(Group::Function, cx);
     let general = rows(Group::General, cx);
@@ -83,47 +77,43 @@ pub fn render(
 
     v_flex()
         .gap(px(14.))
-        .max_w(px(760.))
         .child(section("Function Settings", cx))
-        .child(card(cx).p(px(4.)).child(function))
+        .child(card(cx).p(px(4.)).child(divided(function, cx)))
         .child(section("General Settings", cx))
         .child(
-            card(cx).p(px(4.)).child(
-                v_flex()
-                    .child(
-                        info_row("Device Name", name.clone(), true, cx)
-                            .id("rename")
-                            .on_click(
-                                cx.listener(move |view, _, window, cx| rename(view, window, cx)),
-                            ),
-                    )
-                    .child(general)
-                    .child(info_row("SN", serial, false, cx))
-                    .child(info_row("Firmware", firmware, false, cx))
-                    .child(
-                        info_row("User Manual", String::new(), true, cx)
-                            .id("manual")
-                            .on_click(move |_, _, cx| cx.open_url(&format!("{MANUAL_URL}{code}"))),
-                    ),
-            ),
+            card(cx).p(px(4.)).child(divided(
+                std::iter::once(
+                    info_row("Device Name", name.clone(), true, cx)
+                        .id("rename")
+                        .on_click(cx.listener(move |view, _, window, cx| rename(view, window, cx)))
+                        .into_any_element(),
+                )
+                .chain(general)
+                .chain([
+                    info_row("SN", serial, false, cx).into_any_element(),
+                    info_row("Firmware", firmware, false, cx).into_any_element(),
+                    info_row("User Manual", String::new(), true, cx)
+                        .id("manual")
+                        .on_click(move |_, _, cx| cx.open_url(&format!("{MANUAL_URL}{code}")))
+                        .into_any_element(),
+                ]),
+                cx,
+            )),
         )
         .child(section("Connection", cx))
         .child(
-            card(cx).p(px(4.)).child(
-                v_flex()
-                    .child(
-                        info_row(
-                            "Model",
-                            format!("{} ({})", model.name, model.code),
-                            true,
-                            cx,
-                        )
-                        .id("model")
-                        .on_click(
-                            cx.listener(|view, _, window, cx| model_picker(view, window, cx)),
-                        ),
+            card(cx).p(px(4.)).child(divided(
+                [
+                    info_row(
+                        "Model",
+                        format!("{} ({})", model.name, model.code),
+                        true,
+                        cx,
                     )
-                    .child(row(
+                    .id("model")
+                    .on_click(cx.listener(|view, _, window, cx| model_picker(view, window, cx)))
+                    .into_any_element(),
+                    row(
                         "Release to phone",
                         Some(
                             "Disconnect for 30 minutes so the Anker app on your phone can connect.",
@@ -136,8 +126,9 @@ pub fn render(
                             )
                             .into_any_element(),
                         cx,
-                    ))
-                    .child(row(
+                    )
+                    .into_any_element(),
+                    row(
                         "Remove device",
                         Some("Xilo forgets this device. The device itself is not changed."),
                         Button::new("remove")
@@ -166,8 +157,11 @@ pub fn render(
                             }))
                             .into_any_element(),
                         cx,
-                    )),
-            ),
+                    )
+                    .into_any_element(),
+                ],
+                cx,
+            )),
         )
         .into_any_element()
 }
@@ -291,6 +285,17 @@ fn rename(view: &mut DeviceView, window: &mut Window, cx: &mut Context<DeviceVie
 }
 
 fn row(label: &str, hint: Option<&str>, control: AnyElement, cx: &App) -> Stateful<Div> {
+    row_with_tip(label, hint, None, control, cx)
+}
+
+/// A settings row; `tip` is an element shown right after the label.
+fn row_with_tip(
+    label: &str,
+    hint: Option<&str>,
+    tip: Option<AnyElement>,
+    control: AnyElement,
+    cx: &App,
+) -> Stateful<Div> {
     h_flex()
         .id(SharedString::from(format!("row-{label}")))
         .px(px(14.))
@@ -298,14 +303,18 @@ fn row(label: &str, hint: Option<&str>, control: AnyElement, cx: &App) -> Statef
         .gap(px(16.))
         .justify_between()
         .items_center()
-        .border_b_1()
-        .border_color(cx.theme().border)
         .child(
             v_flex()
                 .flex_1()
                 .min_w(px(0.))
                 .gap(px(2.))
-                .child(div().text_size(px(15.)).child(label.to_string()))
+                .child(
+                    h_flex()
+                        .gap(px(6.))
+                        .items_center()
+                        .child(div().text_size(px(15.)).child(label.to_string()))
+                        .children(tip),
+                )
                 .when_some(hint, |el, h| el.child(caption(h.to_string(), cx))),
         )
         .child(control)
@@ -369,7 +378,7 @@ fn command_row(
             h_flex()
                 .id(SharedString::from(format!("pick-{}", command.id)))
                 .gap(px(6.))
-                .px(px(8.))
+                .pl(px(8.))
                 .py(px(4.))
                 .rounded(px(8.))
                 .items_center()
@@ -408,31 +417,33 @@ fn command_row(
         }
     };
     let label = command.label.clone();
-    let tip = command.tip.clone();
-    let mut row = row(&label, hint.as_deref(), control, cx);
-    if let Some(tip) = tip {
-        row = row.child(
-            div()
-                .id(SharedString::from(format!("tip-{}", command.id)))
-                .cursor_pointer()
-                .child(
-                    Icon::new(IconName::Info)
-                        .size_4()
-                        .text_color(cx.theme().muted_foreground),
-                )
-                .on_click(move |_, window, cx| {
-                    let tip = tip.clone();
-                    let label = label.clone();
-                    window.open_alert_dialog(cx, move |dialog, _, _| {
-                        dialog
-                            .title(label.clone())
-                            .description(tip.clone())
-                            .ok_text("Got It")
-                    });
-                }),
-        );
-    }
-    row.opacity(if connected { 1.0 } else { 0.5 })
+    let tip = command.tip.clone().map(|tip| {
+        let label = label.clone();
+        div()
+            .id(SharedString::from(format!("tip-{}", command.id)))
+            .cursor_pointer()
+            .child(
+                Icon::new(IconName::Info)
+                    .size_4()
+                    .text_color(cx.theme().muted_foreground),
+            )
+            .on_click(move |_, window, cx| {
+                let tip = tip.clone();
+                let label = label.clone();
+                window.open_alert_dialog(cx, move |dialog, _, _| {
+                    dialog
+                        .title(label.clone())
+                        .description(tip.clone())
+                        .ok_text("Got It")
+                });
+            })
+            .into_any_element()
+    });
+    row_with_tip(&label, hint.as_deref(), tip, control, cx).opacity(if connected {
+        1.0
+    } else {
+        0.5
+    })
 }
 
 fn view_gate(view: &DeviceView, command: &CommandDef, cx: &App) -> Option<String> {

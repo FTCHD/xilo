@@ -165,3 +165,15 @@ pub fn port_tile(label: &str, icon_key: &str, value: Option<i64>, cx: &App) -> D
 pub fn status_dot(color: Hsla) -> Div {
     div().size(px(8.)).rounded_full().bg(color)
 }
+
+/// Stacks rows with a thin line between them, never after the last one.
+pub fn divided(rows: impl IntoIterator<Item = AnyElement>, cx: &App) -> Div {
+    let mut list = v_flex();
+    for (i, row) in rows.into_iter().enumerate() {
+        if i > 0 {
+            list = list.child(div().h(px(1.)).mx(px(14.)).bg(cx.theme().border));
+        }
+        list = list.child(row);
+    }
+    list
+}

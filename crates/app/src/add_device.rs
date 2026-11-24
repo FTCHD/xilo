@@ -143,7 +143,6 @@ impl Render for AddDevice {
             .size_full()
             .p(px(24.))
             .gap(px(16.))
-            .max_w(px(760.))
             .child(div().text_size(px(22.)).font_weight(FontWeight::BOLD).child("Add a Device"))
             .child(
                 h_flex()

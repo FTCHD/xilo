@@ -7,7 +7,7 @@ use xilo_models::{CommandRequest, Group, Input};
 
 use crate::device_view::DeviceView;
 use crate::families::view_model::temperature_text;
-use crate::widgets::{asset, caption, card, section, watts};
+use crate::widgets::{asset, caption, card, divided, section, watts};
 
 pub fn render(
     view: &mut DeviceView,
@@ -128,40 +128,43 @@ pub fn render(
                 .map(|v| (f.clone(), model.format(&f.id, v)))
         })
         .collect();
-    let values = card(cx).child(v_flex().children(rows.into_iter().map(|(field, text)| {
-        let badge = match field.confidence {
-            xilo_models::schema::Confidence::Verified => None,
-            xilo_models::schema::Confidence::Likely => None,
-            xilo_models::schema::Confidence::Unknown => Some("unknown"),
-        };
-        h_flex()
-            .py(px(7.))
-            .border_b_1()
-            .border_color(cx.theme().border)
-            .justify_between()
-            .child(
-                h_flex()
-                    .gap(px(8.))
-                    .child(div().text_size(px(14.)).child(field.label.clone()))
-                    .when_some(badge, |el, b| {
-                        el.child(
-                            div()
-                                .px(px(6.))
-                                .rounded(px(6.))
-                                .bg(cx.theme().muted)
-                                .text_size(px(11.))
-                                .text_color(cx.theme().muted_foreground)
-                                .child(b),
-                        )
-                    }),
-            )
-            .child(
-                div()
-                    .text_size(px(14.))
-                    .font_weight(FontWeight::SEMIBOLD)
-                    .child(text),
-            )
-    })));
+    let values = card(cx).p(px(4.)).child(divided(
+        rows.into_iter().map(|(field, text)| {
+            let badge = match field.confidence {
+                xilo_models::schema::Confidence::Verified
+                | xilo_models::schema::Confidence::Likely => None,
+                xilo_models::schema::Confidence::Unknown => Some("unknown"),
+            };
+            h_flex()
+                .px(px(14.))
+                .py(px(10.))
+                .justify_between()
+                .child(
+                    h_flex()
+                        .gap(px(8.))
+                        .child(div().text_size(px(14.)).child(field.label.clone()))
+                        .when_some(badge, |el, b| {
+                            el.child(
+                                div()
+                                    .px(px(6.))
+                                    .rounded(px(6.))
+                                    .bg(cx.theme().muted)
+                                    .text_size(px(11.))
+                                    .text_color(cx.theme().muted_foreground)
+                                    .child(b),
+                            )
+                        }),
+                )
+                .child(
+                    div()
+                        .text_size(px(14.))
+                        .font_weight(FontWeight::SEMIBOLD)
+                        .child(text),
+                )
+                .into_any_element()
+        }),
+        cx,
+    ));
 
     v_flex()
         .gap(px(16.))

@@ -9,7 +9,7 @@ use xilo_store::UsbWake;
 use crate::device_view::DeviceView;
 use crate::history_view::time_text;
 use crate::services::unix_now;
-use crate::widgets::{caption, card, section};
+use crate::widgets::{caption, card, divided, section};
 
 const IDLE_CHOICES: [u32; 4] = [60, 80, 100, 110];
 const BATTERY_CHOICES: [u8; 4] = [5, 10, 20, 30];
@@ -127,19 +127,21 @@ pub fn render(
         format!("Watching. USB load now: {:.0} W.", usb_watts(&snap))
     };
 
-    let log = v_flex().children(events.iter().take(30).map(|e| {
-        h_flex()
-            .py(px(6.))
-            .gap(px(12.))
-            .border_b_1()
-            .border_color(cx.theme().border)
-            .child(caption(time_text(e.ts), cx).w(px(130.)))
-            .child(div().text_size(px(14.)).child(e.text.clone()))
-    }));
+    let log = divided(
+        events.iter().take(30).map(|e| {
+            h_flex()
+                .px(px(14.))
+                .py(px(10.))
+                .gap(px(12.))
+                .child(caption(time_text(e.ts), cx).w(px(130.)))
+                .child(div().text_size(px(14.)).child(e.text.clone()))
+                .into_any_element()
+        }),
+        cx,
+    );
 
     v_flex()
         .gap(px(14.))
-        .max_w(px(760.))
         .child(section("USB Wake", cx))
         .child(
             card(cx).p(px(4.)).child(
@@ -173,8 +175,10 @@ pub fn render(
             el.child(caption("This model has no car output command, so USB wake cannot run.", cx))
         })
         .child(section("Activity", cx))
-        .child(card(cx).child(if events.is_empty() {
-            caption("Nothing yet. Alerts and automation actions from the last 7 days appear here.", cx).into_any_element()
+        .child(card(cx).p(px(4.)).child(if events.is_empty() {
+            caption("Nothing yet. Alerts and automation actions from the last 7 days appear here.", cx)
+                .p(px(14.))
+                .into_any_element()
         } else {
             log.into_any_element()
         }))

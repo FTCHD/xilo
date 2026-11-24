@@ -6,19 +6,17 @@ use gpui_kit::*;
 use xilo_store::{Preferences, ThemeChoice};
 
 use crate::state::AppState;
-use crate::widgets::{caption, card, section};
+use crate::widgets::{caption, card, divided, section};
 
 const LICENSES: &str = include_str!("../../../THIRD_PARTY_NOTICES.md");
 
-fn row(label: &str, hint: &str, control: AnyElement, cx: &App) -> Div {
+fn row(label: &str, hint: &str, control: AnyElement, cx: &App) -> AnyElement {
     h_flex()
         .px(px(14.))
         .py(px(12.))
         .gap(px(16.))
         .justify_between()
         .items_center()
-        .border_b_1()
-        .border_color(cx.theme().border)
         .child(
             v_flex()
                 .flex_1()
@@ -30,6 +28,7 @@ fn row(label: &str, hint: &str, control: AnyElement, cx: &App) -> Div {
                 }),
         )
         .child(control)
+        .into_any_element()
 }
 
 fn update(state: &Entity<AppState>, cx: &mut App, change: impl FnOnce(&mut Preferences)) {
@@ -85,7 +84,6 @@ pub fn render(state: &Entity<AppState>, cx: &App) -> AnyElement {
         .size_full()
         .p(px(24.))
         .gap(px(14.))
-        .max_w(px(760.))
         .child(
             div()
                 .text_size(px(22.))
@@ -93,93 +91,93 @@ pub fn render(state: &Entity<AppState>, cx: &App) -> AnyElement {
                 .child("Preferences"),
         )
         .child(section("General", cx))
-        .child(
-            card(cx).p(px(4.)).child(
-                v_flex()
-                    .child(row(
-                        "Appearance",
-                        "",
-                        choices(
-                            "theme",
-                            &[
-                                (ThemeChoice::System, "System"),
-                                (ThemeChoice::Light, "Light"),
-                                (ThemeChoice::Dark, "Dark"),
-                            ],
-                            p.theme,
-                            state,
-                            |p, v| p.theme = v,
-                        ),
-                        cx,
-                    ))
-                    .child(row(
-                        "Keep running in the menu bar",
-                        "Closing the window keeps Xilo connected and running its automations.",
-                        switch("tray", p.keep_running_in_tray, state, |p, v| {
-                            p.keep_running_in_tray = v
-                        }),
-                        cx,
-                    ))
-                    .child(row(
-                        "Open at login",
-                        "",
-                        switch("login", p.launch_at_login, state, |p, v| {
-                            p.launch_at_login = v
-                        }),
-                        cx,
-                    )),
-            ),
-        )
+        .child(card(cx).p(px(4.)).child(divided(
+            [
+                row(
+                    "Appearance",
+                    "",
+                    choices(
+                        "theme",
+                        &[
+                            (ThemeChoice::System, "System"),
+                            (ThemeChoice::Light, "Light"),
+                            (ThemeChoice::Dark, "Dark"),
+                        ],
+                        p.theme,
+                        state,
+                        |p, v| p.theme = v,
+                    ),
+                    cx,
+                ),
+                row(
+                    "Keep running in the menu bar",
+                    "Closing the window keeps Xilo connected and running its automations.",
+                    switch("tray", p.keep_running_in_tray, state, |p, v| {
+                        p.keep_running_in_tray = v
+                    }),
+                    cx,
+                ),
+                row(
+                    "Open at login",
+                    "",
+                    switch("login", p.launch_at_login, state, |p, v| {
+                        p.launch_at_login = v
+                    }),
+                    cx,
+                ),
+            ],
+            cx,
+        )))
         .child(section("Alerts", cx))
-        .child(
-            card(cx).p(px(4.)).child(
-                v_flex()
-                    .child(row(
-                        "Notifications",
-                        "Show errors, low battery, full battery and automation actions.",
-                        switch("notify", p.notifications, state, |p, v| p.notifications = v),
-                        cx,
-                    ))
-                    .child(row(
-                        "Low battery alert",
-                        "",
-                        choices(
-                            "low",
-                            &[(0u8, "Off"), (10, "10%"), (20, "20%"), (30, "30%")],
-                            p.low_battery_alert,
-                            state,
-                            |p, v| p.low_battery_alert = v,
-                        ),
-                        cx,
-                    )),
-            ),
-        )
+        .child(card(cx).p(px(4.)).child(divided(
+            [
+                row(
+                    "Notifications",
+                    "Show errors, low battery, full battery and automation actions.",
+                    switch("notify", p.notifications, state, |p, v| p.notifications = v),
+                    cx,
+                ),
+                row(
+                    "Low battery alert",
+                    "",
+                    choices(
+                        "low",
+                        &[(0u8, "Off"), (10, "10%"), (20, "20%"), (30, "30%")],
+                        p.low_battery_alert,
+                        state,
+                        |p, v| p.low_battery_alert = v,
+                    ),
+                    cx,
+                ),
+            ],
+            cx,
+        )))
         .child(section("History", cx))
-        .child(
-            card(cx).p(px(4.)).child(
-                v_flex()
-                    .child(row(
-                        "Record history",
-                        "Battery and power every 10 seconds, stored only on this Mac.",
-                        switch("record", p.record_history, state, |p, v| {
-                            p.record_history = v
-                        }),
-                        cx,
-                    ))
-                    .child(row(
-                        "Keep history for",
-                        "",
-                        choices(
-                            "days",
-                            &[(30u32, "30 days"), (90, "90 days"), (365, "1 year")],
-                            p.history_days,
-                            state,
-                            |p, v| p.history_days = v,
-                        ),
-                        cx,
-                    )),
-            ),
-        )
+        .child(card(cx).p(px(4.)).child(divided(
+            [
+                row(
+                    "Record history",
+                    "Battery and power every 10 seconds, stored only on this Mac.",
+                    switch("record", p.record_history, state, |p, v| {
+                        p.record_history = v
+                    }),
+                    cx,
+                ),
+                row(
+                    "Keep history for",
+                    "",
+                    choices(
+                        "days",
+                        &[(30u32, "30 days"), (90, "90 days"), (365, "1 year")],
+                        p.history_days,
+                        state,
+                        |p, v| p.history_days = v,
+                    ),
+                    cx,
+                ),
+            ],
+            cx,
+        )))
         .child(section("Advanced", cx))
         .child(card(cx).p(px(4.)).child(row(
             "Developer mode",
@@ -197,7 +195,6 @@ pub fn about(cx: &App) -> AnyElement {
         .overflow_y_scroll()
         .p(px(24.))
         .gap(px(14.))
-        .max_w(px(760.))
         .child(div().text_size(px(22.)).font_weight(FontWeight::BOLD).child("About Xilo"))
         .child(card(cx).child(
             v_flex()
