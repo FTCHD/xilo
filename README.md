@@ -1,0 +1,105 @@
+# Xilo
+
+Xilo is a desktop app for Anker SOLIX devices. It talks to them over Bluetooth only. You don't need an account, a cloud connection or the internet.
+
+It runs on macOS. The code is written to be cross-platform, but Windows and Linux are not built or tested yet.
+
+Xilo is not made by or affiliated with Anker.
+
+## Features
+
+- **Dashboards** for the C300X and C1000 that follow the Anker app: battery, temperature, remaining time, port status, AC and car outputs with live graphs, light and screen controls, and error messages.
+- **Every setting** from the Anker app, with option lists and limits checked before anything is sent. Risky changes (AC frequency, factory reset) ask for confirmation, and each one is written to an audit log.
+- **49 models** in total. Models without their own dashboard get a generic one with all decoded values.
+- **USB wake**: the C300X turns its USB ports off after about two hours of low load. Xilo keeps them on by switching the car output on briefly before that happens.
+- **Alerts**: errors, low battery, full battery and long disconnects, shown in the app and as system notifications.
+- **History**: battery and power every 10 seconds, stored on this Mac. It includes charts, energy per day and CSV export.
+- **Menu bar**: battery level in the menu bar, quick AC and car output toggles, and "release to phone" so the Anker app can connect.
+- **Inspector** (developer mode): raw and decrypted frames, a per-message diff, redacted capture files and a guarded raw command console.
+- **`xilo-cli`**: the same engine on the command line.
+
+## Supported devices
+
+Hardware-verified: **SOLIX C300X (A1723)**.
+
+Defined but not yet verified (read-only until you allow control in the device settings):
+
+| Kind | Models |
+|---|---|
+| Power stations | C300, C300 DC, C300X DC, C200(X), C200 DC, C200X DC, C800, C800 Plus, C800X, C1000(X), C1000 Gen 2, C1000X Gen 2, C2000 Gen 2, C2000X Gen 2, S2000, F1200, F1500, F2000, F2000 Plus, F2600, F3000, F3800, F3800 Plus, E10 |
+| Solarbanks | E1600, 2 Pro, 2 AC, 2 Plus, 3 Pro, 4 Pro |
+| Home | Smart Meter (and Gen 2, US, P1), Smart Plug, Power Dock, Home Power Panel, EV Charger, Smart Generator 5500, Alternator Charger |
+| Prime and other | Prime Charger 160W and 250W, Prime Power Bank 20K, MagGo 3-in-1, Prime Charging Station 240W, EverFrost 2 40L and 58L |
+
+Most of these maps come from [anker-solix-api](https://github.com/thomluther/anker-solix-api) and [SolixBLE](https://github.com/flip-dots/SolixBLE). Their published test payloads decode to the same values in Xilo (`crates/models/tests/solixble_values.rs`).
+
+Protocols: ZX with ECDH and AES-CBC, ZX Gen 2, Prime with AES-GCM, the older AES key exchange, and the 2540, 2215 and 4158 GATT services. See [docs/variants.md](docs/variants.md).
+
+## Build
+
+Requirements: macOS 13 or newer, Rust (the version is pinned in `rust-toolchain.toml`), and Python 3 for the model importer only.
+
+```sh
+cargo run -p xilo                  # the app
+cargo run -p xilo-cli -- scan      # the command line tool
+cargo test --workspace
+```
+
+### Anker images and fonts
+
+The dashboards use images, fonts and animations from the Anker Android app. They are not in this repository. To add them, put the unpacked `.xapk` in `.research/anker-apk/xapk/` and run:
+
+```sh
+cargo run -p xtask -- assets extract
+```
+
+Without them, Xilo shows its own icons and the system font.
+
+### App bundle
+
+```sh
+cargo run -p xtask -- bundle --release   # creates dist/Xilo.app
+```
+
+The bundle is signed ad hoc. macOS then asks for Bluetooth permission again after every rebuild. To avoid that, create a code signing certificate in Keychain Access and set `XILO_SIGN_IDENTITY` to its name before you bundle.
+
+## Command line
+
+```sh
+xilo-cli scan
+xilo-cli --name C300X status
+xilo-cli --name C300X watch --secs 600
+xilo-cli --name C300X set light_mode 1
+xilo-cli --name C300X set ac_frequency 60 --confirm
+xilo-cli --name C300X capture --secs 30 -o c300x.xcap
+xilo-cli --sim A1723 status            # simulated device, no Bluetooth
+xilo-cli models
+```
+
+## Development
+
+- `XILO_SIM=1 cargo run -p xilo` runs the app against simulated devices.
+- `XILO_HOME=/tmp/xilo cargo run -p xilo` keeps settings, history and logs in another folder.
+- `XILO_LOG=debug` shows more in the log. Logs are in `~/Library/Application Support/dev.xilo.Xilo/logs`.
+- `cargo run -p xtask -- import solix-api` regenerates `crates/models/src/families/imported` from anker-solix-api.
+- `cargo run -p xtask -- check-public` fails if Anker files or captures are tracked by git.
+
+You can add or override models without rebuilding. Put TOML files in `~/Library/Application Support/dev.xilo.Xilo/models`, using the same format as `crates/models/src/families`.
+
+## Layout
+
+| Folder | Content |
+|---|---|
+| `crates/proto` | Frames, TLV, encryption, the ZX, Prime and legacy handshakes. No I/O. |
+| `crates/models` | Model definitions (TOML), decoding, command validation, detection |
+| `crates/engine` | Device actors, simulator, USB wake, alerts |
+| `crates/ble` | Bluetooth transport (btleplug) |
+| `crates/store` | Settings, history (SQLite), capture files |
+| `crates/app` | The GPUI desktop app |
+| `crates/cli` | `xilo-cli` |
+| `xtask` | Asset extraction, model import, bundling, checks |
+| `docs` | Protocol and device notes |
+
+## Licenses
+
+Xilo ports protocol logic and field maps from SolixBLE (MIT, © 2026 Harvey Lelliott) and anker-solix-api (MIT, © 2024 thomluther). See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
