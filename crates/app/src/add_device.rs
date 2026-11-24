@@ -9,7 +9,7 @@ use xilo_engine::Found;
 
 use crate::runtime::Runtime;
 use crate::state::AppState;
-use crate::widgets::{asset, caption, card, glow, icon_badge, live_card, pill};
+use crate::widgets::{asset, caption, card, icon_badge, live_card, pill};
 
 const SCAN_WINDOW: Duration = Duration::from_secs(6);
 const SOLIX_COMPANY: u16 = 0xffff;
@@ -98,7 +98,6 @@ impl Render for AddDevice {
                 let state = self.state.clone();
                 let id = addr.id.clone();
                 let label = name.clone();
-                let primary = cx.theme().primary;
                 Some(
                     live_card(!known, cx.theme().primary, cx)
                         .p(px(14.))
@@ -106,28 +105,12 @@ impl Render for AddDevice {
                             h_flex()
                                 .gap(px(16.))
                                 .items_center()
-                                .child(
-                                    div()
-                                        .size(px(64.))
-                                        .flex_none()
-                                        .rounded(px(18.))
-                                        .bg(linear_gradient(
-                                            160.,
-                                            linear_color_stop(primary.alpha(0.22), 0.),
-                                            linear_color_stop(primary.alpha(0.04), 1.),
-                                        ))
-                                        .border_1()
-                                        .border_color(primary.alpha(0.18))
-                                        .flex()
-                                        .items_center()
-                                        .justify_center()
-                                        .child(asset(
-                                            &format!("{assets}/product"),
-                                            px(52.),
-                                            IconName::BatteryCharging,
-                                            cx,
-                                        )),
-                                )
+                                .child(asset(
+                                    &format!("{assets}/product"),
+                                    px(64.),
+                                    IconName::BatteryCharging,
+                                    cx,
+                                ))
                                 .child(
                                     v_flex()
                                         .flex_1()
@@ -164,25 +147,6 @@ impl Render for AddDevice {
             })
             .collect();
         let empty = rows.is_empty();
-        let primary = cx.theme().primary;
-        let radar = div()
-            .size(px(10.))
-            .rounded_full()
-            .bg(primary)
-            .shadow(glow(primary, 0.8));
-        let radar: AnyElement = if self.scanning {
-            radar
-                .with_animation(
-                    "scan-pulse",
-                    Animation::new(Duration::from_millis(1200))
-                        .repeat()
-                        .with_easing(pulsating_between(0.25, 1.0)),
-                    |el, delta| el.opacity(delta),
-                )
-                .into_any_element()
-        } else {
-            radar.opacity(0.4).into_any_element()
-        };
         v_flex()
             .size_full()
             .p(px(24.))
@@ -200,20 +164,14 @@ impl Render for AddDevice {
                                     .font_weight(FontWeight::BOLD)
                                     .child("Add a Device"),
                             )
-                            .child(
-                                h_flex()
-                                    .gap(px(8.))
-                                    .items_center()
-                                    .child(radar)
-                                    .child(caption(
+                            .child(caption(
                                         if self.scanning {
                                             "Looking for SOLIX devices nearby..."
                                         } else {
                                             "Devices found nearby"
                                         },
-                                        cx,
-                                    )),
-                            ),
+                                cx,
+                            )),
                     )
                     .child(
                         Button::new("rescan")

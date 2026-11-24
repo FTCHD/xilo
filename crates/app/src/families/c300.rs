@@ -1,8 +1,6 @@
 use gpui_kit::assets::IconName;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::dialog::{DialogFooter, DialogHeader, DialogTitle};
-use std::time::Duration;
-
 use gpui_kit::component::{ActiveTheme as _, Icon, Sizable as _, WindowExt as _, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
@@ -11,11 +9,9 @@ use xilo_models::CommandRequest;
 use crate::device_view::DeviceView;
 use crate::families::view_model::{self, Dashboard};
 use crate::widgets::{
-    self, asset, battery_gauge, big_value, caption, glow, icon_badge, input_color, live_card,
+    self, asset, battery_gauge, big_value, caption, icon_badge, input_color, live_card,
     output_color, pill, power_button, section, sparkline,
 };
-
-const SCALE: f32 = 1.4;
 
 pub fn render(
     view: &mut DeviceView,
@@ -43,7 +39,6 @@ pub fn render(
     let screen_on = snap.flag("screen_on");
     let ac_timer = snap.int("ac_timer_remaining").unwrap_or(0);
     let car_timer = snap.int("dc_timer_remaining").unwrap_or(0);
-    let remaining = snap.float("remaining_time");
 
     v_flex()
         .gap(px(18.))
@@ -51,89 +46,85 @@ pub fn render(
             el.child(error_banner(text, cx))
         })
         .child(
-            h_flex()
-                .gap(px(18.))
-                .items_start()
-                .child(hero(&d, remaining, cx))
-                .child(
-                    v_flex()
-                        .flex_1()
-                        .min_w(px(440.))
-                        .gap(px(14.))
-                        .child(
-                            h_flex()
-                                .gap(px(14.))
-                                .child(total("Total Input", d.total_in, true, cx))
-                                .child(total("Total Output", d.total_out, false, cx)),
-                        )
-                        .child(
-                            h_flex()
-                                .gap(px(6.))
-                                .items_center()
-                                .child(section("Ports", cx))
-                                .child(
-                                    div()
-                                        .id("port-legend")
-                                        .pt(px(4.))
-                                        .cursor_pointer()
-                                        .child(
-                                            Icon::new(IconName::Info)
-                                                .size(px(13.))
-                                                .text_color(cx.theme().muted_foreground),
-                                        )
-                                        .on_click(cx.listener(|_, _, window, cx| {
-                                            port_legend(window, cx);
-                                        })),
-                                ),
-                        )
-                        .child(ports(&d, cx))
-                        .child(section("Outputs", cx))
-                        .child(
-                            h_flex()
-                                .gap(px(14.))
-                                .items_start()
-                                .child(output_card(
-                                    Output {
-                                        id: "car",
-                                        label: "Car Charger",
-                                        icon: IconName::Car,
-                                        power: snap.int("car_output_power"),
-                                        on: car_on,
-                                        timer_secs: car_timer,
-                                        curve: &car_curve,
-                                        switch_cmd: "dc_switch",
-                                        timer_cmd: "dc_timer",
-                                        busy: view.device_busy("dc_switch", cx),
-                                        connected: d.connected,
-                                    },
-                                    cx,
-                                ))
-                                .child(output_card(
-                                    Output {
-                                        id: "ac",
-                                        label: "AC Output",
-                                        icon: IconName::PlugZap,
-                                        power: snap.int("ac_output_power"),
-                                        on: ac_on,
-                                        timer_secs: ac_timer,
-                                        curve: &ac_curve,
-                                        switch_cmd: "ac_switch",
-                                        timer_cmd: "ac_timer",
-                                        busy: view.device_busy("ac_switch", cx),
-                                        connected: d.connected,
-                                    },
-                                    cx,
-                                )),
-                        )
-                        .child(section("Controls", cx))
-                        .child(
-                            h_flex()
-                                .gap(px(14.))
-                                .items_start()
-                                .child(brightness(light, d.connected, cx))
-                                .child(screen(screen_on, d.connected, cx)),
-                        ),
-                ),
+            h_flex().child(
+                v_flex()
+                    .flex_1()
+                    .gap(px(14.))
+                    .child(
+                        h_flex()
+                            .gap(px(14.))
+                            .items_stretch()
+                            .child(total("Total Input", d.total_in, true, cx))
+                            .child(total("Total Output", d.total_out, false, cx)),
+                    )
+                    .child(
+                        h_flex()
+                            .gap(px(6.))
+                            .items_center()
+                            .child(section("Ports", cx))
+                            .child(
+                                div()
+                                    .id("port-legend")
+                                    .pt(px(4.))
+                                    .cursor_pointer()
+                                    .child(
+                                        Icon::new(IconName::Info)
+                                            .size(px(13.))
+                                            .text_color(cx.theme().muted_foreground),
+                                    )
+                                    .on_click(cx.listener(|_, _, window, cx| {
+                                        port_legend(window, cx);
+                                    })),
+                            ),
+                    )
+                    .child(ports(&d, cx))
+                    .child(section("Outputs", cx))
+                    .child(
+                        h_flex()
+                            .gap(px(14.))
+                            .items_stretch()
+                            .child(output_card(
+                                Output {
+                                    id: "car",
+                                    label: "Car Charger",
+                                    icon: IconName::Car,
+                                    power: snap.int("car_output_power"),
+                                    on: car_on,
+                                    timer_secs: car_timer,
+                                    curve: &car_curve,
+                                    switch_cmd: "dc_switch",
+                                    timer_cmd: "dc_timer",
+                                    busy: view.device_busy("dc_switch", cx),
+                                    connected: d.connected,
+                                },
+                                cx,
+                            ))
+                            .child(output_card(
+                                Output {
+                                    id: "ac",
+                                    label: "AC Output",
+                                    icon: IconName::PlugZap,
+                                    power: snap.int("ac_output_power"),
+                                    on: ac_on,
+                                    timer_secs: ac_timer,
+                                    curve: &ac_curve,
+                                    switch_cmd: "ac_switch",
+                                    timer_cmd: "ac_timer",
+                                    busy: view.device_busy("ac_switch", cx),
+                                    connected: d.connected,
+                                },
+                                cx,
+                            )),
+                    )
+                    .child(section("Controls", cx))
+                    .child(
+                        h_flex()
+                            .gap(px(14.))
+                            .items_stretch()
+                            .child(brightness(light, d.connected, cx))
+                            .child(screen(screen_on, d.connected, cx)),
+                    ),
+            ),
         )
         .into_any_element()
 }
@@ -149,197 +140,46 @@ fn error_banner(text: String, cx: &App) -> Div {
     )
 }
 
-fn hero(d: &Dashboard, remaining_hours: Option<f64>, cx: &App) -> Div {
-    let w = 240.0 * SCALE;
-    let h = 238.0 * SCALE;
-    let battery_w = 100.0 * SCALE;
-    let dark = cx.theme().is_dark();
-    let hot = d.hero.contains("_red");
-    let accent = if hot {
-        cx.theme().danger
-    } else {
-        cx.theme().primary
+/// The device picture with its live charge level, for the detail header.
+pub fn avatar(d: &Dashboard, size: f32, cx: &App) -> AnyElement {
+    let scale = size / 240.0;
+    let h = 238.0 * scale;
+    let battery_w = 100.0 * scale;
+    let screen = |el: Div| {
+        el.absolute()
+            .top(px(68.0 * scale))
+            .left(px((size - battery_w) / 2.0))
+            .w(px(battery_w))
+            .h(px(106.0 * scale))
     };
-    let center = v_flex()
-        .absolute()
-        .top(px(68.0 * SCALE))
-        .left(px((w - battery_w) / 2.0))
-        .w(px(battery_w))
-        .h(px(106.0 * SCALE))
-        .items_center()
-        .justify_center()
-        .text_color(white())
-        .map(|el| {
-            if !d.connected || d.loading {
-                el.child(
-                    div()
-                        .text_size(px(30.))
-                        .font_weight(FontWeight::SEMIBOLD)
-                        .text_color(white().alpha(0.6))
-                        .child("--%"),
-                )
-            } else if d.overload {
-                el.child(asset(
-                    "shared/overload",
-                    px(40.),
-                    IconName::TriangleAlert,
-                    cx,
-                ))
-            } else {
-                let big = if d.healthy_temp {
-                    d.soc.map(|s| format!("{s}")).unwrap_or_else(|| "--".into())
-                } else {
-                    d.temperature.clone().unwrap_or_default()
-                };
-                el.when(d.charging && d.healthy_temp, |el| {
-                    el.child(asset("shared/charging", px(22.), IconName::Zap, cx))
-                })
-                .child(
-                    h_flex()
-                        .items_baseline()
-                        .child(
-                            div()
-                                .text_size(px(44.))
-                                .font_weight(FontWeight::BOLD)
-                                .child(big),
-                        )
-                        .when(d.healthy_temp, |el| {
-                            el.child(
-                                div()
-                                    .text_size(px(20.))
-                                    .font_weight(FontWeight::SEMIBOLD)
-                                    .child("%"),
-                            )
-                        }),
-                )
-                .when(d.healthy_temp, |el| {
-                    el.child(
-                        div()
-                            .text_size(px(14.))
-                            .font_weight(FontWeight::SEMIBOLD)
-                            .opacity(0.9)
-                            .child(d.temperature.clone().unwrap_or_default()),
-                    )
-                })
-            }
-        });
-    let glow_size = px(230.);
-    let halo = div()
-        .absolute()
-        .top(px(h / 2.0 - 115.0))
-        .left(px((w - 230.0) / 2.0))
-        .size(glow_size)
-        .rounded_full()
-        .bg(accent.alpha(0.012))
-        .shadow(vec![BoxShadow {
-            color: accent.alpha(if dark { 0.75 } else { 0.4 }),
-            offset: point(px(0.), px(0.)),
-            blur_radius: px(120.),
-            spread_radius: px(10.),
-            inset: false,
-        }]);
-    let halo: AnyElement = if d.connected && d.charging {
-        halo.with_animation(
-            "hero-glow",
-            Animation::new(Duration::from_millis(2400))
-                .repeat()
-                .with_easing(pulsating_between(0.45, 1.0)),
-            |el, delta| el.opacity(delta),
-        )
-        .into_any_element()
+    let label = if !d.healthy_temp {
+        d.temperature.clone()
     } else {
-        halo.when(!d.connected, |el| el.opacity(0.3))
-            .into_any_element()
+        d.soc.map(|s| format!("{s}%"))
     };
-    let stage = div()
+    div()
         .relative()
-        .w(px(w))
+        .w(px(size))
         .h(px(h))
-        .child(halo)
-        .child(asset(&d.hero, px(w), IconName::BatteryCharging, cx))
-        .when(d.connected && !d.loading && d.gauge, |el| {
-            el.child(
-                div()
-                    .absolute()
-                    .top(px(68.0 * SCALE))
-                    .left(px((w - battery_w) / 2.0))
-                    .child(battery_gauge(d.battery.key(), d.level, SCALE)),
-            )
-        })
-        .child(center);
-
-    let (top, bottom) = if dark {
-        (rgb(0x123241), rgb(0x0b141b))
-    } else {
-        (rgb(0xdff5fb), rgb(0xffffff))
-    };
-    let time = remaining_hours
-        .filter(|_| d.connected)
-        .map(|hrs| view_model::duration_text((hrs * 60.0).round() as i64));
-    let chip = |icon: IconName, text: String, color: Hsla| {
-        h_flex()
-            .gap(px(6.))
-            .items_center()
-            .px(px(12.))
-            .py(px(6.))
-            .rounded_full()
-            .bg(color.alpha(0.14))
-            .border_1()
-            .border_color(color.alpha(0.25))
-            .child(Icon::new(icon).size(px(14.)).text_color(color))
-            .child(
-                div()
-                    .text_size(px(13.))
-                    .font_weight(FontWeight::SEMIBOLD)
-                    .text_color(color)
-                    .child(text),
-            )
-    };
-    v_flex()
-        .w(px(w + 40.))
         .flex_none()
-        .rounded(px(28.))
-        .overflow_hidden()
-        .bg(linear_gradient(
-            180.,
-            linear_color_stop(top, 0.),
-            linear_color_stop(bottom, 1.),
-        ))
-        .border_1()
-        .border_color(accent.alpha(if dark { 0.18 } else { 0.25 }))
-        .shadow(glow(accent, if dark { 0.5 } else { 0.25 }))
-        .p(px(20.))
-        .gap(px(14.))
-        .items_center()
-        .child(stage)
-        .child(
-            div()
-                .text_size(px(14.))
-                .font_weight(FontWeight::SEMIBOLD)
-                .text_color(cx.theme().foreground.alpha(0.8))
-                .child(d.status.clone()),
-        )
-        .when(d.connected && !d.loading, |el| {
-            el.child(
-                h_flex()
-                    .gap(px(8.))
-                    .flex_wrap()
-                    .justify_center()
-                    .child(chip(
-                        IconName::ArrowDownToLine,
-                        format!("{} W", d.total_in.unwrap_or(0)),
-                        input_color(cx),
-                    ))
-                    .child(chip(
-                        IconName::ArrowUpFromLine,
-                        format!("{} W", d.total_out.unwrap_or(0)),
-                        output_color(cx),
-                    ))
-                    .when_some(time, |el, t| {
-                        el.child(chip(IconName::Clock, t, cx.theme().foreground.alpha(0.75)))
-                    }),
-            )
+        .child(asset(&d.hero, px(size), IconName::BatteryCharging, cx))
+        .when(d.connected && !d.loading && d.gauge, |el| {
+            el.child(screen(div()).child(battery_gauge(d.battery.key(), d.level, scale)))
         })
+        .when(d.connected && !d.loading, |el| {
+            el.when_some(label, |el, label| {
+                el.child(
+                    screen(v_flex())
+                        .items_center()
+                        .justify_center()
+                        .text_color(white())
+                        .text_size(px((40.0 * scale).max(11.)))
+                        .font_weight(FontWeight::BOLD)
+                        .child(label),
+                )
+            })
+        })
+        .into_any_element()
 }
 
 fn total(label: &'static str, value: Option<i64>, input: bool, cx: &App) -> Div {
@@ -401,7 +241,7 @@ fn ports(d: &Dashboard, cx: &App) -> Div {
         if row.is_empty() {
             break;
         }
-        rows = rows.child(h_flex().gap(px(12.)).children(row));
+        rows = rows.child(h_flex().gap(px(12.)).items_stretch().children(row));
     }
     rows
 }
@@ -614,9 +454,7 @@ fn brightness(light: i64, connected: bool, cx: &mut Context<DeviceView>) -> Div 
                                 .gap(px(2.))
                                 .py(px(8.))
                                 .rounded(px(10.))
-                                .when(selected, |el| {
-                                    el.bg(cx.theme().group_box).shadow(glow(color, 0.35))
-                                })
+                                .when(selected, |el| el.bg(cx.theme().group_box))
                                 .when(connected && !selected, |el| {
                                     el.hover(|s| s.bg(cx.theme().group_box.alpha(0.5)))
                                 })

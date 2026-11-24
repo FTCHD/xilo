@@ -6,9 +6,7 @@ use gpui_kit::*;
 use xilo_store::{Preferences, ThemeChoice};
 
 use crate::state::AppState;
-use crate::widgets::{
-    caption, card, divided, glow, icon_badge, pill, section, segment, segmented, tint,
-};
+use crate::widgets::{caption, card, divided, icon_badge, pill, section, segment, segmented, tint};
 
 const LICENSES: &str = include_str!("../../../THIRD_PARTY_NOTICES.md");
 
@@ -268,7 +266,6 @@ pub fn about(cx: &App) -> AnyElement {
                                     linear_color_stop(rgb(0x00cceb), 0.),
                                     linear_color_stop(rgb(0x0073b3), 1.),
                                 ))
-                                .shadow(glow(primary, 0.7))
                                 .flex()
                                 .items_center()
                                 .justify_center()

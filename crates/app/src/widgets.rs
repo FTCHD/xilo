@@ -27,17 +27,6 @@ pub fn tint(base: Hsla, color: Hsla, t: f32) -> Hsla {
     base.blend(color.alpha(t))
 }
 
-/// A soft coloured halo around an element.
-pub fn glow(color: Hsla, strength: f32) -> Vec<BoxShadow> {
-    vec![BoxShadow {
-        color: color.alpha(0.45 * strength),
-        offset: point(px(0.), px(0.)),
-        blur_radius: px(24. * strength),
-        spread_radius: px(0.),
-        inset: false,
-    }]
-}
-
 fn lift(cx: &App) -> Vec<BoxShadow> {
     let dark = cx.theme().is_dark();
     vec![BoxShadow {
@@ -87,7 +76,6 @@ pub fn live_card(active: bool, color: Hsla, cx: &App) -> Div {
             linear_color_stop(tint(base, color, 0.03), 1.),
         ))
         .border_color(color.alpha(0.45))
-        .shadow(glow(color, 0.6))
 }
 
 pub fn caption(text: impl Into<SharedString>, cx: &App) -> Div {
@@ -346,7 +334,6 @@ pub fn port_tile(
                                 .items_center()
                                 .justify_center()
                                 .bg(rgb(0xf3f7fb))
-                                .when(active, |el| el.shadow(glow(color, 0.5)))
                                 .when(!active, |el| el.opacity(0.4))
                                 .child(asset(icon_key, px(28.), IconName::Plug, cx)),
                         )
@@ -381,7 +368,7 @@ pub fn port_tile(
         )
 }
 
-/// A round power button that glows while on.
+/// A round power button, filled while on.
 pub fn power_button(id: impl Into<ElementId>, on: bool, enabled: bool, cx: &App) -> Stateful<Div> {
     let color = output_color(cx);
     div()
@@ -392,7 +379,7 @@ pub fn power_button(id: impl Into<ElementId>, on: bool, enabled: bool, cx: &App)
         .flex()
         .items_center()
         .justify_center()
-        .when(on, |el| el.bg(color).shadow(glow(color, 0.8)))
+        .when(on, |el| el.bg(color))
         .when(!on, |el| {
             el.bg(cx.theme().muted)
                 .border_1()
@@ -408,11 +395,7 @@ pub fn power_button(id: impl Into<ElementId>, on: bool, enabled: bool, cx: &App)
 }
 
 pub fn status_dot(color: Hsla) -> Div {
-    div()
-        .size(px(8.))
-        .rounded_full()
-        .bg(color)
-        .shadow(glow(color, 0.4))
+    div().size(px(8.)).rounded_full().bg(color)
 }
 
 /// Stacks rows with a thin line between them, never after the last one.
@@ -461,9 +444,7 @@ pub fn segment(
         .font_weight(FontWeight::SEMIBOLD)
         .cursor_pointer()
         .when(selected, |el| {
-            el.bg(primary)
-                .text_color(cx.theme().primary_foreground)
-                .shadow(glow(primary, 0.5))
+            el.bg(primary).text_color(cx.theme().primary_foreground)
         })
         .when(!selected, |el| {
             el.text_color(cx.theme().muted_foreground)

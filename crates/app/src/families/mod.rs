@@ -23,3 +23,35 @@ pub fn dashboard(
         _ => generic::render(view, window, cx),
     }
 }
+
+/// The picture in the detail header: the live charge level for models with
+/// Anker home images, else the product image.
+pub fn avatar(view: &DeviceView, size: f32, cx: &App) -> AnyElement {
+    let snap = &view.device.read(cx).snap;
+    let Some(model) = snap.model.as_ref() else {
+        return crate::widgets::asset(
+            "",
+            px(size),
+            gpui_kit::assets::IconName::BatteryCharging,
+            cx,
+        );
+    };
+    match model.family.dashboard.as_str() {
+        "c1000" => c300::avatar(
+            &view_model::build_c1000(snap, &model.assets, view.blink_on),
+            size,
+            cx,
+        ),
+        "c300" => c300::avatar(
+            &view_model::build(snap, &model.assets, view.blink_on),
+            size,
+            cx,
+        ),
+        _ => crate::widgets::asset(
+            &format!("{}/product", model.assets),
+            px(size),
+            gpui_kit::assets::IconName::BatteryCharging,
+            cx,
+        ),
+    }
+}

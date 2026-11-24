@@ -1,14 +1,13 @@
 use gpui_kit::assets::IconName;
-use gpui_kit::component::{ActiveTheme as _, Icon, h_flex, v_flex};
+use gpui_kit::component::{ActiveTheme as _, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 use xilo_models::{CommandRequest, Group, Input};
 
 use crate::device_view::DeviceView;
-use crate::families::view_model::temperature_text;
 use crate::widgets::{
-    asset, battery_color, big_value, caption, card, divided, icon_badge, input_color, level_bar,
-    live_card, output_color, power_button, section,
+    big_value, caption, card, divided, icon_badge, input_color, live_card, output_color,
+    power_button, section,
 };
 
 pub fn render(
@@ -27,8 +26,6 @@ pub fn render(
             .into_any_element();
     };
     let connected = snap.is_ready();
-    let soc = snap.int("battery_soc");
-    let fahrenheit = snap.int("temperature_unit") == Some(1);
     let controls: Vec<_> = model
         .commands
         .values()
@@ -37,61 +34,6 @@ pub fn render(
         .cloned()
         .collect();
 
-    let temperature = snap
-        .int("temperature")
-        .map(|t| temperature_text(t, fahrenheit));
-    let battery = card(cx).w(px(280.)).flex_none().child(
-        h_flex()
-            .gap(px(14.))
-            .items_center()
-            .child(
-                div()
-                    .size(px(64.))
-                    .flex_none()
-                    .rounded(px(18.))
-                    .bg(linear_gradient(
-                        160.,
-                        linear_color_stop(cx.theme().primary.alpha(0.22), 0.),
-                        linear_color_stop(cx.theme().primary.alpha(0.04), 1.),
-                    ))
-                    .flex()
-                    .items_center()
-                    .justify_center()
-                    .child(asset(
-                        &format!("{}/product", model.assets),
-                        px(52.),
-                        IconName::BatteryCharging,
-                        cx,
-                    )),
-            )
-            .child(
-                v_flex()
-                    .flex_1()
-                    .gap(px(6.))
-                    .child(big_value(soc, "%", 32., None, cx))
-                    .when_some(soc, |el, s| {
-                        el.child(level_bar(
-                            s as f32 / 100.0,
-                            battery_color(s, cx),
-                            px(6.),
-                            cx,
-                        ))
-                    })
-                    .when_some(temperature, |el, t| {
-                        el.child(
-                            h_flex()
-                                .gap(px(4.))
-                                .items_center()
-                                .child(
-                                    Icon::new(IconName::Thermometer)
-                                        .size(px(13.))
-                                        .text_color(cx.theme().muted_foreground),
-                                )
-                                .child(caption(t, cx)),
-                        )
-                    }),
-            ),
-    );
     let total = |label: &'static str, value: Option<i64>, input: bool, cx: &App| {
         let color = if input {
             input_color(cx)
@@ -130,7 +72,6 @@ pub fn render(
     let summary = h_flex()
         .gap(px(14.))
         .items_stretch()
-        .child(battery)
         .child(total(
             "Total Input",
             snap.int("total_input_power"),

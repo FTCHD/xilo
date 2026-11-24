@@ -15,7 +15,7 @@ use crate::runtime::Runtime;
 use crate::services::{AppEvent, EventKind, unix_now};
 use crate::state::{AppState, Route, Tab};
 use crate::theme;
-use crate::widgets::{asset, battery_color, caption, level_bar, section, status_dot, tint};
+use crate::widgets::{asset, battery_color, caption, section, status_dot, tint};
 
 pub struct Root {
     state: Entity<AppState>,
@@ -116,11 +116,12 @@ impl Root {
             let soc = snap.is_ready().then(|| snap.int("battery_soc")).flatten();
             let out = snap.int("total_output_power").unwrap_or(0);
             let input = snap.int("total_input_power").unwrap_or(0);
-            let detail = match soc {
-                Some(_) if input > out => format!("Charging · {input} W"),
-                Some(_) if out > 0 => format!("{out} W out"),
-                Some(_) => "Idle".to_string(),
-                None => snap.link.label().to_string(),
+            let activity = if input > out {
+                format!("Charging · {input} W")
+            } else if out > 0 {
+                format!("{out} W out")
+            } else {
+                "Idle".to_string()
             };
             let assets = snap
                 .model
@@ -163,37 +164,30 @@ impl Root {
                         v_flex()
                             .flex_1()
                             .min_w(px(0.))
-                            .gap(px(4.))
+                            .gap(px(2.))
                             .child(
-                                h_flex()
-                                    .justify_between()
-                                    .gap(px(6.))
+                                div()
+                                    .text_size(px(14.))
+                                    .font_weight(FontWeight::SEMIBOLD)
+                                    .truncate()
+                                    .child(d.name()),
+                            )
+                            .child(match soc {
+                                Some(soc) => h_flex()
+                                    .gap(px(4.))
+                                    .text_size(px(12.))
                                     .child(
                                         div()
-                                            .text_size(px(14.))
-                                            .font_weight(FontWeight::SEMIBOLD)
-                                            .truncate()
-                                            .child(d.name()),
+                                            .font_weight(FontWeight::BOLD)
+                                            .text_color(battery_color(soc, cx))
+                                            .child(format!("{soc}%")),
                                     )
-                                    .when_some(soc, |el, soc| {
-                                        el.child(
-                                            div()
-                                                .text_size(px(12.))
-                                                .font_weight(FontWeight::BOLD)
-                                                .text_color(battery_color(soc, cx))
-                                                .child(format!("{soc}%")),
-                                        )
-                                    }),
-                            )
-                            .when_some(soc, |el, soc| {
-                                el.child(level_bar(
-                                    soc as f32 / 100.0,
-                                    battery_color(soc, cx),
-                                    px(4.),
-                                    cx,
-                                ))
-                            })
-                            .child(caption(detail, cx).text_size(px(11.))),
+                                    .child(caption(format!("· {activity}"), cx).text_size(px(12.)))
+                                    .into_any_element(),
+                                None => caption(snap.link.label().to_string(), cx)
+                                    .text_size(px(12.))
+                                    .into_any_element(),
+                            }),
                     )
                     .on_click(move |_, _, cx| {
                         let key = key.clone();

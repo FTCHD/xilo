@@ -12,8 +12,9 @@ use xilo_models::CommandRequest;
 
 use crate::device::DeviceModel;
 use crate::families;
+use crate::families::view_model::{duration_text, temperature_text};
 use crate::state::{AppState, Route, Tab};
-use crate::widgets::{asset, battery_color, big_value, caption, glow, level_bar, status_dot};
+use crate::widgets::{battery_color, big_value, caption, level_bar};
 use crate::{automations, history_view, inspector, settings};
 
 pub struct DeviceView {
@@ -156,14 +157,6 @@ impl DeviceView {
         let device = self.device.read(cx);
         let snap = &device.snap;
         let theme = cx.theme();
-        let (color, text) = match snap.link {
-            LinkState::Ready => (theme.success, "Connected".to_string()),
-            LinkState::Released => (theme.warning, "Released to phone".to_string()),
-            LinkState::Connecting | LinkState::Handshaking => {
-                (theme.warning, "Connecting".to_string())
-            }
-            LinkState::Disconnected => (theme.danger, "Disconnected".to_string()),
-        };
         let error = matches!(snap.link, LinkState::Disconnected)
             .then(|| snap.last_error.clone())
             .flatten();
@@ -172,16 +165,28 @@ impl DeviceView {
             .as_ref()
             .map(|m| format!("{} · {}", m.name, m.code))
             .unwrap_or_else(|| "Detecting model".into());
-        let assets = snap
-            .model
-            .as_ref()
-            .map(|m| m.assets.clone())
-            .unwrap_or_default();
-        let soc = snap
-            .is_ready()
-            .then(|| snap.int("battery_soc"))
+        let ready = snap.is_ready();
+        let soc = ready.then(|| snap.int("battery_soc")).flatten();
+        let fahrenheit = snap.int("temperature_unit") == Some(1);
+        let temperature = ready
+            .then(|| snap.int("temperature"))
             .flatten()
-            .filter(|_| self.tab != Tab::Dashboard);
+            .map(|t| temperature_text(t, fahrenheit));
+        let input = snap.int("total_input_power").unwrap_or(0);
+        let output = snap.int("total_output_power").unwrap_or(0);
+        let remaining = ready
+            .then(|| snap.float("remaining_time"))
+            .flatten()
+            .filter(|_| input != output)
+            .map(|hours| {
+                let time = duration_text((hours * 60.0).round() as i64);
+                if input > output {
+                    format!("{time} to full")
+                } else {
+                    format!("{time} left")
+                }
+            });
+        let details: Vec<String> = temperature.into_iter().chain(remaining).collect();
         let disconnected = matches!(snap.link, LinkState::Disconnected | LinkState::Released);
         let tabs = [
             (Tab::Dashboard, "Dashboard"),
@@ -192,41 +197,6 @@ impl DeviceView {
         ];
         let developer = self.state.read(cx).config.preferences.developer_mode;
         let current = self.tab;
-        let tile = div()
-            .size(px(72.))
-            .flex_none()
-            .rounded(px(20.))
-            .flex()
-            .items_center()
-            .justify_center()
-            .bg(linear_gradient(
-                160.,
-                linear_color_stop(theme.primary.alpha(0.22), 0.),
-                linear_color_stop(theme.primary.alpha(0.04), 1.),
-            ))
-            .border_1()
-            .border_color(theme.primary.alpha(0.2))
-            .child(asset(
-                &format!("{assets}/product"),
-                px(56.),
-                IconName::BatteryCharging,
-                cx,
-            ));
-        let status = h_flex()
-            .gap(px(6.))
-            .items_center()
-            .px(px(10.))
-            .py(px(3.))
-            .rounded_full()
-            .bg(color.alpha(0.14))
-            .child(status_dot(color))
-            .child(
-                div()
-                    .text_size(px(12.))
-                    .font_weight(FontWeight::SEMIBOLD)
-                    .text_color(color)
-                    .child(text),
-            );
         let segmented = h_flex()
             .self_start()
             .p(px(4.))
@@ -251,7 +221,6 @@ impl DeviceView {
                             .when(selected, |el| {
                                 el.bg(cx.theme().primary)
                                     .text_color(cx.theme().primary_foreground)
-                                    .shadow(glow(cx.theme().primary, 0.5))
                             })
                             .when(!selected, |el| {
                                 el.text_color(cx.theme().muted_foreground)
@@ -267,42 +236,39 @@ impl DeviceView {
                 h_flex()
                     .gap(px(16.))
                     .items_center()
-                    .child(tile)
+                    .child(families::avatar(self, 96., cx))
                     .child(
                         v_flex()
                             .flex_1()
                             .min_w(px(0.))
-                            .gap(px(6.))
+                            .gap(px(4.))
                             .child(
-                                h_flex()
-                                    .gap(px(12.))
-                                    .items_center()
-                                    .child(
-                                        div()
-                                            .text_size(px(26.))
-                                            .font_weight(FontWeight::BOLD)
-                                            .child(device.name()),
-                                    )
-                                    .child(status),
+                                div()
+                                    .text_size(px(26.))
+                                    .font_weight(FontWeight::BOLD)
+                                    .child(device.name()),
                             )
                             .child(caption(model, cx))
                             .when_some(error, |el, e| {
-                                el.child(caption(e, cx).text_color(cx.theme().danger.alpha(0.85)))
+                                el.child(caption(e, cx).text_color(cx.theme().danger))
                             }),
                     )
                     .when_some(soc, |el, soc| {
                         el.child(
                             v_flex()
-                                .w(px(120.))
+                                .w(px(160.))
                                 .gap(px(6.))
                                 .items_end()
-                                .child(big_value(Some(soc), "%", 24., None, cx))
+                                .child(big_value(Some(soc), "%", 26., None, cx))
                                 .child(level_bar(
                                     soc as f32 / 100.0,
                                     battery_color(soc, cx),
                                     px(6.),
                                     cx,
-                                )),
+                                ))
+                                .when(!details.is_empty(), |el| {
+                                    el.child(caption(details.join(" · "), cx).text_size(px(12.)))
+                                }),
                         )
                     })
                     .when(disconnected, |el| {
