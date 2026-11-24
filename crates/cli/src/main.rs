@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Context, Result, anyhow};
 use clap::{Parser, Subcommand};
 use xilo_engine::sim::{SimConnector, SimDevice};
 use xilo_engine::{
@@ -426,25 +426,10 @@ async fn set(
 
 async fn raw(handle: &DeviceHandle, msg: &str, params: &[String]) -> Result<()> {
     let id = MsgId::parse(msg).ok_or_else(|| anyhow!("bad message id {msg}"))?;
-    let mut parsed = Vec::new();
-    for p in params {
-        let (key, rest) = p
-            .split_once('=')
-            .ok_or_else(|| anyhow!("use key=type:value"))?;
-        let (ty, value) = rest
-            .split_once(':')
-            .ok_or_else(|| anyhow!("use key=type:value"))?;
-        let key = u8::from_str_radix(key, 16)?;
-        let value = match ty {
-            "u8" => tlv::Value::U8(value.parse()?),
-            "u16" => tlv::Value::U16(value.parse()?),
-            "u32" => tlv::Value::U32(value.parse()?),
-            "str" => tlv::Value::Str(value.into()),
-            "hex" => tlv::Value::Bytes(hex::decode(value)?),
-            other => bail!("unknown type {other}"),
-        };
-        parsed.push((key, value));
-    }
+    let parsed = params
+        .iter()
+        .map(|p| tlv::parse_param(p).map_err(|e| anyhow!(e)))
+        .collect::<Result<Vec<_>>>()?;
     let outcome = handle.send_raw(Request { id, params: parsed }).await?;
     println!("{id}: {outcome:?}");
     Ok(())

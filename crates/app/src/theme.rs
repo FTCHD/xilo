@@ -1,11 +1,16 @@
-use gpui_kit::component::{Theme, ThemeRegistry};
+use std::sync::OnceLock;
+
+use gpui_kit::component::{Theme, ThemeMode, ThemeRegistry};
 use gpui_kit::*;
+use xilo_store::ThemeChoice;
 
 const THEMES: &str = include_str!("../../../assets/builtin/themes/xilo.json");
 const LIGHT: &str = "Xilo Light";
 const DARK: &str = "Xilo Dark";
 
-pub fn init(cx: &mut App) {
+static FONT: OnceLock<Option<&'static str>> = OnceLock::new();
+
+pub fn init(cx: &mut App, choice: ThemeChoice) {
     ThemeRegistry::global_mut(cx)
         .load_themes_from_str(THEMES)
         .expect("built-in theme is valid");
@@ -18,9 +23,22 @@ pub fn init(cx: &mut App) {
     theme.light_theme = light;
     theme.dark_theme = dark;
 
-    Theme::sync_system_appearance(None, cx);
+    FONT.get_or_init(|| crate::assets::load_fonts(cx));
+    apply_mode(choice, None, cx);
 }
 
-pub fn follow_system(window: &mut Window, cx: &mut App) {
-    Theme::sync_system_appearance(Some(window), cx);
+fn apply_mode(choice: ThemeChoice, window: Option<&mut Window>, cx: &mut App) {
+    match choice {
+        ThemeChoice::System => Theme::sync_system_appearance(window, cx),
+        ThemeChoice::Light => Theme::change(ThemeMode::Light, window, cx),
+        ThemeChoice::Dark => Theme::change(ThemeMode::Dark, window, cx),
+    }
+    if let Some(Some(font)) = FONT.get() {
+        Theme::global_mut(cx).font_family = SharedString::from(*font);
+    }
+}
+
+pub fn apply(choice: ThemeChoice, window: &mut Window, cx: &mut App) {
+    apply_mode(choice, Some(window), cx);
+    window.refresh();
 }

@@ -199,3 +199,19 @@ fn detects_models() {
         "the serial in the state picks the C300"
     );
 }
+
+#[test]
+fn guesses_model_from_advert() {
+    let r = Registry::builtin();
+    let c300x = hex::decode("01007f1dabc8da01b10b53424b04").expect("hex");
+    let c1000 = hex::decode("017ce91392a04a00b10539465104").expect("hex");
+    let codes = |d: &[u8]| -> Vec<String> {
+        r.guess_from_advert(d)
+            .iter()
+            .map(|m| m.code.clone())
+            .collect()
+    };
+    assert!(codes(&c300x).contains(&"A1723".to_string()));
+    assert_eq!(codes(&c1000), vec!["A1761".to_string()]);
+    assert!(codes(&[1, 2]).is_empty());
+}

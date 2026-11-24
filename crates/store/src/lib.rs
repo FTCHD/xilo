@@ -29,6 +29,14 @@ pub struct Paths {
 
 impl Paths {
     pub fn detect() -> Self {
+        if let Some(home) = std::env::var_os("XILO_HOME") {
+            let base = PathBuf::from(home);
+            return Self {
+                config: base.clone(),
+                data: base.clone(),
+                logs: base.join("logs"),
+            };
+        }
         match directories::ProjectDirs::from("dev", "xilo", "Xilo") {
             Some(dirs) => Self {
                 config: dirs.config_dir().to_path_buf(),
@@ -103,4 +111,15 @@ pub fn audit(paths: &Paths, line: &str) -> Result<(), StoreError> {
         .open(paths.audit_file())?;
     writeln!(file, "{line}")?;
     Ok(())
+}
+
+/// The user's Downloads folder, or the home folder.
+pub fn download_dir() -> PathBuf {
+    directories::UserDirs::new()
+        .and_then(|d| {
+            d.download_dir()
+                .map(|p| p.to_path_buf())
+                .or(Some(d.home_dir().to_path_buf()))
+        })
+        .unwrap_or_else(std::env::temp_dir)
 }

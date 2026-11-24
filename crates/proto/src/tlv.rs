@@ -232,3 +232,37 @@ mod tests {
         }
     }
 }
+
+/// Parses `key=type:value`, for example `a2=u8:1` or `a3=hex:0102`.
+pub fn parse_param(text: &str) -> Result<(u8, Value), String> {
+    let usage = || format!("use key=type:value, not {text}");
+    let (key, rest) = text.split_once('=').ok_or_else(usage)?;
+    let (ty, value) = rest.split_once(':').ok_or_else(usage)?;
+    let key = u8::from_str_radix(key.trim(), 16).map_err(|_| format!("bad key {key}"))?;
+    let bad = |_| format!("bad {ty} value {value}");
+    let value = match ty {
+        "u8" => Value::U8(value.parse().map_err(bad)?),
+        "u16" => Value::U16(value.parse().map_err(bad)?),
+        "u32" => Value::U32(value.parse().map_err(bad)?),
+        "str" => Value::Str(value.into()),
+        "hex" => Value::Bytes(hex::decode(value).map_err(|_| format!("bad hex {value}"))?),
+        other => return Err(format!("unknown type {other}")),
+    };
+    Ok((key, value))
+}
+
+#[cfg(test)]
+mod param_tests {
+    use super::*;
+
+    #[test]
+    fn parses_params() {
+        assert_eq!(parse_param("a2=u8:1"), Ok((0xa2, Value::U8(1))));
+        assert_eq!(
+            parse_param("a3=hex:0102"),
+            Ok((0xa3, Value::Bytes(vec![1, 2])))
+        );
+        assert!(parse_param("a2=u8:300").is_err());
+        assert!(parse_param("a2").is_err());
+    }
+}

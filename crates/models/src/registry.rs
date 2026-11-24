@@ -138,6 +138,21 @@ impl Registry {
         self.models.values()
     }
 
+    /// Guesses the model from SOLIX manufacturer data (company 0xffff).
+    /// Bytes 10..13 hold serial characters 3..6, which overlap the prefix.
+    pub fn guess_from_advert(&self, data: &[u8]) -> Vec<&Arc<ModelSpec>> {
+        let Some(chars) = data.get(10..12).and_then(|c| std::str::from_utf8(c).ok()) else {
+            return Vec::new();
+        };
+        self.all()
+            .filter(|m| {
+                m.serial_prefixes
+                    .iter()
+                    .any(|p| p.get(3..5).is_some_and(|s| s.eq_ignore_ascii_case(chars)))
+            })
+            .collect()
+    }
+
     /// Ranks models for a device, best first.
     pub fn detect(&self, evidence: &Evidence<'_>) -> Vec<Candidate> {
         if let Some(code) = evidence.saved_model
