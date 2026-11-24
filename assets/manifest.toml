@@ -1,0 +1,326 @@
+# Logical asset keys and where they live inside the Anker app package.
+# `cargo xtask assets extract` copies them into the gitignored assets/vendor/.
+
+[apks]
+images = "flutter_assets_pack.apk"
+base = "com.anker.charging.apk"
+
+[[asset]]
+key = "a1723/hero_blue_on"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1723_a1725_homepage_blue_on.webp"
+
+[[asset]]
+key = "a1722/hero_blue_on"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_homepage_blue_on.webp"
+
+[[asset]]
+key = "a1723/hero_blue_off"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1723_a1725_homepage_blue_off.webp"
+
+[[asset]]
+key = "a1722/hero_blue_off"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_homepage_blue_off.webp"
+
+[[asset]]
+key = "a1723/hero_red_on"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1723_a1725_homepage_red_on.webp"
+
+[[asset]]
+key = "a1722/hero_red_on"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_homepage_red_on.webp"
+
+[[asset]]
+key = "a1723/hero_red_off"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1723_a1725_homepage_red_off.webp"
+
+[[asset]]
+key = "a1722/hero_red_off"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_homepage_red_off.webp"
+
+[[asset]]
+key = "a1723/hero_disconnect"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1723_a1725_homepage_disconnect.webp"
+
+[[asset]]
+key = "a1722/hero_disconnect"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_homepage_disconnect.webp"
+
+[[asset]]
+key = "a1723/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1723_a1725_normal.webp"
+
+[[asset]]
+key = "a1722/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_normal.webp"
+
+[[asset]]
+key = "c300/loading"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_home_loading_data.webp"
+
+[[asset]]
+key = "ports/usb_c_off"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_homepage_usb_c_off.png"
+
+[[asset]]
+key = "ports/usb_c_output"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_homepage_usb_c_on_output.webp"
+
+[[asset]]
+key = "ports/usb_c_input"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_homepage_usb_c_on_input.png"
+
+[[asset]]
+key = "ports/ac_input_on"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_homepage_acinput_on.png"
+
+[[asset]]
+key = "ports/ac_input_off"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_homepage_acinput_off.png"
+
+[[asset]]
+key = "ports/dc_input_on"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_homepage_dcinput_on.png"
+
+[[asset]]
+key = "ports/dc_input_off"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1722_homepage_dcinput_off.png"
+
+[[asset]]
+key = "shared/usb_a_on"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1780_usb_on.png"
+
+[[asset]]
+key = "shared/usb_a_off"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1780_usb_off.png"
+
+[[asset]]
+key = "shared/countdown_off"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1780_countdown_off.png"
+
+[[asset]]
+key = "shared/countdown_on"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1780_countdown_on.webp"
+
+[[asset]]
+key = "shared/charging"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1780_charging.png"
+
+[[asset]]
+key = "shared/overload"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1780_overload.png"
+
+[[asset]]
+key = "shared/overvoltage"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1780_overvoltage.png"
+
+[[asset]]
+key = "shared/brightness_off_nor"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/brightness_off_nor.png"
+
+[[asset]]
+key = "shared/brightness_off_sel"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/brightness_off_sel.png"
+
+[[asset]]
+key = "shared/ble_on"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/ble_enable.png"
+
+[[asset]]
+key = "shared/ble_off"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/ble_unable.png"
+
+[[asset]]
+key = "shared/tips"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/icl_A761_device_tips.png"
+
+[[asset]]
+key = "shared/bottom_charging"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1790/a1790_bottom_charging_animate.webp"
+
+[[asset]]
+key = "shared/bottom_charging_red"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1790/a1790_bottom_red_charging_animate.webp"
+
+[[asset]]
+key = "shared/home_bg"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/station/home/device_home_bg.webp"
+
+[[asset]]
+key = "shared/device_on"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/a1780_device_on.png"
+
+[[asset]]
+key = "shared/device_off"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/a1780_device_off.png"
+
+[[asset]]
+key = "shared/setting"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/a1780_setting.png"
+
+[[asset]]
+key = "shared/choose"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/choose.png"
+
+[[asset]]
+key = "shared/error"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/device_exception_tips_red.png"
+
+[[asset]]
+key = "shared/brightness_low_nor"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/brightness_low_nor.png"
+
+[[asset]]
+key = "shared/brightness_low_sel"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/brightness_low_sel.png"
+
+[[asset]]
+key = "shared/brightness_middle_nor"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/brightness_middle_nor.png"
+
+[[asset]]
+key = "shared/brightness_middle_sel"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/brightness_middle_sel.png"
+
+[[asset]]
+key = "shared/brightness_high_nor"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/brightness_high_nor.png"
+
+[[asset]]
+key = "shared/brightness_high_sel"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/brightness_high_sel.png"
+
+[[asset]]
+key = "a1761/hero_blue_lighton"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1761_device_blue_lighton.webp"
+
+[[asset]]
+key = "a1761/hero_blue_lightoff"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1761_device_blue_lightoff.webp"
+
+[[asset]]
+key = "a1761/hero_red_lighton"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1761_device_red_lighton.webp"
+
+[[asset]]
+key = "a1761/hero_red_lightoff"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1761_device_red_lightoff.webp"
+
+[[asset]]
+key = "a1761/hero_blue_extrabattery_lighton"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1761_device_blue_extrabattery_lighton.webp"
+
+[[asset]]
+key = "a1761/hero_blue_extrabattery_lightoff"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1761_device_blue_extrabattery_lightoff.webp"
+
+[[asset]]
+key = "a1761/hero_red_extrabattery_lighton"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1761_device_red_extrabattery_lighton.webp"
+
+[[asset]]
+key = "a1761/hero_red_extrabattery_lightoff"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1761_device_red_extrabattery_lightoff.webp"
+
+[[asset]]
+key = "a1761/hero_disconnect"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1761_device_disconnect.webp"
+
+[[asset]]
+key = "a1761/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/picl_A1761_normal.png"
+
+[[asset]]
+key = "fonts/MontForAnker-Regular"
+apk = "base"
+path = "assets/flutter_assets/packages/flutter_ank_uikit/assets/fonts/MontForAnker-Regular.ttf"
+
+[[asset]]
+key = "fonts/MontForAnker-SemiBold"
+apk = "base"
+path = "assets/flutter_assets/packages/flutter_ank_uikit/assets/fonts/MontForAnker-SemiBold.ttf"
+
+[[asset]]
+key = "fonts/MontForAnker-Bold"
+apk = "base"
+path = "assets/flutter_assets/packages/flutter_ank_uikit/assets/fonts/MontForAnker-Bold.ttf"
+
+[[asset]]
+key = "c300/battery_normal"
+apk = "base"
+path = "assets/flutter_assets/assets/lottie/1722_normal_lottie.zip"
+
+[[asset]]
+key = "c300/battery_low_temp"
+apk = "base"
+path = "assets/flutter_assets/assets/lottie/1722_low_temp_lottie.zip"
+
+[[asset]]
+key = "c300/battery_high_temp"
+apk = "base"
+path = "assets/flutter_assets/assets/lottie/1722_high_temp_lottie.zip"
+
+[[asset]]
+key = "c300/battery_low_battery"
+apk = "base"
+path = "assets/flutter_assets/assets/lottie/1722_low_battery_lottie.zip"
+
+[[asset]]
+key = "shared/reconnect"
+apk = "base"
+path = "assets/flutter_assets/assets/lottie/1781_reconnect_lottie.zip"
