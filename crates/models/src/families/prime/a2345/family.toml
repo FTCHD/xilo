@@ -1,0 +1,216 @@
+# From SolixBLE (MIT, Harvey Lelliott): SolixBLE/devices/prime_*.py and maggo_3in1.py.
+[family]
+id = "prime_a2345"
+protocol = "prime"
+gatt = "g1"
+state_msgs = ["0300", "0a00"]
+
+[[field]]
+key = "a2"
+id = "usb_c1_state"
+label = "USB-C1"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a2"
+id = "usb_c1_voltage"
+label = "USB-C1 voltage"
+kind = "u16"
+offset = 1
+scale = 0.001
+unit = "V"
+
+[[field]]
+key = "a2"
+id = "usb_c1_current"
+label = "USB-C1 current"
+kind = "u16"
+offset = 3
+scale = 0.001
+unit = "A"
+
+[[field]]
+key = "a2"
+id = "usb_c1_power"
+label = "USB-C1 power"
+kind = "u16"
+offset = 5
+scale = 0.01
+unit = "W"
+
+[[field]]
+key = "a3"
+id = "usb_c2_state"
+label = "USB-C2"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a3"
+id = "usb_c2_voltage"
+label = "USB-C2 voltage"
+kind = "u16"
+offset = 1
+scale = 0.001
+unit = "V"
+
+[[field]]
+key = "a3"
+id = "usb_c2_current"
+label = "USB-C2 current"
+kind = "u16"
+offset = 3
+scale = 0.001
+unit = "A"
+
+[[field]]
+key = "a3"
+id = "usb_c2_power"
+label = "USB-C2 power"
+kind = "u16"
+offset = 5
+scale = 0.01
+unit = "W"
+
+[[field]]
+key = "a4"
+id = "usb_c3_state"
+label = "USB-C3"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a4"
+id = "usb_c3_voltage"
+label = "USB-C3 voltage"
+kind = "u16"
+offset = 1
+scale = 0.001
+unit = "V"
+
+[[field]]
+key = "a4"
+id = "usb_c3_current"
+label = "USB-C3 current"
+kind = "u16"
+offset = 3
+scale = 0.001
+unit = "A"
+
+[[field]]
+key = "a4"
+id = "usb_c3_power"
+label = "USB-C3 power"
+kind = "u16"
+offset = 5
+scale = 0.01
+unit = "W"
+
+[[field]]
+key = "a5"
+id = "usb_c4_state"
+label = "USB-C4"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a5"
+id = "usb_c4_voltage"
+label = "USB-C4 voltage"
+kind = "u16"
+offset = 1
+scale = 0.001
+unit = "V"
+
+[[field]]
+key = "a5"
+id = "usb_c4_current"
+label = "USB-C4 current"
+kind = "u16"
+offset = 3
+scale = 0.001
+unit = "A"
+
+[[field]]
+key = "a5"
+id = "usb_c4_power"
+label = "USB-C4 power"
+kind = "u16"
+offset = 5
+scale = 0.01
+unit = "W"
+
+[[field]]
+key = "a6"
+id = "usb_a1_state"
+label = "USB-A1"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a6"
+id = "usb_a1_voltage"
+label = "USB-A1 voltage"
+kind = "u16"
+offset = 1
+scale = 0.001
+unit = "V"
+
+[[field]]
+key = "a6"
+id = "usb_a1_current"
+label = "USB-A1 current"
+kind = "u16"
+offset = 3
+scale = 0.001
+unit = "A"
+
+[[field]]
+key = "a6"
+id = "usb_a1_power"
+label = "USB-A1 power"
+kind = "u16"
+offset = 5
+scale = 0.01
+unit = "W"
+
+[[field]]
+key = "a7"
+id = "usb_a2_state"
+label = "USB-A2"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a7"
+id = "usb_a2_voltage"
+label = "USB-A2 voltage"
+kind = "u16"
+offset = 1
+scale = 0.001
+unit = "V"
+
+[[field]]
+key = "a7"
+id = "usb_a2_current"
+label = "USB-A2 current"
+kind = "u16"
+offset = 3
+scale = 0.001
+unit = "A"
+
+[[field]]
+key = "a7"
+id = "usb_a2_power"
+label = "USB-A2 power"
+kind = "u16"
+offset = 5
+scale = 0.01
+unit = "W"

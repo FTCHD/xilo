@@ -5,9 +5,9 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use tokio::sync::{broadcast, mpsc, oneshot, watch};
 use tokio::time::Instant;
-use xilo_models::{CommandError, CommandRequest, Evidence, ModelSpec, Registry};
+use xilo_models::{CommandError, CommandRequest, Evidence, ModelSpec, Protocol, Registry};
 use xilo_proto::{
-    Input, Message, MsgId, Now, Output, ProtoError, Request, Status, TimestampMode, Trace,
+    Flavor, Input, Message, MsgId, Now, Output, ProtoError, Request, Status, TimestampMode, Trace,
     ZxSession,
 };
 
@@ -147,6 +147,8 @@ pub(crate) struct Shared {
     pub registry: Arc<Registry>,
     pub client_id: String,
     pub timestamps: TimestampMode,
+    pub timezone: String,
+    pub country: String,
 }
 
 pub(crate) fn spawn(setup: DeviceSetup, shared: Arc<Shared>) -> DeviceHandle {
@@ -384,10 +386,25 @@ impl Actor {
     }
 
     async fn session(&mut self, mut link: Box<dyn Link>) {
+        let model = self.snap.model.clone().or_else(|| {
+            let code = self.setup.model.as_deref()?;
+            self.shared.registry.get(code).cloned()
+        });
+        let (flavor, probe) = match model.map(|m| m.family.protocol) {
+            Some(Protocol::Prime) => (Flavor::Prime, false),
+            Some(_) => (Flavor::Zx, false),
+            None => (Flavor::Zx, true),
+        };
         let config = identity::session_config(
             &self.shared.client_id,
             self.shared.timestamps,
             link.info().max_write,
+            identity::SessionOptions {
+                flavor,
+                probe,
+                timezone: self.shared.timezone.clone(),
+                country: self.shared.country.clone(),
+            },
         );
         let mut session = ZxSession::new(config);
         self.set_link(LinkState::Handshaking);

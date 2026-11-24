@@ -1,0 +1,57 @@
+# From SolixBLE (MIT, Harvey Lelliott): SolixBLE/devices/prime_*.py and maggo_3in1.py.
+[family]
+id = "prime_a25x7"
+protocol = "prime"
+gatt = "g1"
+state_msgs = ["0300", "0a00"]
+
+[[field]]
+key = "a2"
+id = "pad_1_state"
+label = "Phone pad"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a2"
+id = "pad_1_power"
+label = "Phone pad power"
+kind = "u16"
+offset = 5
+scale = 0.01
+unit = "W"
+
+[[field]]
+key = "a3"
+id = "pad_2_state"
+label = "Watch pad"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a3"
+id = "pad_2_power"
+label = "Watch pad power"
+kind = "u16"
+offset = 5
+scale = 0.01
+unit = "W"
+
+[[field]]
+key = "a4"
+id = "pad_3_state"
+label = "Earbuds pad"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a4"
+id = "pad_3_power"
+label = "Earbuds pad power"
+kind = "u16"
+offset = 5
+scale = 0.01
+unit = "W"

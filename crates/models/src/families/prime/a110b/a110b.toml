@@ -1,0 +1,6 @@
+[model]
+code = "A110B"
+name = "Prime Power Bank 20K"
+family = "prime_a110b"
+status = "unverified"
+assets = "a110b"

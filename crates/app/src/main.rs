@@ -70,6 +70,13 @@ fn simulator(registry: &Registry) -> SimConnector {
     sim
 }
 
+fn local_offset() -> i32 {
+    jiff::Timestamp::now()
+        .to_zoned_datetime(jiff::tz::TimeZone::system())
+        .offset()
+        .seconds()
+}
+
 fn build_runtime(paths: &Paths, registry: Arc<Registry>) -> anyhow::Result<Runtime> {
     let tokio = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(2)
@@ -102,6 +109,8 @@ fn build_runtime(paths: &Paths, registry: Arc<Registry>) -> anyhow::Result<Runti
         EngineConfig {
             client_id,
             timestamps: TimestampMode::Utc,
+            timezone: xilo_engine::identity::posix_timezone(local_offset()),
+            country: "US".into(),
         },
     );
     Ok(Runtime {
@@ -165,7 +174,7 @@ fn main() -> anyhow::Result<()> {
     });
     let (registry, problems) = Registry::with_user_dir(&paths.models());
     for problem in problems {
-        tracing::error!("custom model skipped: {problem}");
+        tracing::warn!("models folder: {problem}");
     }
     let registry = Arc::new(registry);
     let runtime = build_runtime(&paths, registry)?;

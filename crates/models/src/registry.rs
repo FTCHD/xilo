@@ -109,7 +109,17 @@ impl Registry {
             }
         }
         let mut registry = Registry::default();
+        let mut defined: std::collections::HashMap<String, String> = Default::default();
         for (path, model) in models {
+            if let Some(first) = defined.insert(model.model.code.clone(), path.clone()) {
+                errors.push(SpecError {
+                    file: path.clone(),
+                    message: format!(
+                        "model {} is also defined in {first}; this file wins",
+                        model.model.code
+                    ),
+                });
+            }
             let Some(family) = families.get(&model.model.family) else {
                 errors.push(SpecError {
                     file: path,

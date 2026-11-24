@@ -15,6 +15,6 @@ pub use frame::{Frame, FrameError, StreamDecoder};
 pub use status::Status;
 pub use tlv::{Item, Payload, Value};
 pub use zx::{
-    Input, Message, Now, Output, Phase, ProtoError, Request, SessionInfo, TimestampMode, Trace,
-    ZxConfig, ZxSession,
+    Flavor, Input, Message, Now, Output, Phase, ProtoError, Request, SessionInfo, TimestampMode,
+    Trace, ZxConfig, ZxSession,
 };

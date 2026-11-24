@@ -17,6 +17,7 @@ const CAPABILITY_ECDH: u8 = 0x40;
 const SILENCE_RETRY: Duration = Duration::from_secs(15);
 const GIVE_UP: Duration = Duration::from_secs(90);
 const AUTH_WAIT: Duration = Duration::from_millis(1500);
+const PROBE_AFTER: Duration = Duration::from_secs(4);
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum TimestampMode {
@@ -26,12 +27,28 @@ pub enum TimestampMode {
     SessionBase(u32),
 }
 
+/// Which handshake and encryption the device uses.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Flavor {
+    /// ECDH with AES-CBC, plain handshake frames.
+    #[default]
+    Zx,
+    /// AES-GCM with a static key for the handshake (Prime chargers and power banks).
+    Prime,
+}
+
 #[derive(Clone)]
 pub struct ZxConfig {
     pub client_id: String,
     pub keys: KeyPair,
     pub timestamps: TimestampMode,
     pub max_write: usize,
+    pub flavor: Flavor,
+    /// Try the other flavor when the device does not answer the first frame.
+    pub probe: bool,
+    /// POSIX time zone sent to Prime devices, for example `<+01>-1`.
+    pub timezone: String,
+    pub country: String,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -116,12 +133,14 @@ pub enum Phase {
     SetCapability,
     PublicKey,
     Auth,
+    Bind,
     Ready,
     Failed,
 }
 
 pub struct ZxSession {
     config: ZxConfig,
+    flavor: Flavor,
     phase: Phase,
     decoder: StreamDecoder,
     reassembler: Reassembler,
@@ -136,6 +155,7 @@ pub struct ZxSession {
 impl ZxSession {
     pub fn new(config: ZxConfig) -> Self {
         Self {
+            flavor: config.flavor,
             config,
             phase: Phase::Idle,
             decoder: StreamDecoder::new(),
@@ -177,6 +197,10 @@ impl ZxSession {
         &self.info
     }
 
+    pub fn flavor(&self) -> Flavor {
+        self.flavor
+    }
+
     pub fn set_max_write(&mut self, max_write: usize) {
         self.config.max_write = max_write.max(20);
     }
@@ -201,21 +225,45 @@ impl ZxSession {
         self.last_rx = Some(now.instant);
         self.phase = Phase::Start;
         let ts = self.handshake_timestamp(now, 0);
-        let body = tlv::build_untyped(&[(0xa1, &ts), (0xa2, self.config.client_id.as_bytes())]);
-        self.write_handshake(Cmd(0x0001), body, out);
+        match self.flavor {
+            Flavor::Zx => {
+                let body =
+                    tlv::build_untyped(&[(0xa1, &ts), (0xa2, self.config.client_id.as_bytes())]);
+                self.write_handshake(Cmd(0x0001), body, out);
+            }
+            Flavor::Prime => {
+                self.cipher = Some(Cipher::prime_handshake());
+                let body = tlv::build_untyped(&[(0xa1, &ts)]);
+                self.write_handshake(Cmd(0x4001), body, out);
+            }
+        }
     }
 
     fn tick(&mut self, now: Now, out: &mut Vec<Output>) {
         self.reassembler.expire(now.instant);
         match self.phase {
             Phase::Idle | Phase::Ready | Phase::Failed => {}
-            Phase::Auth => {
+            Phase::Auth if self.flavor == Flavor::Zx => {
                 if self
                     .auth_sent
                     .is_some_and(|t| now.instant.duration_since(t) >= AUTH_WAIT)
                 {
                     self.ready(out);
                 }
+            }
+            Phase::Start
+                if self.config.probe
+                    && self
+                        .last_rx
+                        .is_some_and(|t| now.instant.duration_since(t) >= PROBE_AFTER) =>
+            {
+                self.flavor = match self.flavor {
+                    Flavor::Zx => Flavor::Prime,
+                    Flavor::Prime => Flavor::Zx,
+                };
+                let started = self.started;
+                self.start(now, out);
+                self.started = started;
             }
             _ => {
                 let started = self.started.unwrap_or(now.instant);
@@ -280,10 +328,13 @@ impl ZxSession {
 
         if frame.function == FUNCTION_HANDSHAKE {
             let payload = tlv::parse(&plain, frame.cmd.is_response(), false);
-            self.handshake_step(now, frame.cmd, payload, out);
+            match self.flavor {
+                Flavor::Zx => self.handshake_step(now, frame.cmd, payload, out),
+                Flavor::Prime => self.prime_step(now, frame.cmd, payload, out),
+            }
             return;
         }
-        if self.phase != Phase::Ready && self.phase != Phase::Auth {
+        if !matches!(self.phase, Phase::Ready | Phase::Auth | Phase::Bind) {
             return;
         }
         if !frame.cmd.is_encrypted() {
@@ -298,7 +349,7 @@ impl ZxSession {
 
     fn decrypt(&self, frame: &Frame) -> Option<Vec<u8>> {
         let cipher = self.cipher.as_ref()?;
-        if frame.body.len() % 16 == 15 {
+        if matches!(cipher, Cipher::Cbc { .. }) && frame.body.len() % 16 == 15 {
             let mut fixed = Vec::with_capacity(frame.body.len() + 1);
             fixed.push(frame.cmd.lo());
             fixed.extend_from_slice(&frame.body);
@@ -391,6 +442,109 @@ impl ZxSession {
         }
     }
 
+    fn read_info(&mut self, payload: &Payload) {
+        self.info.module = payload.get(0xa2).map(Item::text).unwrap_or_default();
+        self.info.module_firmware = payload.get(0xa3).map(Item::text).unwrap_or_default();
+        self.info.serial = payload.get(0xa4).map(Item::text).filter(|s| !s.is_empty());
+        self.info.mac = payload
+            .get(0xa5)
+            .and_then(|i| <[u8; 6]>::try_from(i.data.as_slice()).ok());
+    }
+
+    /// The Prime handshake: the same steps as ZX, encrypted with a static
+    /// AES-GCM key until the key exchange, then a session setup.
+    fn prime_step(&mut self, now: Now, cmd: Cmd, payload: Payload, out: &mut Vec<Output>) {
+        let ts = self.handshake_timestamp(now, 0);
+        match (cmd.id().0, self.phase) {
+            (0x0801, Phase::Start) => {
+                self.phase = Phase::Capability;
+                let body =
+                    tlv::build_untyped(&[(0xa1, &ts), (0xa3, &[0x20]), (0xa4, &[0x00, 0xf0])]);
+                self.write_handshake(Cmd(0x4003), body, out);
+            }
+            (0x0803, Phase::Capability) => {
+                self.info.mtu = payload.get(0xa2).and_then(Item::uint).unwrap_or(0) as u16;
+                self.info.capability = payload.get(0xa3).and_then(Item::uint).unwrap_or(0) as u8;
+                self.phase = Phase::Info;
+                self.write_handshake(Cmd(0x4029), tlv::build_untyped(&[(0xa1, &ts)]), out);
+            }
+            (0x0829, Phase::Info) => {
+                self.read_info(&payload);
+                self.session_start = Some(now.instant);
+                self.phase = Phase::SetCapability;
+                let body = tlv::build_untyped(&[
+                    (0xa1, &ts),
+                    (0xa3, &[0x20]),
+                    (0xa4, &[0x29, 0x01]),
+                    (0xa5, &[0x44]),
+                    (0xa6, &[0x02]),
+                ]);
+                self.write_handshake(Cmd(0x4005), body, out);
+            }
+            (0x0805, Phase::SetCapability) => {
+                self.phase = Phase::PublicKey;
+                let key = self.config.keys.public_xy();
+                self.write_handshake(Cmd(0x4021), tlv::build_untyped(&[(0xa1, &key)]), out);
+            }
+            (0x0821, Phase::PublicKey) => {
+                let Some(device_key) = payload.get(0xa1) else {
+                    return;
+                };
+                match self.config.keys.shared_secret(&device_key.data) {
+                    Ok(secret) => {
+                        self.cipher = Some(Cipher::gcm_from_secret(&secret));
+                        self.phase = Phase::Auth;
+                        let ts = self.handshake_timestamp(now, 1);
+                        let body = tlv::build_untyped(&[
+                            (0xa1, &ts),
+                            (0xa3, &[0, 0, 0, 0]),
+                            (0xa5, self.config.timezone.as_bytes()),
+                        ]);
+                        self.write_handshake(Cmd(0x4022), body, out);
+                    }
+                    Err(err) => {
+                        self.phase = Phase::Failed;
+                        out.push(Output::Failed(err.into()));
+                    }
+                }
+            }
+            (0x0822, Phase::Auth) => {
+                self.phase = Phase::Bind;
+                let ts = self.handshake_timestamp(now, 1);
+                let id = self.config.client_id.clone();
+                let body = tlv::build_untyped(&[(0xa1, &ts), (0xa2, id.as_bytes())]);
+                self.write_handshake(Cmd(0x4027), body, out);
+            }
+            (0x0827, Phase::Bind) => {
+                if let Some(status) = payload.status.filter(|s| *s != 0) {
+                    out.push(Output::Trace(Trace {
+                        outgoing: false,
+                        bytes: Vec::new(),
+                        cmd: Some(cmd),
+                        plain: None,
+                        note: Some(format!("bind status {status:#04x}")),
+                    }));
+                }
+                self.phase = Phase::Ready;
+                let country = self.config.country.clone();
+                let id = self.config.client_id.clone();
+                self.write_session(now, MsgId(0x0200), &[], out);
+                self.write_session(
+                    now,
+                    MsgId(0x020a),
+                    &[
+                        (0xa2, Value::Bytes(country.into_bytes())),
+                        (0xa3, Value::Bytes(id.into_bytes())),
+                        (0xa5, Value::U8(1)),
+                    ],
+                    out,
+                );
+                out.push(Output::Ready(self.info.clone()));
+            }
+            _ => {}
+        }
+    }
+
     fn ready(&mut self, out: &mut Vec<Output>) {
         if self.phase == Phase::Ready {
             return;
@@ -400,17 +554,24 @@ impl ZxSession {
     }
 
     fn send(&mut self, now: Now, request: Request, out: &mut Vec<Output>) {
-        let (Phase::Ready, Some(cipher)) = (self.phase, self.cipher.as_ref()) else {
+        if self.phase != Phase::Ready || self.cipher.is_none() {
             out.push(Output::Failed(ProtoError::NotReady));
             return;
+        }
+        self.write_session(now, request.id, &request.params, out);
+    }
+
+    fn write_session(&self, now: Now, id: MsgId, params: &[(u8, Value)], out: &mut Vec<Output>) {
+        let Some(cipher) = self.cipher.as_ref() else {
+            return;
         };
-        let plain = tlv::build_request(
-            &request.params,
-            self.session_timestamp(now),
-            TimestampStyle::Typed,
-        );
+        let style = match self.flavor {
+            Flavor::Zx => TimestampStyle::Typed,
+            Flavor::Prime => TimestampStyle::Untyped,
+        };
+        let plain = tlv::build_request(params, self.session_timestamp(now), style);
         let body = cipher.seal(&plain);
-        let frame = Frame::new(FUNCTION_SESSION, request.id.cmd(true), body);
+        let frame = Frame::new(FUNCTION_SESSION, id.cmd(true), body);
         let max_chunk = self.config.max_write.saturating_sub(11).max(16);
         let frames = if frame.encode().len() > self.config.max_write {
             fragment(frame, max_chunk)
@@ -431,7 +592,11 @@ impl ZxSession {
     }
 
     fn write_handshake(&self, cmd: Cmd, body: Vec<u8>, out: &mut Vec<Output>) {
-        let bytes = Frame::new(FUNCTION_HANDSHAKE, cmd, body.clone()).encode();
+        let wire = match (self.flavor, self.cipher.as_ref()) {
+            (Flavor::Prime, Some(cipher)) => cipher.seal(&body),
+            _ => body.clone(),
+        };
+        let bytes = Frame::new(FUNCTION_HANDSHAKE, cmd, wire).encode();
         out.push(Output::Trace(Trace {
             outgoing: true,
             bytes: bytes.clone(),
@@ -456,7 +621,8 @@ impl ZxSession {
                 let elapsed = self
                     .session_start
                     .map_or(0, |t| now.instant.duration_since(t).as_secs() as u32);
-                base.wrapping_add(elapsed)
+                let offset = u32::from(self.flavor == Flavor::Prime);
+                base.wrapping_add(elapsed).wrapping_add(offset)
             }
         }
     }

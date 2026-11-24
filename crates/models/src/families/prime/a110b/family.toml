@@ -1,0 +1,135 @@
+# From SolixBLE (MIT, Harvey Lelliott): SolixBLE/devices/prime_*.py and maggo_3in1.py.
+[family]
+id = "prime_a110b"
+protocol = "prime"
+gatt = "g1"
+state_msgs = ["0300", "0a00"]
+
+[[field]]
+key = "a2"
+id = "battery_soc"
+label = "Battery"
+kind = "u8"
+offset = 0
+unit = "%"
+
+[[field]]
+key = "a6"
+id = "total_output_power"
+label = "Total output"
+kind = "u16"
+offset = 1
+scale = 0.1
+unit = "W"
+
+[[field]]
+key = "af"
+id = "temperature"
+label = "Temperature"
+kind = "i16"
+unit = "°C"
+
+[[field]]
+key = "a8"
+id = "usb_c1_state"
+label = "USB-C1"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a8"
+id = "usb_c1_voltage"
+label = "USB-C1 voltage"
+kind = "u16"
+offset = 1
+scale = 0.1
+unit = "V"
+
+[[field]]
+key = "a8"
+id = "usb_c1_current"
+label = "USB-C1 current"
+kind = "u16"
+offset = 3
+scale = 0.1
+unit = "A"
+
+[[field]]
+key = "a8"
+id = "usb_c1_power"
+label = "USB-C1 power"
+kind = "u16"
+offset = 5
+scale = 0.1
+unit = "W"
+
+[[field]]
+key = "a9"
+id = "usb_c2_state"
+label = "USB-C2"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a9"
+id = "usb_c2_voltage"
+label = "USB-C2 voltage"
+kind = "u16"
+offset = 1
+scale = 0.1
+unit = "V"
+
+[[field]]
+key = "a9"
+id = "usb_c2_current"
+label = "USB-C2 current"
+kind = "u16"
+offset = 3
+scale = 0.1
+unit = "A"
+
+[[field]]
+key = "a9"
+id = "usb_c2_power"
+label = "USB-C2 power"
+kind = "u16"
+offset = 5
+scale = 0.1
+unit = "W"
+
+[[field]]
+key = "ac"
+id = "usb_a1_state"
+label = "USB-A"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "ac"
+id = "usb_a1_voltage"
+label = "USB-A voltage"
+kind = "u16"
+offset = 1
+scale = 0.1
+unit = "V"
+
+[[field]]
+key = "ac"
+id = "usb_a1_current"
+label = "USB-A current"
+kind = "u16"
+offset = 3
+scale = 0.1
+unit = "A"
+
+[[field]]
+key = "ac"
+id = "usb_a1_power"
+label = "USB-A power"
+kind = "u16"
+offset = 5
+scale = 0.1
+unit = "W"

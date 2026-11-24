@@ -148,6 +148,8 @@ async fn main() -> Result<()> {
             } else {
                 TimestampMode::Utc
             },
+            timezone: "UTC0".into(),
+            country: "US".into(),
         },
     );
 

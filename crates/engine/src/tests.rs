@@ -22,6 +22,8 @@ fn engine(code: &str, serial: &str) -> (Arc<Engine>, DeviceHandle, Arc<Mutex<Sim
         EngineConfig {
             client_id: crate::identity::new_client_id(),
             timestamps: TimestampMode::Utc,
+            timezone: "UTC0".into(),
+            country: "US".into(),
         },
     );
     let handle = engine.add(DeviceSetup {

@@ -14,6 +14,9 @@ use crate::transport::{Advert, Connector, Scanner, TransportError};
 pub struct EngineConfig {
     pub client_id: String,
     pub timestamps: TimestampMode,
+    /// POSIX time zone for devices with a clock.
+    pub timezone: String,
+    pub country: String,
 }
 
 /// A device found while scanning.
@@ -43,6 +46,8 @@ impl Engine {
                 registry,
                 client_id: config.client_id,
                 timestamps: config.timestamps,
+                timezone: config.timezone,
+                country: config.country,
             }),
             scanner,
             devices: Mutex::new(IndexMap::new()),

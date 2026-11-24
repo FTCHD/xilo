@@ -15,6 +15,14 @@ const SAME: &[(&str, &str)] = &[
     ("usb_c2_power", "usb_c2_power"),
     ("usb_a1_power", "usb_a1_power"),
     ("error_code", "error_code"),
+    ("usb_c1_voltage", "usb_c1_voltage"),
+    ("usb_c1_current", "usb_c1_current"),
+    ("usb_c2_power", "usb_c2_power"),
+    ("usb_c3_power", "usb_c3_power"),
+    ("power_out", "total_output_power"),
+    ("pad_1_power", "pad_1_power"),
+    ("pad_2_power", "pad_2_power"),
+    ("pad_3_power", "pad_3_power"),
 ];
 
 fn matches(ours: &Value, theirs: &serde_json::Value) -> bool {

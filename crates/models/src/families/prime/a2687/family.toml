@@ -1,0 +1,141 @@
+# From SolixBLE (MIT, Harvey Lelliott): SolixBLE/devices/prime_*.py and maggo_3in1.py.
+[family]
+id = "prime_a2687"
+protocol = "prime"
+gatt = "g1"
+state_msgs = ["0300", "0a00"]
+
+[[field]]
+key = "a5"
+id = "usb_c1_state"
+label = "USB-C1"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a5"
+id = "usb_c1_voltage"
+label = "USB-C1 voltage"
+kind = "u16"
+offset = 1
+scale = 0.001
+unit = "V"
+
+[[field]]
+key = "a5"
+id = "usb_c1_current"
+label = "USB-C1 current"
+kind = "u16"
+offset = 3
+scale = 0.001
+unit = "A"
+
+[[field]]
+key = "a5"
+id = "usb_c1_power"
+label = "USB-C1 power"
+kind = "u16"
+offset = 5
+scale = 0.01
+unit = "W"
+
+[[field]]
+key = "a6"
+id = "usb_c2_state"
+label = "USB-C2"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a6"
+id = "usb_c2_voltage"
+label = "USB-C2 voltage"
+kind = "u16"
+offset = 1
+scale = 0.001
+unit = "V"
+
+[[field]]
+key = "a6"
+id = "usb_c2_current"
+label = "USB-C2 current"
+kind = "u16"
+offset = 3
+scale = 0.001
+unit = "A"
+
+[[field]]
+key = "a6"
+id = "usb_c2_power"
+label = "USB-C2 power"
+kind = "u16"
+offset = 5
+scale = 0.01
+unit = "W"
+
+[[field]]
+key = "a7"
+id = "usb_c3_state"
+label = "USB-C3"
+kind = "u8"
+offset = 0
+enum = { "0" = "Off", "1" = "Output", "2" = "Input" }
+
+[[field]]
+key = "a7"
+id = "usb_c3_voltage"
+label = "USB-C3 voltage"
+kind = "u16"
+offset = 1
+scale = 0.001
+unit = "V"
+
+[[field]]
+key = "a7"
+id = "usb_c3_current"
+label = "USB-C3 current"
+kind = "u16"
+offset = 3
+scale = 0.001
+unit = "A"
+
+[[field]]
+key = "a7"
+id = "usb_c3_power"
+label = "USB-C3 power"
+kind = "u16"
+offset = 5
+scale = 0.01
+unit = "W"
+
+[[command]]
+id = "usb_c1_switch"
+msg = "0207"
+label = "USB-C1"
+group = "control"
+input = "switch"
+param = { key = "a3", kind = "u8" }
+fixed = [{ key = "a2", kind = "u8", value = 0 }]
+state = "usb_c1_state"
+
+[[command]]
+id = "usb_c2_switch"
+msg = "0207"
+label = "USB-C2"
+group = "control"
+input = "switch"
+param = { key = "a3", kind = "u8" }
+fixed = [{ key = "a2", kind = "u8", value = 1 }]
+state = "usb_c2_state"
+
+[[command]]
+id = "usb_c3_switch"
+msg = "0207"
+label = "USB-C3"
+group = "control"
+input = "switch"
+param = { key = "a3", kind = "u8" }
+fixed = [{ key = "a2", kind = "u8", value = 2 }]
+state = "usb_c3_state"

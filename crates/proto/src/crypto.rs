@@ -47,6 +47,19 @@ impl Cipher {
     }
 
     /// AES-128-GCM with key and nonce taken from the ECDH shared secret.
+    /// The static AES-GCM key and nonce of the Prime handshake.
+    pub fn prime_handshake() -> Self {
+        Cipher::Gcm {
+            key: [
+                0xb8, 0xff, 0x74, 0x22, 0x95, 0x5d, 0x4e, 0xb6, 0xd5, 0x54, 0xa2, 0xc4, 0x70, 0x28,
+                0x05, 0x59,
+            ],
+            nonce: [
+                0x6b, 0xa3, 0xe3, 0xf2, 0xf3, 0xa6, 0x0f, 0x29, 0x71, 0xce, 0x5d, 0x1f,
+            ],
+        }
+    }
+
     pub fn gcm_from_secret(secret: &[u8; 32]) -> Self {
         let mut key = [0; 16];
         let mut nonce = [0; 12];

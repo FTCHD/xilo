@@ -96,6 +96,120 @@
   }
  },
  {
+  "source": "PrimeCharger160w",
+  "model": "A2687",
+  "msg": "0300",
+  "payload": "a10131a20302e805a303020000a4020100a5080400000000000000a6080400000000000000a7080400000000000000a8020103a9020150aa020100ab090400000f0f0f000000ac0d0401002c0100002c0100000300ad0d0401002c0100002c0100000300ae0d0401002c0100002c0100000300af020100b0020100b1020101b2020101b3020101b40d04fafffbfffafffbfffafffbffb50d04ffffffffffffffffffffffffe0050408000000e10b0480034b53000000000000fe050300000000",
+  "expected": {
+   "usb_c1_current": 0.0,
+   "usb_c1_power": 0.0,
+   "usb_c1_voltage": 0.0,
+   "usb_c2_current": 0.0,
+   "usb_c2_power": 0.0,
+   "usb_c2_voltage": 0.0,
+   "usb_c3_current": 0.0,
+   "usb_c3_power": 0.0,
+   "usb_c3_voltage": 0.0
+  }
+ },
+ {
+  "source": "PrimeCharger160w",
+  "model": "A2687",
+  "msg": "0300",
+  "payload": "a10131a20302e805a303020000a4020100a5080401e01374003700a608040108236c030b03a7080401d81364003200a8020103a9020150aa020100ab090400000f0f0f000000ac0d0401002c0100002c0100000000ad0d0401002c0100002c0100000203ae0d0401002c0100002c0100000000af020100b0020100b1020101b2020101b3020101b40d0400000000e804000000000000b50d04ffffffffffffffffffffffffe0050408000000e10b0480034b53000000000000fe050300000000",
+  "expected": {
+   "usb_c1_current": 0.116,
+   "usb_c1_power": 0.55,
+   "usb_c1_voltage": 5.088,
+   "usb_c2_current": 0.876,
+   "usb_c2_power": 7.79,
+   "usb_c2_voltage": 8.968,
+   "usb_c3_current": 0.1,
+   "usb_c3_power": 0.5,
+   "usb_c3_voltage": 5.08
+  }
+ },
+ {
+  "source": "PrimePowerBank20k",
+  "model": "A110B",
+  "msg": "0300",
+  "payload": "a10131a203044d60a30404010000a4020101a50404000000a60404000000a7080400000000000000a80f0400000000009600ff00ffffffff00a90f0400000000000000ff00ffffffff00ac09040000000000000000af02011db002011eb103020900fe050300000000",
+  "expected": {
+   "battery_percentage": 77,
+   "temperature": 29,
+   "power_out": 0.0,
+   "usb_c1_current": 0.0,
+   "usb_c1_power": 15.0,
+   "usb_c1_voltage": 0.0,
+   "usb_c2_current": 0.0,
+   "usb_c2_power": 0.0,
+   "usb_c2_voltage": 0.0,
+   "usb_a1_current": 0.0,
+   "usb_a1_power": 0.0,
+   "usb_a1_voltage": 0.0
+  }
+ },
+ {
+  "source": "PrimePowerBank20k",
+  "model": "A110B",
+  "msg": "0300",
+  "payload": "a10131a20304515ca30404010000a4020101a50404000000a60404013601a7080400000000000000a80f04019500140036010107ffffffff00a90f0400000000000000ff00ffffffff00ac09040000000000000000af02011ab002011bb103020900fe050300000000",
+  "expected": {
+   "battery_percentage": 81,
+   "temperature": 26,
+   "power_out": 31.0,
+   "usb_c1_current": 2.0,
+   "usb_c1_power": 31.0,
+   "usb_c1_voltage": 14.9,
+   "usb_c2_current": 0.0,
+   "usb_c2_power": 0.0,
+   "usb_c2_voltage": 0.0,
+   "usb_a1_current": 0.0,
+   "usb_a1_power": 0.0,
+   "usb_a1_voltage": 0.0
+  }
+ },
+ {
+  "source": "PrimePowerBank20k",
+  "model": "A110B",
+  "msg": "0300",
+  "payload": "a10131a20304505ca30404010000a4020101a50404000000a60404013a01a7080400000000000000a80f0400000000003d01ff00ffffffff00a90f0401950014002a010107ffffffff00ac09040133000300100000af02011bb002011cb103020900fe050300000000",
+  "expected": {
+   "battery_percentage": 80,
+   "temperature": 27,
+   "power_out": 31.4,
+   "usb_c1_current": 0.0,
+   "usb_c1_power": 31.7,
+   "usb_c1_voltage": 0.0,
+   "usb_c2_current": 2.0,
+   "usb_c2_power": 29.8,
+   "usb_c2_voltage": 14.9,
+   "usb_a1_current": 0.3,
+   "usb_a1_power": 1.6,
+   "usb_a1_voltage": 5.1
+  }
+ },
+ {
+  "source": "PrimePowerBank20k",
+  "model": "A110B",
+  "msg": "0300",
+  "payload": "a10131a203044b5da30404010018a4020101a50404014102a6040401a300a7080400000000000000a80f04015900100096000107ffffffff00a90f0402c9001c004102ff07ffffffff00ac090401330002000d0000af02011cb002011db103020900fe050300000000",
+  "expected": {
+   "battery_percentage": 75,
+   "temperature": 28,
+   "power_out": 16.3,
+   "usb_c1_current": 1.6,
+   "usb_c1_power": 15.0,
+   "usb_c1_voltage": 8.9,
+   "usb_c2_current": 2.8,
+   "usb_c2_power": 57.7,
+   "usb_c2_voltage": 20.1,
+   "usb_a1_current": 0.2,
+   "usb_a1_power": 1.3,
+   "usb_a1_voltage": 5.1
+  }
+ },
+ {
   "source": "C300DC",
   "model": "A1728",
   "msg": "0405",
@@ -229,6 +343,30 @@
    "home_load_preset": 50,
    "light_mode": "LightMode.NORMAL",
    "grid_status": "GridStatus.OK_AS_WELL_I_GUESS"
+  }
+ },
+ {
+  "source": "MagGo3in1",
+  "model": "A25X7",
+  "msg": "0300",
+  "payload": "a10131a20804013a0232001d01a3080401c60214008e00a4080400f40100000000a50304ffffa6050400000000fe050300000000",
+  "expected": {
+   "pad_1_power": 2.85,
+   "pad_2_power": 1.42,
+   "pad_3_power": 0.0,
+   "power_out": 4.27
+  }
+ },
+ {
+  "source": "MagGo3in1",
+  "model": "A25X7",
+  "msg": "0300",
+  "payload": "a10131a20804013a0232001d01a3080401d0021e00d800a4080400f40100000000a50304ffffa6050400000000fe050300000000",
+  "expected": {
+   "pad_1_power": 2.85,
+   "pad_2_power": 2.16,
+   "pad_3_power": 0.0,
+   "power_out": 5.01
   }
  }
 ]

@@ -9,9 +9,9 @@ use serde_json::{Map, Value};
 
 const DUMP: &str = include_str!("import_dump.py");
 
-/// Models with hand-written definitions, or not Anker hardware.
+/// Models defined by hand or from SolixBLE, and devices that are not Anker hardware.
 const SKIP: &[&str] = &[
-    "A1722", "A1723", "A1761", "SHEMP3", "A5101", "A5102", "A5103",
+    "A1722", "A1723", "A1761", "A2345", "SHEMP3", "A5101", "A5102", "A5103",
 ];
 
 const NAMES: &[(&str, &str)] = &[

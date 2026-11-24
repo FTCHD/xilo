@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
 
 use serde::Deserialize;
+use xilo_proto::Flavor;
 use xilo_proto::frame::Frame;
 use xilo_proto::tlv;
 use xilo_proto::zx::{SOLIX_BASE_TIMESTAMP, ZxSession};
@@ -64,6 +65,10 @@ fn config(v: &Vectors) -> ZxConfig {
         keys: KeyPair::from_bytes(&secret(&v.negotiation.private_key)).expect("key"),
         timestamps: TimestampMode::SessionBase(SOLIX_BASE_TIMESTAMP),
         max_write: 180,
+        flavor: Flavor::Zx,
+        probe: false,
+        timezone: "UTC0".into(),
+        country: "US".into(),
     }
 }
 
