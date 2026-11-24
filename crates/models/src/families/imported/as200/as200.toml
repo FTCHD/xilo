@@ -1,6 +1,0 @@
-[model]
-code = "AS200"
-name = "Alternator Charger"
-family = "imp_as200"
-status = "unverified"
-assets = "as200"

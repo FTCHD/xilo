@@ -24,23 +24,7 @@ pub const G2: GattSet = GattSet {
     notify: "25400003-4002-81c5-b46e-cf057c562025",
 };
 
-pub const G3: GattSet = GattSet {
-    name: "g3",
-    advertised: "00002215-0000-1000-8000-00805f9b34fb",
-    service: "22150001-4002-81c5-b46e-cf057c562025",
-    write: "22150002-4002-81c5-b46e-cf057c562025",
-    notify: "22150003-4002-81c5-b46e-cf057c562025",
-};
-
-pub const G4: GattSet = GattSet {
-    name: "g4",
-    advertised: "0000ff09-0000-1000-8000-00805f9b34fb",
-    service: "41580001-4002-81c5-b46e-cf057c562025",
-    write: "41580002-4002-81c5-b46e-cf057c562025",
-    notify: "41580003-4002-81c5-b46e-cf057c562025",
-};
-
-pub const ALL: [GattSet; 4] = [G1, G2, G3, G4];
+pub const ALL: [GattSet; 2] = [G1, G2];
 
 /// Advertised services that mark a SOLIX device.
 pub fn advertised_services() -> Vec<&'static str> {

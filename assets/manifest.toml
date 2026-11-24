@@ -422,21 +422,6 @@ apk = "images"
 path = "assets/flutter_assets/packages/resource/assets/img/a17C1/picl_A17C3_normal.webp"
 
 [[asset]]
-key = "a17x7/product"
-apk = "images"
-path = "assets/flutter_assets/packages/resource/assets/img/a17C1/picl_A17X7_normal.webp"
-
-[[asset]]
-key = "a17x7us/product"
-apk = "images"
-path = "assets/flutter_assets/packages/resource/assets/img/a17C1/picl_A17X7_normal.webp"
-
-[[asset]]
-key = "a17x8/product"
-apk = "images"
-path = "assets/flutter_assets/packages/resource/assets/img/a17X8/picl_A17X8_normal.webp"
-
-[[asset]]
 key = "a17a4/product"
 apk = "images"
 path = "assets/flutter_assets/packages/resource/assets/img/a17a3/A17A4_normal.webp"
@@ -450,11 +435,6 @@ path = "assets/flutter_assets/packages/resource/assets/img/a17a3/A17A5_normal.we
 key = "a17b1/product"
 apk = "images"
 path = "assets/flutter_assets/packages/resource/assets/img/a17b1/a17b1_normal.png"
-
-[[asset]]
-key = "a17e1/product"
-apk = "images"
-path = "assets/flutter_assets/packages/resource/assets/img/a17e1/picl_A17E1_normal.webp"
 
 [[asset]]
 key = "ae103/product"
@@ -471,17 +451,3 @@ key = "a91b2/product"
 apk = "images"
 path = "assets/flutter_assets/packages/resource/assets/img/a91b2/picl_a91b2_normal.webp"
 
-[[asset]]
-key = "ae100/product"
-apk = "images"
-path = "assets/flutter_assets/packages/resource/assets/img/ae100/picl_AE100_normal.png"
-
-[[asset]]
-key = "ax170/product"
-apk = "images"
-path = "assets/flutter_assets/packages/resource/assets/img/ax170/picl_AX170_normal.webp"
-
-[[asset]]
-key = "a7320/product"
-apk = "images"
-path = "assets/flutter_assets/packages/resource/assets/img/a7320/picl_A7320_normal.webp"

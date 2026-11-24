@@ -1,6 +1,0 @@
-[model]
-code = "A7320"
-name = "SOLIX Smart Generator 5500"
-family = "imp_a7320"
-status = "unverified"
-assets = "a7320"

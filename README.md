@@ -10,7 +10,7 @@ Xilo is not made by or affiliated with Anker.
 
 - **Dashboards** for the C300X and C1000 that follow the Anker app: battery, temperature, remaining time, port status, AC and car outputs with live graphs, light and screen controls, and error messages.
 - **Every setting** from the Anker app, with option lists and limits checked before anything is sent. Risky changes (AC frequency, factory reset) ask for confirmation, and each one is written to an audit log.
-- **49 models** in total. Models without their own dashboard get a generic one with all decoded values.
+- **38 models** in total. Models without their own dashboard get a generic one with all decoded values.
 - **USB wake**: the C300X turns its USB ports off after about two hours of low load. Xilo keeps them on by switching the car output on briefly before that happens.
 - **Alerts**: errors, low battery, full battery and long disconnects, shown in the app and as system notifications.
 - **History**: battery and power every 10 seconds, stored on this Mac. It includes charts, energy per day and CSV export.
@@ -26,14 +26,14 @@ Defined but not yet verified (read-only until you allow control in the device se
 
 | Kind | Models |
 |---|---|
-| Power stations | C300, C300 DC, C300X DC, C200(X), C200 DC, C200X DC, C800, C800 Plus, C800X, C1000(X), C1000 Gen 2, C1000X Gen 2, C2000 Gen 2, C2000X Gen 2, S2000, F1200, F1500, F2000, F2000 Plus, F2600, F3000, F3800, F3800 Plus, E10 |
+| Power stations | C300, C300 DC, C300X DC, C200(X), C200 DC, C200X DC, C800, C800 Plus, C800X, C1000(X), C1000 Gen 2, C1000X Gen 2, C2000 Gen 2, C2000X Gen 2, S2000, F1200, F1500, F2000, F2000 Plus, F2600, F3000, F3800, F3800 Plus |
 | Solarbanks | E1600, 2 Pro, 2 AC, 2 Plus, 3 Pro, 4 Pro |
-| Home | Smart Meter (and Gen 2, US, P1), Smart Plug, Power Dock, Home Power Panel, EV Charger, Smart Generator 5500, Alternator Charger |
+| Home | Home Power Panel |
 | Prime and other | Prime Charger 160W and 250W, Prime Power Bank 20K, MagGo 3-in-1, Prime Charging Station 240W, EverFrost 2 40L and 58L |
 
 Most of these maps come from [anker-solix-api](https://github.com/thomluther/anker-solix-api) and [SolixBLE](https://github.com/flip-dots/SolixBLE). Their published test payloads decode to the same values in Xilo (`crates/models/tests/solixble_values.rs`).
 
-Protocols: ZX with ECDH and AES-CBC, ZX Gen 2, Prime with AES-GCM, the older AES key exchange, and the 2540, 2215 and 4158 GATT services. See [docs/variants.md](docs/variants.md).
+Protocols: ZX with ECDH and AES-CBC, ZX Gen 2, Prime with AES-GCM, the older AES key exchange, and the 2540 GATT service. See [docs/variants.md](docs/variants.md).
 
 ## Build
 

@@ -1,6 +1,0 @@
-[model]
-code = "AE100"
-name = "Power Dock"
-family = "imp_ae100"
-status = "unverified"
-assets = "ae100"

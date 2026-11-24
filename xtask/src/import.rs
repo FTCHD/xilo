@@ -9,9 +9,11 @@ use serde_json::{Map, Value};
 
 const DUMP: &str = include_str!("import_dump.py");
 
-/// Models defined by hand or from SolixBLE, and devices that are not Anker hardware.
+/// Models defined by hand or from SolixBLE, devices that are not Anker
+/// hardware, and Wi-Fi devices without Bluetooth control.
 const SKIP: &[&str] = &[
-    "A1722", "A1723", "A1761", "A2345", "SHEMP3", "A5101", "A5102", "A5103",
+    "A1722", "A1723", "A1761", "A2345", "SHEMP3", "A5101", "A5102", "A5103", "A17X7", "A17X7US",
+    "AE1X0", "AE1R0", "A17X8", "AE100", "A17E1", "AX170", "A5191", "A7320", "AS200",
 ];
 
 const NAMES: &[(&str, &str)] = &[
@@ -41,22 +43,11 @@ const NAMES: &[(&str, &str)] = &[
     ("A17C3", "Solarbank 2 Plus"),
     ("A17C5", "Solarbank 3 Pro"),
     ("AE103", "Solarbank 4 Pro"),
-    ("A17E1", "SOLIX E10"),
-    ("AX170", "SOLIX E10 Power Dock"),
-    ("A17X7", "Smart Meter"),
-    ("AE1X0", "Smart Meter Gen 2"),
-    ("A17X7US", "Smart Meter (US)"),
-    ("AE1R0", "Smart Meter P1"),
-    ("A17X8", "Smart Plug"),
-    ("AE100", "Power Dock"),
     ("A17A4", "EverFrost 2 40L"),
     ("A17A5", "EverFrost 2 58L"),
     ("A2345", "Prime Charger 250W"),
     ("A91B2", "Prime Charging Station 240W"),
-    ("AS200", "Alternator Charger"),
     ("A17B1", "Home Power Panel"),
-    ("A5191", "EV Charger"),
-    ("A7320", "SOLIX Smart Generator 5500"),
 ];
 
 /// anker-solix-api field names that match fields the app already knows.

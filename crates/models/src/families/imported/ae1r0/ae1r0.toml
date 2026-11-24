@@ -1,6 +1,0 @@
-[model]
-code = "AE1R0"
-name = "Smart Meter P1"
-family = "imp_ae1r0"
-status = "unverified"
-assets = "ae1r0"
