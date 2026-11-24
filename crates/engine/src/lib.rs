@@ -1,6 +1,8 @@
 #![deny(clippy::unwrap_used)]
 
 pub mod actor;
+pub mod alerts;
+pub mod automations;
 pub mod engine;
 pub mod identity;
 pub mod sim;
