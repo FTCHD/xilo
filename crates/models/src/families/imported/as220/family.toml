@@ -84,7 +84,7 @@ confidence = "likely"
 [[field]]
 key = "a4"
 id = "ac_output_timer_seconds"
-label = "AC output timer seconds"
+label = "AC output timer"
 kind = "u32"
 msgs = ["0421"]
 unit = "s"
@@ -114,7 +114,7 @@ confidence = "likely"
 [[field]]
 key = "a4"
 id = "device_timeout"
-label = "Device timeout minutes"
+label = "Device timeout"
 kind = "i16"
 msgs = ["0421"]
 unit = "min"
@@ -124,7 +124,7 @@ confidence = "likely"
 [[field]]
 key = "a4"
 id = "screen_timeout"
-label = "Display timeout seconds"
+label = "Display timeout"
 kind = "i16"
 msgs = ["0421"]
 unit = "s"
@@ -209,7 +209,7 @@ confidence = "likely"
 [[field]]
 key = "a4"
 id = "ac_output_timeout_minutes"
-label = "AC output timeout minutes"
+label = "AC output timeout"
 kind = "i16"
 msgs = ["0421"]
 unit = "min"
@@ -288,7 +288,7 @@ confidence = "likely"
 [[field]]
 key = "a6"
 id = "remaining_time"
-label = "Remaining time hours"
+label = "Remaining time"
 kind = "u16"
 msgs = ["0421"]
 scale = 0.1
@@ -367,7 +367,7 @@ confidence = "likely"
 [[field]]
 key = "a7"
 id = "ac_output_timer_remaining_seconds"
-label = "AC output timer remaining seconds"
+label = "AC output timer remaining"
 kind = "u32"
 msgs = ["0421"]
 unit = "s"
@@ -430,7 +430,7 @@ confidence = "likely"
 [[field]]
 key = "df"
 id = "silent_mode_start_minutes"
-label = "Silent mode start minutes"
+label = "Silent mode start"
 kind = "u16"
 msgs = ["0421"]
 unit = "min"
@@ -440,7 +440,7 @@ confidence = "likely"
 [[field]]
 key = "df"
 id = "silent_mode_end_minutes"
-label = "Silent mode end minutes"
+label = "Silent mode end"
 kind = "u16"
 msgs = ["0421"]
 unit = "min"
@@ -711,7 +711,7 @@ confidence = "likely"
 [[field]]
 key = "a4"
 id = "ac_output_timer_seconds"
-label = "AC output timer seconds"
+label = "AC output timer"
 kind = "u32"
 msgs = ["0900"]
 unit = "s"
@@ -741,7 +741,7 @@ confidence = "likely"
 [[field]]
 key = "a4"
 id = "device_timeout"
-label = "Device timeout minutes"
+label = "Device timeout"
 kind = "i16"
 msgs = ["0900"]
 unit = "min"
@@ -751,7 +751,7 @@ confidence = "likely"
 [[field]]
 key = "a4"
 id = "screen_timeout"
-label = "Display timeout seconds"
+label = "Display timeout"
 kind = "i16"
 msgs = ["0900"]
 unit = "s"
@@ -836,7 +836,7 @@ confidence = "likely"
 [[field]]
 key = "a4"
 id = "ac_output_timeout_minutes"
-label = "AC output timeout minutes"
+label = "AC output timeout"
 kind = "i16"
 msgs = ["0900"]
 unit = "min"
@@ -915,7 +915,7 @@ confidence = "likely"
 [[field]]
 key = "a6"
 id = "remaining_time"
-label = "Remaining time hours"
+label = "Remaining time"
 kind = "u16"
 msgs = ["0900"]
 scale = 0.1
@@ -994,7 +994,7 @@ confidence = "likely"
 [[field]]
 key = "a7"
 id = "ac_output_timer_remaining_seconds"
-label = "AC output timer remaining seconds"
+label = "AC output timer remaining"
 kind = "u32"
 msgs = ["0900"]
 unit = "s"
@@ -1057,7 +1057,7 @@ confidence = "likely"
 [[field]]
 key = "df"
 id = "silent_mode_start_minutes"
-label = "Silent mode start minutes"
+label = "Silent mode start"
 kind = "u16"
 msgs = ["0900"]
 unit = "min"
@@ -1067,7 +1067,7 @@ confidence = "likely"
 [[field]]
 key = "df"
 id = "silent_mode_end_minutes"
-label = "Silent mode end minutes"
+label = "Silent mode end"
 kind = "u16"
 msgs = ["0900"]
 unit = "min"
@@ -1095,7 +1095,7 @@ confidence = "likely"
 [[command]]
 id = "live_reporting"
 msg = "0057"
-label = "Realtime trigger"
+label = "Live Reporting"
 group = "hidden"
 input = "none"
 fixed = [{ key = "a2", kind = "u8", value = 1 }, { key = "a3", kind = "u32", value = 60 }]
@@ -1103,7 +1103,7 @@ fixed = [{ key = "a2", kind = "u8", value = 1 }, { key = "a3", kind = "u32", val
 [[command]]
 id = "backup_charge_storm_guard"
 msg = "005e"
-label = "Backup charge storm guard"
+label = "Backup Charge Storm Guard"
 group = "function"
 param = { key = "a5", kind = "u8" }
 input = "switch"
@@ -1115,7 +1115,7 @@ fixed = [{ key = "a3", kind = "u8", value = 3 }, { key = "a4", kind = "u8", valu
 [[command]]
 id = "backup_charge_plan"
 msg = "005e"
-label = "Backup charge plan"
+label = "Backup Charge Plan"
 group = "function"
 param = { key = "a5", kind = "u8" }
 input = "switch"
@@ -1127,7 +1127,7 @@ fixed = [{ key = "a3", kind = "u8", value = 3 }, { key = "a4", kind = "u8", valu
 [[command]]
 id = "pps_usage_mode"
 msg = "0090"
-label = "Pps usage mode"
+label = "Usage Mode"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -1148,7 +1148,7 @@ unit = "%"
 [[command]]
 id = "ac_switch"
 msg = "0101"
-label = "AC output switch"
+label = "AC Output"
 group = "control"
 param = { key = "a2", kind = "u8" }
 input = "switch"
@@ -1160,7 +1160,7 @@ state = "ac_switch"
 [[command]]
 id = "ac_output_timer"
 msg = "0101"
-label = "AC output timer"
+label = "AC Output Timer"
 group = "function"
 param = { key = "a3", kind = "u32" }
 input = "number"
@@ -1173,7 +1173,7 @@ state = "ac_output_timer_seconds"
 [[command]]
 id = "ac_charge_power"
 msg = "0101"
-label = "AC charge limit"
+label = "AC Recharging Power"
 group = "function"
 param = { key = "a4", kind = "u16" }
 input = "number"
@@ -1186,7 +1186,7 @@ state = "ac_charge_power"
 [[command]]
 id = "ultrafast"
 msg = "0101"
-label = "AC fast charge switch"
+label = "UltraFast Charging"
 group = "control"
 param = { key = "a7", kind = "u8" }
 input = "switch"
@@ -1198,7 +1198,7 @@ state = "ac_fast_charge_switch"
 [[command]]
 id = "ac_output_timeout_minutes"
 msg = "0101"
-label = "AC output timeout minutes"
+label = "AC Output Timeout"
 group = "function"
 param = { key = "aa", kind = "u16" }
 input = "choice"
@@ -1208,7 +1208,7 @@ state = "ac_output_timeout_minutes"
 [[command]]
 id = "screen_switch"
 msg = "0103"
-label = "Display switch"
+label = "Screen"
 group = "control"
 param = { key = "a2", kind = "u8" }
 input = "switch"
@@ -1218,9 +1218,9 @@ on_state = 1
 state = "screen_on"
 
 [[command]]
-id = "display_mode_select"
+id = "screen_brightness"
 msg = "0103"
-label = "Display mode select"
+label = "Screen Brightness"
 group = "function"
 param = { key = "a3", kind = "u8" }
 input = "choice"
@@ -1230,7 +1230,7 @@ state = "screen_brightness"
 [[command]]
 id = "screen_timeout"
 msg = "0103"
-label = "Display timeout seconds"
+label = "Screen Timeout"
 group = "function"
 param = { key = "a4", kind = "u16" }
 input = "choice"
@@ -1240,7 +1240,7 @@ state = "screen_timeout"
 [[command]]
 id = "temperature_unit"
 msg = "0103"
-label = "Temperature unit switch"
+label = "Temperature Unit"
 group = "general"
 param = { key = "a5", kind = "u8" }
 input = "choice"
@@ -1250,7 +1250,7 @@ state = "temperature_unit"
 [[command]]
 id = "device_timeout"
 msg = "0103"
-label = "Device timeout minutes"
+label = "Device Timeout"
 group = "function"
 param = { key = "a6", kind = "u16" }
 input = "choice"
@@ -1260,7 +1260,7 @@ state = "device_timeout"
 [[command]]
 id = "port_memory_switch"
 msg = "0103"
-label = "Port memory switch"
+label = "Output Port Memory"
 group = "function"
 param = { key = "a8", kind = "u8" }
 input = "switch"

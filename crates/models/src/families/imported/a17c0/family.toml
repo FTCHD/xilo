@@ -463,14 +463,14 @@ confidence = "likely"
 [[command]]
 id = "status"
 msg = "0040"
-label = "Status request"
+label = "Read Status"
 group = "hidden"
 input = "none"
 
 [[command]]
 id = "temperature_unit"
 msg = "0050"
-label = "Temperature unit switch"
+label = "Temperature Unit"
 group = "general"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -480,7 +480,7 @@ state = "temperature_unit"
 [[command]]
 id = "live_reporting"
 msg = "0057"
-label = "Realtime trigger"
+label = "Live Reporting"
 group = "hidden"
 input = "none"
 fixed = [{ key = "a2", kind = "u8", value = 1 }, { key = "a3", kind = "u32", value = 60 }]

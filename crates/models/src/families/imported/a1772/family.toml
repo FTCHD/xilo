@@ -9,7 +9,7 @@ keepalive = { command = "live_reporting", every_s = 60 }
 [[field]]
 key = "a2"
 id = "ac_output_timeout_seconds"
-label = "AC output timeout seconds"
+label = "AC output timeout"
 kind = "auto"
 msgs = ["0405"]
 unit = "s"
@@ -18,7 +18,7 @@ confidence = "likely"
 [[field]]
 key = "a3"
 id = "dc_output_timeout_seconds"
-label = "DC output timeout seconds"
+label = "DC output timeout"
 kind = "auto"
 msgs = ["0405"]
 unit = "s"
@@ -27,7 +27,7 @@ confidence = "likely"
 [[field]]
 key = "a4"
 id = "remaining_time"
-label = "Remaining time hours"
+label = "Remaining time"
 kind = "auto"
 msgs = ["0405"]
 scale = 0.1
@@ -109,7 +109,7 @@ confidence = "likely"
 [[field]]
 key = "ad"
 id = "car_output_power"
-label = "DC 12v 1 power"
+label = "DC 12V 1 power"
 kind = "auto"
 msgs = ["0405"]
 unit = "W"
@@ -248,7 +248,7 @@ confidence = "likely"
 [[field]]
 key = "cc"
 id = "dc_12v_1_status"
-label = "DC 12v 1 status"
+label = "DC 12V 1 status"
 kind = "auto"
 msgs = ["0405"]
 confidence = "likely"
@@ -273,7 +273,7 @@ confidence = "likely"
 [[field]]
 key = "d2"
 id = "device_timeout"
-label = "Device timeout minutes"
+label = "Device timeout"
 kind = "auto"
 msgs = ["0405"]
 unit = "min"
@@ -282,7 +282,7 @@ confidence = "likely"
 [[field]]
 key = "d3"
 id = "screen_timeout"
-label = "Display timeout seconds"
+label = "Display timeout"
 kind = "auto"
 msgs = ["0405"]
 unit = "s"
@@ -425,7 +425,7 @@ confidence = "likely"
 [[command]]
 id = "ac_output_timeout_seconds"
 msg = "0042"
-label = "AC output timeout seconds"
+label = "AC Output Timer"
 group = "function"
 param = { key = "a2", kind = "u32" }
 input = "number"
@@ -438,7 +438,7 @@ state = "ac_output_timeout_seconds"
 [[command]]
 id = "dc_output_timeout_seconds"
 msg = "0043"
-label = "DC output timeout seconds"
+label = "Car Charger Timer"
 group = "function"
 param = { key = "a2", kind = "u32" }
 input = "number"
@@ -451,7 +451,7 @@ state = "dc_output_timeout_seconds"
 [[command]]
 id = "ac_charge_power"
 msg = "0044"
-label = "AC charge limit"
+label = "AC Recharging Power"
 group = "function"
 param = { key = "a2", kind = "u16" }
 input = "number"
@@ -464,7 +464,7 @@ state = "ac_charge_power"
 [[command]]
 id = "device_timeout"
 msg = "0045"
-label = "Device timeout minutes"
+label = "Device Timeout"
 group = "function"
 param = { key = "a2", kind = "u16" }
 input = "choice"
@@ -474,7 +474,7 @@ state = "device_timeout"
 [[command]]
 id = "screen_timeout"
 msg = "0046"
-label = "Display timeout seconds"
+label = "Screen Timeout"
 group = "function"
 param = { key = "a2", kind = "u16" }
 input = "choice"
@@ -484,7 +484,7 @@ state = "screen_timeout"
 [[command]]
 id = "ac_switch"
 msg = "004a"
-label = "AC output switch"
+label = "AC Output"
 group = "control"
 param = { key = "a2", kind = "u8" }
 input = "switch"
@@ -496,7 +496,7 @@ state = "ac_switch"
 [[command]]
 id = "dc_switch"
 msg = "004b"
-label = "DC output switch"
+label = "Car Charger Output"
 group = "control"
 param = { key = "a2", kind = "u8" }
 input = "switch"
@@ -506,9 +506,9 @@ on_state = 1
 state = "dc_switch"
 
 [[command]]
-id = "display_mode_select"
+id = "screen_brightness"
 msg = "004c"
-label = "Display mode select"
+label = "Screen Brightness"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -516,10 +516,10 @@ options = [{ value = 3, label = "High" }, { value = 1, label = "Low" }, { value 
 state = "screen_brightness"
 
 [[command]]
-id = "light_mode_select"
+id = "light_mode"
 msg = "004f"
-label = "Light mode select"
-group = "function"
+label = "Light"
+group = "control"
 param = { key = "a2", kind = "u8" }
 input = "choice"
 options = [{ value = 4, label = "Blinking" }, { value = 3, label = "High" }, { value = 1, label = "Low" }, { value = 2, label = "Medium" }, { value = 0, label = "Off" }]
@@ -528,7 +528,7 @@ state = "light_mode"
 [[command]]
 id = "temperature_unit"
 msg = "0050"
-label = "Temperature unit switch"
+label = "Temperature Unit"
 group = "general"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -538,7 +538,7 @@ state = "temperature_unit"
 [[command]]
 id = "screen_switch"
 msg = "0052"
-label = "Display switch"
+label = "Screen"
 group = "control"
 param = { key = "a2", kind = "u8" }
 input = "switch"
@@ -550,7 +550,7 @@ state = "screen_on"
 [[command]]
 id = "live_reporting"
 msg = "0057"
-label = "Realtime trigger"
+label = "Live Reporting"
 group = "hidden"
 input = "none"
 fixed = [{ key = "a2", kind = "u8", value = 1 }, { key = "a3", kind = "u32", value = 60 }]

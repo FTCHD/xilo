@@ -1342,7 +1342,7 @@ confidence = "likely"
 [[command]]
 id = "temperature_unit"
 msg = "0050"
-label = "Temperature unit switch"
+label = "Temperature Unit"
 group = "general"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -1352,7 +1352,7 @@ state = "temperature_unit"
 [[command]]
 id = "live_reporting"
 msg = "0057"
-label = "Realtime trigger"
+label = "Live Reporting"
 group = "hidden"
 input = "none"
 fixed = [{ key = "a2", kind = "u8", value = 1 }, { key = "a3", kind = "u32", value = 60 }]
@@ -1360,7 +1360,7 @@ fixed = [{ key = "a2", kind = "u8", value = 1 }, { key = "a3", kind = "u32", val
 [[command]]
 id = "sb_max_load_parallel"
 msg = "005a"
-label = "Sb max load parallel"
+label = "Max Load Parallel"
 group = "function"
 param = { key = "a2", kind = "u16" }
 input = "choice"
@@ -1371,7 +1371,7 @@ fixed = [{ key = "a3", kind = "u16", value = 2 }]
 [[command]]
 id = "sb_light_mode_select"
 msg = "0068"
-label = "Sb light mode select"
+label = "Light Mode"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -1382,7 +1382,7 @@ fixed = [{ key = "a3", kind = "u8", value = 0 }]
 [[command]]
 id = "sb_light_switch"
 msg = "0068"
-label = "Sb light switch"
+label = "Light"
 group = "function"
 param = { key = "a3", kind = "u8" }
 input = "switch"
@@ -1395,7 +1395,7 @@ fixed = [{ key = "a2", kind = "u8", value = 0 }]
 [[command]]
 id = "sb_max_load"
 msg = "0080"
-label = "Sb max load"
+label = "Max Load"
 group = "function"
 param = { key = "a2", kind = "u16" }
 input = "choice"
@@ -1406,7 +1406,7 @@ fixed = [{ key = "a3", kind = "u16", value = 0 }]
 [[command]]
 id = "sb_disable_grid_export_switch"
 msg = "0080"
-label = "Sb disable grid export switch"
+label = "Disable Grid Export"
 group = "function"
 param = { key = "a6", kind = "u16" }
 input = "switch"

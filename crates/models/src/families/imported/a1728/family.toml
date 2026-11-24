@@ -34,7 +34,7 @@ confidence = "likely"
 [[field]]
 key = "a2"
 id = "dc_output_timeout_seconds"
-label = "DC output timeout seconds"
+label = "DC output timeout"
 kind = "auto"
 msgs = ["0404"]
 unit = "s"
@@ -43,7 +43,7 @@ confidence = "likely"
 [[field]]
 key = "a2"
 id = "dc_output_timeout_seconds"
-label = "DC output timeout seconds"
+label = "DC output timeout"
 kind = "auto"
 msgs = ["0405"]
 unit = "s"
@@ -52,7 +52,7 @@ confidence = "likely"
 [[field]]
 key = "a3"
 id = "remaining_time"
-label = "Remaining time hours"
+label = "Remaining time"
 kind = "auto"
 msgs = ["0405"]
 scale = 0.1
@@ -116,7 +116,7 @@ confidence = "likely"
 [[field]]
 key = "aa"
 id = "car_output_power"
-label = "DC 12v 1 power"
+label = "DC 12V 1 power"
 kind = "auto"
 msgs = ["0405"]
 unit = "W"
@@ -281,7 +281,7 @@ confidence = "likely"
 [[field]]
 key = "c4"
 id = "device_timeout"
-label = "Device timeout minutes"
+label = "Device timeout"
 kind = "auto"
 msgs = ["0405"]
 unit = "min"
@@ -290,7 +290,7 @@ confidence = "likely"
 [[field]]
 key = "c5"
 id = "screen_timeout"
-label = "Display timeout seconds"
+label = "Display timeout"
 kind = "auto"
 msgs = ["0405"]
 unit = "s"
@@ -331,7 +331,7 @@ confidence = "likely"
 [[field]]
 key = "cb"
 id = "light_timeout_minutes"
-label = "Light timeout minutes"
+label = "Light timeout"
 kind = "auto"
 msgs = ["0405"]
 unit = "min"
@@ -348,7 +348,7 @@ confidence = "likely"
 [[field]]
 key = "f7"
 id = "dc_12v_auto_on"
-label = "DC 12v auto on"
+label = "DC 12V auto on"
 kind = "auto"
 msgs = ["0405"]
 confidence = "likely"
@@ -356,7 +356,7 @@ confidence = "likely"
 [[field]]
 key = "f8"
 id = "dc_12v_output_mode"
-label = "DC 12v output mode"
+label = "DC 12V output mode"
 kind = "u8"
 msgs = ["0405"]
 offset = 0
@@ -381,7 +381,7 @@ confidence = "likely"
 [[command]]
 id = "dc_output_timeout_seconds"
 msg = "0043"
-label = "DC output timeout seconds"
+label = "Car Charger Timer"
 group = "function"
 param = { key = "a2", kind = "u32" }
 input = "number"
@@ -394,7 +394,7 @@ state = "dc_output_timeout_seconds"
 [[command]]
 id = "device_timeout"
 msg = "0045"
-label = "Device timeout minutes"
+label = "Device Timeout"
 group = "function"
 param = { key = "a2", kind = "u16" }
 input = "choice"
@@ -404,7 +404,7 @@ state = "device_timeout"
 [[command]]
 id = "screen_timeout"
 msg = "0046"
-label = "Display timeout seconds"
+label = "Screen Timeout"
 group = "function"
 param = { key = "a2", kind = "u16" }
 input = "choice"
@@ -414,7 +414,7 @@ state = "screen_timeout"
 [[command]]
 id = "dc_switch"
 msg = "004b"
-label = "DC output switch"
+label = "Car Charger Output"
 group = "control"
 param = { key = "a2", kind = "u8" }
 input = "switch"
@@ -424,9 +424,9 @@ on_state = 1
 state = "dc_switch"
 
 [[command]]
-id = "display_mode_select"
+id = "screen_brightness"
 msg = "004c"
-label = "Display mode select"
+label = "Screen Brightness"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -434,10 +434,10 @@ options = [{ value = 3, label = "High" }, { value = 1, label = "Low" }, { value 
 state = "screen_brightness"
 
 [[command]]
-id = "light_mode_select"
+id = "light_mode"
 msg = "004f"
-label = "Light mode select"
-group = "function"
+label = "Light"
+group = "control"
 param = { key = "a2", kind = "u8" }
 input = "choice"
 options = [{ value = 3, label = "High" }, { value = 1, label = "Low" }, { value = 2, label = "Medium" }, { value = 0, label = "Off" }]
@@ -446,7 +446,7 @@ state = "light_mode"
 [[command]]
 id = "temperature_unit"
 msg = "0050"
-label = "Temperature unit switch"
+label = "Temperature Unit"
 group = "general"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -456,7 +456,7 @@ state = "temperature_unit"
 [[command]]
 id = "screen_switch"
 msg = "0052"
-label = "Display switch"
+label = "Screen"
 group = "control"
 param = { key = "a2", kind = "u8" }
 input = "switch"
@@ -468,7 +468,7 @@ state = "screen_on"
 [[command]]
 id = "live_reporting"
 msg = "0057"
-label = "Realtime trigger"
+label = "Live Reporting"
 group = "hidden"
 input = "none"
 fixed = [{ key = "a2", kind = "u8", value = 1 }, { key = "a3", kind = "u32", value = 60 }]

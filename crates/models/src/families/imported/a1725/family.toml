@@ -17,7 +17,7 @@ confidence = "likely"
 [[field]]
 key = "a2"
 id = "dc_output_timeout_seconds"
-label = "DC output timeout seconds"
+label = "DC output timeout"
 kind = "auto"
 msgs = ["0405"]
 unit = "s"
@@ -26,7 +26,7 @@ confidence = "likely"
 [[field]]
 key = "a3"
 id = "remaining_time"
-label = "Remaining time hours"
+label = "Remaining time"
 kind = "auto"
 msgs = ["0405"]
 scale = 0.1
@@ -212,7 +212,7 @@ confidence = "likely"
 [[field]]
 key = "c4"
 id = "device_timeout"
-label = "Device timeout minutes"
+label = "Device timeout"
 kind = "auto"
 msgs = ["0405"]
 unit = "min"
@@ -221,7 +221,7 @@ confidence = "likely"
 [[field]]
 key = "c5"
 id = "screen_timeout"
-label = "Display timeout seconds"
+label = "Display timeout"
 kind = "auto"
 msgs = ["0405"]
 unit = "s"
@@ -278,7 +278,7 @@ confidence = "likely"
 [[command]]
 id = "dc_output_timeout_seconds"
 msg = "0043"
-label = "DC output timeout seconds"
+label = "Car Charger Timer"
 group = "function"
 param = { key = "a2", kind = "u32" }
 input = "number"
@@ -291,7 +291,7 @@ state = "dc_output_timeout_seconds"
 [[command]]
 id = "device_timeout"
 msg = "0045"
-label = "Device timeout minutes"
+label = "Device Timeout"
 group = "function"
 param = { key = "a2", kind = "u16" }
 input = "choice"
@@ -301,7 +301,7 @@ state = "device_timeout"
 [[command]]
 id = "screen_timeout"
 msg = "0046"
-label = "Display timeout seconds"
+label = "Screen Timeout"
 group = "function"
 param = { key = "a2", kind = "u16" }
 input = "choice"
@@ -309,9 +309,9 @@ options = [{ value = 20, label = "20 s" }, { value = 30, label = "30 s" }, { val
 state = "screen_timeout"
 
 [[command]]
-id = "display_mode_select"
+id = "screen_brightness"
 msg = "004c"
-label = "Display mode select"
+label = "Screen Brightness"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -321,7 +321,7 @@ state = "screen_brightness"
 [[command]]
 id = "temperature_unit"
 msg = "0050"
-label = "Temperature unit switch"
+label = "Temperature Unit"
 group = "general"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -331,7 +331,7 @@ state = "temperature_unit"
 [[command]]
 id = "screen_switch"
 msg = "0052"
-label = "Display switch"
+label = "Screen"
 group = "control"
 param = { key = "a2", kind = "u8" }
 input = "switch"
@@ -343,7 +343,7 @@ state = "screen_on"
 [[command]]
 id = "live_reporting"
 msg = "0057"
-label = "Realtime trigger"
+label = "Live Reporting"
 group = "hidden"
 input = "none"
 fixed = [{ key = "a2", kind = "u8", value = 1 }, { key = "a3", kind = "u32", value = 60 }]

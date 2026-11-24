@@ -86,6 +86,8 @@ const COMMAND_IDS: &[(&str, &str)] = &[
     ("light_mode", "light_mode"),
     ("display_switch", "screen_switch"),
     ("display_mode", "screen_brightness"),
+    ("display_mode_select", "screen_brightness"),
+    ("light_mode_select", "light_mode"),
     ("temp_unit_switch", "temperature_unit"),
     ("ac_charge_limit", "ac_charge_power"),
     ("device_timeout_minutes", "device_timeout"),
@@ -150,25 +152,91 @@ fn field_id(name: &str) -> String {
     clean
 }
 
-fn humanize(name: &str) -> String {
-    let words: Vec<String> = sanitize(name)
-        .split('_')
-        .filter(|w| !w.is_empty() && *w != "set")
-        .map(|w| match w {
+/// Words in anker-solix-api names that add nothing to a label.
+const FILLER: &[&str] = &["set", "sb", "pps", "select"];
+const UNIT_WORDS: &[&str] = &["seconds", "sec", "minutes", "min", "hours"];
+
+/// Labels for common commands, worded like the Anker app.
+const COMMAND_LABELS: &[(&str, &str)] = &[
+    ("ac_switch", "AC Output"),
+    ("dc_switch", "Car Charger Output"),
+    ("screen_switch", "Screen"),
+    ("screen_brightness", "Screen Brightness"),
+    ("screen_timeout", "Screen Timeout"),
+    ("device_timeout", "Device Timeout"),
+    ("temperature_unit", "Temperature Unit"),
+    ("light_mode", "Light"),
+    ("ultrafast", "UltraFast Charging"),
+    ("ac_charge_power", "AC Recharging Power"),
+    ("ac_frequency_select", "AC Output Frequency"),
+    ("ac_output_timeout_seconds", "AC Output Timer"),
+    ("dc_output_timeout_seconds", "Car Charger Timer"),
+    ("ac_output_mode_select", "AC Output Mode"),
+    ("dc_12v_output_mode_select", "Car Charger Output Mode"),
+    ("port_memory_switch", "Output Port Memory"),
+    ("display_brightness_select", "Screen Brightness"),
+    ("display_timeout_mode_select", "Screen Timeout"),
+    ("live_reporting", "Live Reporting"),
+    ("status", "Read Status"),
+];
+
+fn words(name: &str, command: bool) -> Vec<String> {
+    let drop_units = true;
+    let raw: Vec<String> = sanitize(name).split('_').map(str::to_string).collect();
+    let last = raw.len().saturating_sub(1);
+    raw.iter()
+        .enumerate()
+        .filter(|(_, w)| {
+            !w.is_empty() && !FILLER.contains(&w.as_str()) && !(command && w.as_str() == "switch")
+        })
+        .filter(|(i, w)| !(drop_units && *i == last && UNIT_WORDS.contains(&w.as_str())))
+        .map(|(_, w)| match w.as_str() {
             "ac" | "dc" | "pv" | "usb" | "sn" | "pn" | "soc" | "soh" | "sw" | "hw" | "id"
             | "ev" | "ota" => w.to_uppercase(),
             "usbc" => "USB-C".into(),
             "usba" => "USB-A".into(),
+            "12v" => "12V".into(),
             "temp" => "temperature".into(),
-            _ => w.to_string(),
+            _ => w.clone(),
         })
-        .collect();
-    let text = words.join(" ");
-    let mut chars = text.chars();
+        .collect()
+}
+
+fn capitalize(word: &str) -> String {
+    let mut chars = word.chars();
     match chars.next() {
         Some(first) => first.to_uppercase().chain(chars).collect(),
-        None => text,
+        None => String::new(),
     }
+}
+
+/// A field or option label in sentence case, without filler or unit words.
+fn humanize(name: &str) -> String {
+    let words = words(name, false);
+    let text = if words.is_empty() {
+        sanitize(name)
+    } else {
+        words.join(" ")
+    };
+    capitalize(&text)
+}
+
+/// A command label in title case, like the Anker app's settings.
+fn command_label(id: &str, name: &str) -> String {
+    if let Some(label) =
+        lookup(COMMAND_LABELS, id).or_else(|| lookup(COMMAND_LABELS, &sanitize(name)))
+    {
+        return label;
+    }
+    let words = words(name, true);
+    if words.is_empty() {
+        return humanize(name);
+    }
+    words
+        .iter()
+        .map(|w| capitalize(w))
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 fn unit_for(name: &str) -> Option<&'static str> {
@@ -418,7 +486,7 @@ impl Out {
         let _ = writeln!(body, "[[command]]");
         let _ = writeln!(body, "id = {}", q(&id));
         let _ = writeln!(body, "msg = {}", q(msg));
-        let _ = writeln!(body, "label = {}", q(&humanize(name)));
+        let _ = writeln!(body, "label = {}", q(&command_label(&id, name)));
         let group = if CONTROLS.contains(&id.as_str()) {
             "control"
         } else if id == "temperature_unit" {
@@ -683,6 +751,18 @@ mod tests {
         assert_eq!(super::field_id("usbc_2_status"), "usb_c2_state");
         assert_eq!(super::field_id("main_battery_soc"), "battery_soc");
         assert_eq!(super::field_id("exp_1_soc?"), "exp_1_soc");
-        assert_eq!(super::humanize("set_ac_output_switch"), "AC output switch");
+        assert_eq!(
+            super::humanize("ac_output_timeout_seconds"),
+            "AC output timeout"
+        );
+        assert_eq!(super::command_label("x", "sb_light_switch"), "Light");
+        assert_eq!(
+            super::command_label("x", "outage_alert_switch"),
+            "Outage Alert"
+        );
+        assert_eq!(
+            super::command_label("ac_switch", "ac_output_switch"),
+            "AC Output"
+        );
     }
 }

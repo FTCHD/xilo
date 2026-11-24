@@ -644,7 +644,7 @@ state = "screen_timeout"
 [[command]]
 id = "port_memory"
 msg = "0079"
-label = "Output Port Memory Switch"
+label = "Output Port Memory"
 group = "function"
 input = "switch"
 param = { kind = "u8" }

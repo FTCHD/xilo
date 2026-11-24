@@ -20,7 +20,7 @@ confidence = "likely"
 [[field]]
 key = "a2"
 id = "set_port_switch_select"
-label = "Port switch select"
+label = "Port switch"
 kind = "auto"
 msgs = ["0302"]
 confidence = "likely"
@@ -298,7 +298,7 @@ confidence = "likely"
 [[field]]
 key = "a2"
 id = "set_port_timer_select"
-label = "Port timer select"
+label = "Port timer"
 kind = "auto"
 msgs = ["0307"]
 confidence = "likely"
@@ -315,7 +315,7 @@ confidence = "likely"
 [[field]]
 key = "a3"
 id = "port_timer_remaining_seconds"
-label = "Port timer remaining seconds"
+label = "Port timer remaining"
 kind = "u32"
 msgs = ["0307"]
 unit = "s"
@@ -325,7 +325,7 @@ confidence = "likely"
 [[field]]
 key = "a3"
 id = "port_timer_seconds"
-label = "Port timer seconds"
+label = "Port timer"
 kind = "u32"
 msgs = ["0307"]
 unit = "s"
@@ -679,7 +679,7 @@ confidence = "likely"
 [[field]]
 key = "aa"
 id = "ac_1_timer_seconds"
-label = "AC 1 timer seconds"
+label = "AC 1 timer"
 kind = "u32"
 msgs = ["0a00"]
 unit = "s"
@@ -689,7 +689,7 @@ confidence = "likely"
 [[field]]
 key = "aa"
 id = "ac_1_timer_remaining_seconds"
-label = "AC 1 timer remaining seconds"
+label = "AC 1 timer remaining"
 kind = "u32"
 msgs = ["0a00"]
 unit = "s"
@@ -789,7 +789,7 @@ confidence = "likely"
 [[field]]
 key = "ab"
 id = "ac_2_timer_seconds"
-label = "AC 2 timer seconds"
+label = "AC 2 timer"
 kind = "u32"
 msgs = ["0a00"]
 unit = "s"
@@ -799,7 +799,7 @@ confidence = "likely"
 [[field]]
 key = "ab"
 id = "ac_2_timer_remaining_seconds"
-label = "AC 2 timer remaining seconds"
+label = "AC 2 timer remaining"
 kind = "u32"
 msgs = ["0a00"]
 unit = "s"
@@ -926,7 +926,7 @@ confidence = "likely"
 [[field]]
 key = "b0"
 id = "usb_c1_timer_seconds"
-label = "USB-C 1 timer seconds"
+label = "USB-C 1 timer"
 kind = "u32"
 msgs = ["0a00"]
 unit = "s"
@@ -936,7 +936,7 @@ confidence = "likely"
 [[field]]
 key = "b0"
 id = "usb_c1_timer_remaining_seconds"
-label = "USB-C 1 timer remaining seconds"
+label = "USB-C 1 timer remaining"
 kind = "u32"
 msgs = ["0a00"]
 unit = "s"
@@ -1036,7 +1036,7 @@ confidence = "likely"
 [[field]]
 key = "b1"
 id = "usb_c2_timer_seconds"
-label = "USB-C 2 timer seconds"
+label = "USB-C 2 timer"
 kind = "u32"
 msgs = ["0a00"]
 unit = "s"
@@ -1046,7 +1046,7 @@ confidence = "likely"
 [[field]]
 key = "b1"
 id = "usb_c2_timer_remaining_seconds"
-label = "USB-C 2 timer remaining seconds"
+label = "USB-C 2 timer remaining"
 kind = "u32"
 msgs = ["0a00"]
 unit = "s"
@@ -1146,7 +1146,7 @@ confidence = "likely"
 [[field]]
 key = "b2"
 id = "usb_c3_timer_seconds"
-label = "USB-C 3 timer seconds"
+label = "USB-C 3 timer"
 kind = "u32"
 msgs = ["0a00"]
 unit = "s"
@@ -1156,7 +1156,7 @@ confidence = "likely"
 [[field]]
 key = "b2"
 id = "usb_c3_timer_remaining_seconds"
-label = "USB-C 3 timer remaining seconds"
+label = "USB-C 3 timer remaining"
 kind = "u32"
 msgs = ["0a00"]
 unit = "s"
@@ -1256,7 +1256,7 @@ confidence = "likely"
 [[field]]
 key = "b3"
 id = "usb_c4_timer_seconds"
-label = "USB-C 4 timer seconds"
+label = "USB-C 4 timer"
 kind = "u32"
 msgs = ["0a00"]
 unit = "s"
@@ -1266,7 +1266,7 @@ confidence = "likely"
 [[field]]
 key = "b3"
 id = "usb_c4_timer_remaining_seconds"
-label = "USB-C 4 timer remaining seconds"
+label = "USB-C 4 timer remaining"
 kind = "u32"
 msgs = ["0a00"]
 unit = "s"
@@ -1292,23 +1292,23 @@ confidence = "likely"
 [[command]]
 id = "status"
 msg = "0200"
-label = "Status request"
+label = "Read Status"
 group = "hidden"
 input = "none"
 
 [[command]]
 id = "display_timeout_mode_select"
 msg = "0203"
-label = "Display timeout mode select"
+label = "Screen Timeout"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "choice"
 options = [{ value = 0, label = "0" }, { value = 4, label = "1800" }, { value = 1, label = "30" }, { value = 3, label = "300" }, { value = 2, label = "60" }]
 
 [[command]]
-id = "display_mode_select"
+id = "screen_brightness"
 msg = "0204"
-label = "Display mode select"
+label = "Screen Brightness"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -1317,7 +1317,7 @@ options = [{ value = 2, label = "High" }, { value = 0, label = "Low" }, { value 
 [[command]]
 id = "charger_usage_mode"
 msg = "0206"
-label = "Charger usage mode"
+label = "Charger Usage Mode"
 group = "function"
 param = { key = "a2", kind = "u16" }
 input = "choice"
@@ -1327,7 +1327,7 @@ state = "usage_mode"
 [[command]]
 id = "ac_1_port_switch"
 msg = "0207"
-label = "AC 1 port switch"
+label = "AC 1 Port"
 group = "function"
 param = { key = "a3", kind = "u8" }
 input = "switch"
@@ -1340,7 +1340,7 @@ fixed = [{ key = "a2", kind = "u8", value = 0 }]
 [[command]]
 id = "ac_2_port_switch"
 msg = "0207"
-label = "AC 2 port switch"
+label = "AC 2 Port"
 group = "function"
 param = { key = "a3", kind = "u8" }
 input = "switch"
@@ -1353,7 +1353,7 @@ fixed = [{ key = "a2", kind = "u8", value = 1 }]
 [[command]]
 id = "usbc_1_port_switch"
 msg = "0207"
-label = "USB-C 1 port switch"
+label = "USB-C 1 Port"
 group = "function"
 param = { key = "a3", kind = "u8" }
 input = "switch"
@@ -1366,7 +1366,7 @@ fixed = [{ key = "a2", kind = "u8", value = 2 }]
 [[command]]
 id = "usbc_2_port_switch"
 msg = "0207"
-label = "USB-C 2 port switch"
+label = "USB-C 2 Port"
 group = "function"
 param = { key = "a3", kind = "u8" }
 input = "switch"
@@ -1379,7 +1379,7 @@ fixed = [{ key = "a2", kind = "u8", value = 3 }]
 [[command]]
 id = "usbc_3_port_switch"
 msg = "0207"
-label = "USB-C 3 port switch"
+label = "USB-C 3 Port"
 group = "function"
 param = { key = "a3", kind = "u8" }
 input = "switch"
@@ -1392,7 +1392,7 @@ fixed = [{ key = "a2", kind = "u8", value = 4 }]
 [[command]]
 id = "usbc_4_port_switch"
 msg = "0207"
-label = "USB-C 4 port switch"
+label = "USB-C 4 Port"
 group = "function"
 param = { key = "a3", kind = "u8" }
 input = "switch"
@@ -1405,14 +1405,14 @@ fixed = [{ key = "a2", kind = "u8", value = 5 }]
 [[command]]
 id = "live_reporting"
 msg = "020b"
-label = "Realtime trigger"
+label = "Live Reporting"
 group = "hidden"
 input = "none"
 
 [[command]]
 id = "clock_mode_select"
 msg = "0210"
-label = "Clock mode select"
+label = "Clock Mode"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -1422,7 +1422,7 @@ state = "clock_mode"
 [[command]]
 id = "ac_light_mode_select"
 msg = "0214"
-label = "AC light mode select"
+label = "AC Light Mode"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "choice"

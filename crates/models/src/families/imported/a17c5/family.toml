@@ -315,7 +315,7 @@ confidence = "likely"
 [[field]]
 key = "d4"
 id = "device_timeout"
-label = "Device timeout minutes"
+label = "Device timeout"
 kind = "auto"
 msgs = ["0405"]
 scale = 30
@@ -2441,7 +2441,7 @@ confidence = "likely"
 [[command]]
 id = "temperature_unit"
 msg = "0050"
-label = "Temperature unit switch"
+label = "Temperature Unit"
 group = "general"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -2450,7 +2450,7 @@ options = [{ value = 0, label = "Celsius" }, { value = 1, label = "Fahrenheit" }
 [[command]]
 id = "live_reporting"
 msg = "0057"
-label = "Realtime trigger"
+label = "Live Reporting"
 group = "hidden"
 input = "none"
 fixed = [{ key = "a2", kind = "u8", value = 1 }, { key = "a3", kind = "u32", value = 60 }]
@@ -2458,7 +2458,7 @@ fixed = [{ key = "a2", kind = "u8", value = 1 }, { key = "a3", kind = "u32", val
 [[command]]
 id = "sb_max_load_parallel"
 msg = "005a"
-label = "Sb max load parallel"
+label = "Max Load Parallel"
 group = "function"
 param = { key = "a2", kind = "u16" }
 input = "choice"
@@ -2469,7 +2469,7 @@ fixed = [{ key = "a3", kind = "u16", value = 2 }]
 [[command]]
 id = "sb_min_soc_select"
 msg = "0067"
-label = "Sb min SOC select"
+label = "Min SOC"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -2478,7 +2478,7 @@ options = [{ value = 5, label = "5 %" }, { value = 10, label = "10 %" }]
 [[command]]
 id = "sb_light_mode_select"
 msg = "0068"
-label = "Sb light mode select"
+label = "Light Mode"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "choice"
@@ -2488,7 +2488,7 @@ fixed = [{ key = "a3", kind = "u8", value = 0 }]
 [[command]]
 id = "sb_light_switch"
 msg = "0068"
-label = "Sb light switch"
+label = "Light"
 group = "function"
 param = { key = "a3", kind = "u8" }
 input = "switch"
@@ -2500,7 +2500,7 @@ fixed = [{ key = "a2", kind = "u8", value = 0 }]
 [[command]]
 id = "sb_ac_socket_switch"
 msg = "0073"
-label = "Sb AC socket switch"
+label = "AC Socket"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "switch"
@@ -2511,7 +2511,7 @@ on_state = 1
 [[command]]
 id = "sb_max_load"
 msg = "0080"
-label = "Sb max load"
+label = "Max Load"
 group = "function"
 param = { key = "a2", kind = "u16" }
 input = "choice"
@@ -2522,7 +2522,7 @@ fixed = [{ key = "a3", kind = "u16", value = 0 }, { key = "a4", kind = "u16", va
 [[command]]
 id = "sb_disable_grid_export_switch"
 msg = "0080"
-label = "Sb disable grid export switch"
+label = "Disable Grid Export"
 group = "function"
 param = { key = "a6", kind = "u16" }
 input = "switch"
@@ -2534,7 +2534,7 @@ fixed = [{ key = "a5", kind = "u16", value = 0 }, { key = "a9", kind = "u16", va
 [[command]]
 id = "sb_pv_limit_select"
 msg = "0080"
-label = "Sb PV limit select"
+label = "PV Limit"
 group = "function"
 param = { key = "a7", kind = "u16" }
 input = "choice"
@@ -2544,7 +2544,7 @@ state = "pv_limit"
 [[command]]
 id = "sb_ac_input_limit"
 msg = "0080"
-label = "Sb AC input limit"
+label = "AC Input Limit"
 group = "function"
 param = { key = "a8", kind = "u16" }
 input = "number"
@@ -2557,7 +2557,7 @@ state = "ac_charge_power"
 [[command]]
 id = "sb_3rd_party_pv_switch"
 msg = "0085"
-label = "Sb 3rd party PV switch"
+label = "3rd Party PV"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "switch"
@@ -2568,7 +2568,7 @@ on_state = 1
 [[command]]
 id = "sb_device_timeout"
 msg = "009a"
-label = "Sb device timeout"
+label = "Device Timeout"
 group = "function"
 param = { key = "a2", kind = "u8" }
 input = "choice"
