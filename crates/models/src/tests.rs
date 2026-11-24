@@ -194,5 +194,8 @@ fn detects_models() {
         state: Some(&state),
         ..Default::default()
     });
-    assert!(found[0].code == "A1722" || found[0].code == "A1723");
+    assert_eq!(
+        found[0].code, "A1722",
+        "the serial in the state picks the C300"
+    );
 }

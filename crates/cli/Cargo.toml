@@ -10,5 +10,16 @@ publish.workspace = true
 name = "xilo-cli"
 path = "src/main.rs"
 
+[dependencies]
+xilo-proto = { workspace = true }
+xilo-models = { workspace = true }
+xilo-engine = { workspace = true }
+xilo-ble = { workspace = true }
+tokio = { workspace = true }
+clap = { workspace = true }
+anyhow = { workspace = true }
+hex = { workspace = true }
+tracing-subscriber = { workspace = true }
+
 [lints]
 workspace = true

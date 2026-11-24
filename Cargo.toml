@@ -14,6 +14,7 @@ publish = false
 xilo-proto = { path = "crates/proto" }
 xilo-models = { path = "crates/models" }
 xilo-engine = { path = "crates/engine" }
+xilo-ble = { path = "crates/ble" }
 
 gpui-kit = "=0.11.0"
 
@@ -30,6 +31,13 @@ indexmap = { version = "2", features = ["serde"] }
 tokio = { version = "1.54", features = ["rt-multi-thread", "sync", "time", "macros"] }
 async-trait = "0.1.92"
 getrandom = "0.4.3"
+btleplug = "=0.13.5"
+futures = "0.3"
+uuid = "1"
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [workspace.lints.rust]
 unsafe_code = "deny"

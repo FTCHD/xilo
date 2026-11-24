@@ -153,7 +153,8 @@ impl Registry {
         for spec in self.models.values() {
             let mut score = 0.0;
             let mut reason = "fingerprint";
-            if let Some(serial) = evidence.serial
+            let from_state = evidence.state.and_then(|s| serial_in_state(spec, s));
+            if let Some(serial) = evidence.serial.or(from_state.as_deref())
                 && spec
                     .serial_prefixes
                     .iter()
@@ -176,6 +177,18 @@ impl Registry {
         out.sort_by(|a, b| b.score.total_cmp(&a.score));
         out
     }
+}
+
+fn serial_in_state(spec: &ModelSpec, message: &Message) -> Option<String> {
+    let field = spec.field("serial_number")?;
+    if !spec.is_state_msg(message.id()) {
+        return None;
+    }
+    let item = message.payload.get(parse_key(&field.key)?)?;
+    if item.ty != Some(tlv::TYPE_STR) {
+        return None;
+    }
+    Some(item.text())
 }
 
 /// How well a state message matches a model: keys and their type bytes.

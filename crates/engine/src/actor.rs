@@ -276,8 +276,14 @@ impl Actor {
                     self.snap.last_error = None;
                     self.session(link).await;
                 }
-                Ok(Err(err)) => self.snap.last_error = Some(err.to_string()),
-                Err(_) => self.snap.last_error = Some("connection timed out".into()),
+                Ok(Err(err)) => {
+                    tracing::warn!(device = %self.setup.addr, "connect failed: {err}");
+                    self.snap.last_error = Some(err.to_string());
+                }
+                Err(_) => {
+                    tracing::warn!(device = %self.setup.addr, "connect timed out");
+                    self.snap.last_error = Some("connection timed out".into());
+                }
             }
             self.fail_jobs();
             let next = if self.released_until.is_some() {
@@ -398,6 +404,7 @@ impl Actor {
                     session.handle(now(), Input::Notify(&bytes), &mut out);
                 }
                 Event::Link(Some(LinkEvent::Disconnected(reason))) => {
+                    tracing::info!(device = %self.setup.addr, "link closed: {reason}");
                     self.snap.last_error = Some(reason);
                     break;
                 }
@@ -453,6 +460,7 @@ impl Actor {
                     }
                 }
                 Output::Ready(info) => {
+                    tracing::info!(device = %self.setup.addr, serial = ?info.serial, "session ready");
                     self.snap.info = Some(info);
                     self.detect(None);
                     self.set_link(LinkState::Ready);
@@ -462,11 +470,19 @@ impl Actor {
                 }
                 Output::Message(message) => self.on_message(message),
                 Output::Trace(trace) => {
+                    tracing::debug!(
+                        device = %self.setup.addr,
+                        "{} {} {}",
+                        if trace.outgoing { "->" } else { "<-" },
+                        trace.cmd.map(|c| c.to_string()).unwrap_or_default(),
+                        trace.bytes.iter().map(|b| format!("{b:02x}")).collect::<String>()
+                    );
                     if self.tracing_on.load(Ordering::Relaxed) {
                         let _ = self.traces.send(trace);
                     }
                 }
                 Output::Failed(err) => {
+                    tracing::warn!(device = %self.setup.addr, "protocol: {err}");
                     self.snap.last_error = Some(err.to_string());
                     if err != ProtoError::NotReady {
                         return false;
@@ -520,8 +536,13 @@ impl Actor {
             serial: serial.as_deref(),
             state,
         });
+        let clear = |i: usize| {
+            found
+                .get(i + 1)
+                .is_none_or(|next| found[i].score > next.score + 0.05)
+        };
         if let Some(best) = found.first()
-            && (best.reason != "fingerprint" || best.score >= 0.25)
+            && (best.reason != "fingerprint" || (best.score >= 0.25 && clear(0)))
         {
             self.snap.model = self.shared.registry.get(&best.code).cloned();
             self.setup.model = Some(best.code.clone());
