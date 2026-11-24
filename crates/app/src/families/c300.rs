@@ -230,12 +230,12 @@ fn hero(d: &Dashboard, remaining_hours: Option<f64>, cx: &App) -> Div {
         .left(px((w - 230.0) / 2.0))
         .size(glow_size)
         .rounded_full()
-        .bg(accent.alpha(if dark { 0.05 } else { 0.04 }))
+        .bg(accent.alpha(0.012))
         .shadow(vec![BoxShadow {
-            color: accent.alpha(if dark { 0.42 } else { 0.25 }),
+            color: accent.alpha(if dark { 0.75 } else { 0.4 }),
             offset: point(px(0.), px(0.)),
-            blur_radius: px(150.),
-            spread_radius: px(-10.),
+            blur_radius: px(120.),
+            spread_radius: px(10.),
             inset: false,
         }]);
     let halo: AnyElement = if d.connected && d.charging {
@@ -354,24 +354,28 @@ fn total(label: &'static str, value: Option<i64>, input: bool, cx: &App) -> Div 
         IconName::ArrowUpFromLine
     };
     let active = value.unwrap_or(0) > 0;
-    live_card(active, color, cx).flex_1().child(
-        h_flex()
-            .gap(px(14.))
-            .items_center()
-            .child(icon_badge(icon, color, px(44.)))
-            .child(
-                v_flex()
-                    .gap(px(2.))
-                    .child(caption(label, cx))
-                    .child(big_value(
-                        value.filter(|v| *v > 0),
-                        "W",
-                        30.,
-                        active.then_some(color),
-                        cx,
-                    )),
-            ),
-    )
+    live_card(active, color, cx)
+        .flex_1()
+        .flex()
+        .items_center()
+        .child(
+            h_flex()
+                .gap(px(14.))
+                .items_center()
+                .child(icon_badge(icon, color, px(44.)))
+                .child(
+                    v_flex()
+                        .gap(px(2.))
+                        .child(caption(label, cx))
+                        .child(big_value(
+                            value.filter(|v| *v > 0),
+                            "W",
+                            30.,
+                            active.then_some(color),
+                            cx,
+                        )),
+                ),
+        )
 }
 
 fn ports(d: &Dashboard, cx: &App) -> Div {

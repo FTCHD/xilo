@@ -1,9 +1,10 @@
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use gpui_kit::component::button::{Button, ButtonVariants as _};
+use gpui_kit::assets::IconName;
+use gpui_kit::component::button::Button;
 use gpui_kit::component::notification::Notification;
-use gpui_kit::component::{ActiveTheme as _, Sizable as _, WindowExt as _, h_flex, v_flex};
+use gpui_kit::component::{ActiveTheme as _, Icon, WindowExt as _, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 use jiff::Timestamp;
@@ -13,7 +14,7 @@ use xilo_store::History;
 use crate::device::DeviceModel;
 use crate::services::unix_now;
 use crate::state::AppState;
-use crate::widgets::{caption, card, section};
+use crate::widgets::{caption, card, input_color, output_color, section, segment, segmented};
 
 pub fn time_text(ts: i64) -> String {
     Timestamp::from_second(ts)
@@ -246,23 +247,56 @@ fn line_chart(
             let w = f32::from(bounds.size.width);
             let h = f32::from(bounds.size.height);
             let span = (to - from).max(1) as f32;
+            let bottom = bounds.origin.y + bounds.size.height;
             for (points, color) in series {
-                let mut path = PathBuilder::stroke(px(2.));
-                let mut started = false;
-                let mut last_ts = i64::MIN;
+                let at = |ts: i64, v: f64| {
+                    point(
+                        bounds.origin.x + px((ts - from) as f32 / span * w),
+                        bounds.origin.y + px(h - (v / peak) as f32 * h),
+                    )
+                };
+                // Gaps over 10 minutes stay empty.
+                let mut runs: Vec<Vec<(i64, f64)>> = Vec::new();
                 for (ts, v) in points {
-                    let x = bounds.origin.x + px((ts - from) as f32 / span * w);
-                    let y = bounds.origin.y + px(h - (v / peak) as f32 * h);
-                    if !started || ts - last_ts > 600 {
-                        path.move_to(point(x, y));
-                        started = true;
-                    } else {
-                        path.line_to(point(x, y));
+                    match runs.last_mut() {
+                        Some(run) if run.last().is_some_and(|l| ts - l.0 <= 600) => {
+                            run.push((ts, v))
+                        }
+                        _ => runs.push(vec![(ts, v)]),
                     }
-                    last_ts = ts;
                 }
-                if let Ok(path) = path.build() {
-                    window.paint_path(path, color);
+                for run in runs {
+                    let (Some(first), Some(last)) = (run.first(), run.last()) else {
+                        continue;
+                    };
+                    let mut area = PathBuilder::fill();
+                    area.move_to(point(at(first.0, first.1).x, bottom));
+                    for (ts, v) in &run {
+                        area.line_to(at(*ts, *v));
+                    }
+                    area.line_to(point(at(last.0, last.1).x, bottom));
+                    area.close();
+                    if let Ok(path) = area.build() {
+                        window.paint_path(
+                            path,
+                            linear_gradient(
+                                180.,
+                                linear_color_stop(color.alpha(0.28), 0.),
+                                linear_color_stop(color.alpha(0.0), 1.),
+                            ),
+                        );
+                    }
+                    let mut line = PathBuilder::stroke(px(2.));
+                    for (i, (ts, v)) in run.iter().enumerate() {
+                        if i == 0 {
+                            line.move_to(at(*ts, *v));
+                        } else {
+                            line.line_to(at(*ts, *v));
+                        }
+                    }
+                    if let Ok(path) = line.build() {
+                        window.paint_path(path, color);
+                    }
                 }
             }
         },
@@ -343,28 +377,22 @@ impl Render for HistoryView {
         let to = unix_now();
         let from = to - self.range.seconds();
         let brand = cx.theme().primary;
-        let input = cx.theme().success;
-        let output = cx.theme().warning;
+        let input = input_color(cx);
+        let output = output_color(cx);
         let empty = self.data.soc.is_empty() && self.data.output.is_empty();
         let current = self.range;
-        let ranges =
-            h_flex()
-                .gap(px(6.))
-                .children(
-                    [Range::Day, Range::Week, Range::Month]
-                        .into_iter()
-                        .map(|r| {
-                            Button::new(SharedString::from(r.label()))
-                                .small()
-                                .when(r == current, |b| b.primary())
-                                .when(r != current, |b| b.ghost())
-                                .label(r.label())
-                                .on_click(cx.listener(move |view, _, _, cx| {
-                                    view.range = r;
-                                    view.load(cx);
-                                }))
+        let ranges = segmented(cx).children(
+            [Range::Day, Range::Week, Range::Month]
+                .into_iter()
+                .map(|r| {
+                    segment(SharedString::from(r.label()), r.label(), r == current, cx).on_click(
+                        cx.listener(move |view, _, _, cx| {
+                            view.range = r;
+                            view.load(cx);
                         }),
-                );
+                    )
+                }),
+        );
         v_flex()
             .gap(px(14.))
             .child(
@@ -373,7 +401,7 @@ impl Render for HistoryView {
                     .child(ranges)
                     .child(
                         Button::new("export")
-                            .small()
+                            .icon(Icon::new(IconName::Download))
                             .label("Export CSV")
                             .on_click(cx.listener(|view, _, window, cx| view.export(window, cx))),
                     ),

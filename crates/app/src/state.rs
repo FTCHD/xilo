@@ -44,10 +44,7 @@ impl AppState {
         cx: &mut Context<Self>,
     ) -> Self {
         let mut state = Self {
-            route: match config.devices.first() {
-                Some(d) => Route::Device(d.key.clone(), Tab::Dashboard),
-                None => Route::AddDevice,
-            },
+            route: start_route(&config),
             config,
             devices: Vec::new(),
             history: history.map(|h| Arc::new(Mutex::new(h))),
@@ -201,6 +198,33 @@ impl AppState {
         {
             tracing::error!("could not save settings: {err}");
         }
+    }
+}
+
+/// The first page: `XILO_OPEN` when set (for development), else the first device.
+fn start_route(config: &Config) -> Route {
+    if let Ok(open) = std::env::var("XILO_OPEN") {
+        let mut parts = open.splitn(3, ':');
+        match (parts.next(), parts.next(), parts.next()) {
+            (Some("add"), ..) => return Route::AddDevice,
+            (Some("preferences"), ..) => return Route::Preferences,
+            (Some("about"), ..) => return Route::About,
+            (Some("device"), Some(key), tab) => {
+                let tab = match tab {
+                    Some("settings") => Tab::Settings,
+                    Some("history") => Tab::History,
+                    Some("automations") => Tab::Automations,
+                    Some("inspector") => Tab::Inspector,
+                    _ => Tab::Dashboard,
+                };
+                return Route::Device(key.to_string(), tab);
+            }
+            _ => {}
+        }
+    }
+    match config.devices.first() {
+        Some(d) => Route::Device(d.key.clone(), Tab::Dashboard),
+        None => Route::AddDevice,
     }
 }
 

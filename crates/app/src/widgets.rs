@@ -12,9 +12,14 @@ pub fn input_color(cx: &App) -> Hsla {
     cx.theme().success
 }
 
-/// Colour for power flowing out of a device.
+/// Colour for power flowing out of a device. Deeper on light backgrounds,
+/// where the brand cyan is hard to read.
 pub fn output_color(cx: &App) -> Hsla {
-    cx.theme().primary
+    if cx.theme().is_dark() {
+        cx.theme().primary
+    } else {
+        rgb(0x0093b0).into()
+    }
 }
 
 /// `base` with `color` laid over it at strength `t`.
@@ -425,4 +430,44 @@ pub fn divided(rows: impl IntoIterator<Item = AnyElement>, cx: &App) -> Div {
         list = list.child(row);
     }
     list
+}
+
+/// The track of a segmented control. Fill it with [`segment`]s.
+pub fn segmented(cx: &App) -> Div {
+    h_flex()
+        .self_start()
+        .p(px(4.))
+        .gap(px(2.))
+        .rounded_full()
+        .bg(cx.theme().muted)
+        .border_1()
+        .border_color(cx.theme().border.alpha(0.06))
+}
+
+/// One option in a segmented control.
+pub fn segment(
+    id: impl Into<ElementId>,
+    label: impl Into<SharedString>,
+    selected: bool,
+    cx: &App,
+) -> Stateful<Div> {
+    let primary = cx.theme().primary;
+    div()
+        .id(id)
+        .px(px(14.))
+        .py(px(6.))
+        .rounded_full()
+        .text_size(px(13.))
+        .font_weight(FontWeight::SEMIBOLD)
+        .cursor_pointer()
+        .when(selected, |el| {
+            el.bg(primary)
+                .text_color(cx.theme().primary_foreground)
+                .shadow(glow(primary, 0.5))
+        })
+        .when(!selected, |el| {
+            el.text_color(cx.theme().muted_foreground)
+                .hover(|s| s.text_color(cx.theme().foreground))
+        })
+        .child(label.into())
 }

@@ -2,14 +2,14 @@ use std::time::Duration;
 
 use gpui_kit::assets::IconName;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
-use gpui_kit::component::{ActiveTheme as _, Icon, Sizable as _, h_flex, v_flex};
+use gpui_kit::component::{ActiveTheme as _, Icon, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 use xilo_engine::Found;
 
 use crate::runtime::Runtime;
 use crate::state::AppState;
-use crate::widgets::{asset, caption, card, section};
+use crate::widgets::{asset, caption, card, glow, icon_badge, live_card, pill};
 
 const SCAN_WINDOW: Duration = Duration::from_secs(6);
 const SOLIX_COMPANY: u16 = 0xffff;
@@ -62,21 +62,28 @@ impl AddDevice {
         .detach();
     }
 
+    /// The likely model: from the manufacturer data, or else from the advertised name.
     fn guess(&self, found: &Found, cx: &App) -> Option<(String, String)> {
-        let data = found.advert.manufacturer_data.get(&SOLIX_COMPANY)?;
         let registry = Runtime::get(cx).engine.registry().clone();
-        let models = registry.guess_from_advert(data);
-        let first = models.first()?;
-        let names: Vec<String> = models.iter().map(|m| m.name.clone()).collect();
-        Some((first.assets.clone(), names.join(" or ")))
+        if let Some(data) = found.advert.manufacturer_data.get(&SOLIX_COMPANY) {
+            let models = registry.guess_from_advert(data);
+            if let Some(first) = models.first() {
+                let names: Vec<String> = models.iter().map(|m| m.name.clone()).collect();
+                return Some((first.assets.clone(), names.join(" or ")));
+            }
+        }
+        let name = found.advert.name.as_deref()?.trim_start_matches("Anker ");
+        let model = registry.all().find(|m| m.name.eq_ignore_ascii_case(name))?;
+        Some((model.assets.clone(), model.code.clone()))
     }
 }
 
 impl Render for AddDevice {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let rows: Vec<AnyElement> = self
-            .found
-            .iter()
+        let mut found: Vec<&Found> = self.found.iter().collect();
+        found.sort_by_key(|f| f.known);
+        let rows: Vec<AnyElement> = found
+            .into_iter()
             .filter_map(|f| {
                 let addr = f.advert.addr.clone()?;
                 let name = f
@@ -86,31 +93,46 @@ impl Render for AddDevice {
                     .unwrap_or_else(|| "SOLIX device".into());
                 let guess = self.guess(f, cx);
                 let assets = guess.as_ref().map(|g| g.0.clone()).unwrap_or_default();
-                let hint = guess.map(|g| g.1).unwrap_or_else(|| addr.id.clone());
+                let hint = guess.map(|g| g.1).unwrap_or_else(|| "Unknown model".into());
                 let known = f.known;
-                let rssi = f
-                    .advert
-                    .rssi
-                    .map(|r| format!("{r} dBm"))
-                    .unwrap_or_default();
                 let state = self.state.clone();
                 let id = addr.id.clone();
                 let label = name.clone();
+                let primary = cx.theme().primary;
                 Some(
-                    card(cx)
+                    live_card(!known, cx.theme().primary, cx)
+                        .p(px(14.))
                         .child(
                             h_flex()
-                                .gap(px(14.))
+                                .gap(px(16.))
                                 .items_center()
-                                .child(asset(
-                                    &format!("{assets}/product"),
-                                    px(52.),
-                                    IconName::BatteryCharging,
-                                    cx,
-                                ))
+                                .child(
+                                    div()
+                                        .size(px(64.))
+                                        .flex_none()
+                                        .rounded(px(18.))
+                                        .bg(linear_gradient(
+                                            160.,
+                                            linear_color_stop(primary.alpha(0.22), 0.),
+                                            linear_color_stop(primary.alpha(0.04), 1.),
+                                        ))
+                                        .border_1()
+                                        .border_color(primary.alpha(0.18))
+                                        .flex()
+                                        .items_center()
+                                        .justify_center()
+                                        .child(asset(
+                                            &format!("{assets}/product"),
+                                            px(52.),
+                                            IconName::BatteryCharging,
+                                            cx,
+                                        )),
+                                )
                                 .child(
                                     v_flex()
                                         .flex_1()
+                                        .min_w(px(0.))
+                                        .gap(px(2.))
                                         .child(
                                             div()
                                                 .text_size(px(16.))
@@ -119,39 +141,82 @@ impl Render for AddDevice {
                                         )
                                         .child(caption(hint, cx)),
                                 )
-                                .child(caption(rssi, cx))
-                                .child(
+                                .child(signal(f.advert.rssi, cx))
+                                .child(if known {
+                                    pill("Added", cx.theme().muted_foreground).into_any_element()
+                                } else {
                                     Button::new(SharedString::from(format!("add-{id}")))
-                                        .small()
-                                        .when(!known, |b| b.primary())
-                                        .label(if known { "Open" } else { "Add" })
+                                        .primary()
+                                        .icon(Icon::new(IconName::Plus))
+                                        .label("Add")
                                         .on_click(move |_, _, cx| {
                                             let id = id.clone();
                                             let label = label.clone();
                                             state.update(cx, |s, cx| {
                                                 s.add_device(id, Some(label), cx)
                                             });
-                                        }),
-                                ),
+                                        })
+                                        .into_any_element()
+                                }),
                         )
                         .into_any_element(),
                 )
             })
             .collect();
         let empty = rows.is_empty();
+        let primary = cx.theme().primary;
+        let radar = div()
+            .size(px(10.))
+            .rounded_full()
+            .bg(primary)
+            .shadow(glow(primary, 0.8));
+        let radar: AnyElement = if self.scanning {
+            radar
+                .with_animation(
+                    "scan-pulse",
+                    Animation::new(Duration::from_millis(1200))
+                        .repeat()
+                        .with_easing(pulsating_between(0.25, 1.0)),
+                    |el, delta| el.opacity(delta),
+                )
+                .into_any_element()
+        } else {
+            radar.opacity(0.4).into_any_element()
+        };
         v_flex()
             .size_full()
             .p(px(24.))
             .gap(px(16.))
-            .child(div().text_size(px(22.)).font_weight(FontWeight::BOLD).child("Add a Device"))
             .child(
                 h_flex()
                     .justify_between()
                     .items_center()
-                    .child(section(if self.scanning { "Looking for devices..." } else { "Nearby" }, cx))
+                    .child(
+                        v_flex()
+                            .gap(px(4.))
+                            .child(
+                                div()
+                                    .text_size(px(26.))
+                                    .font_weight(FontWeight::BOLD)
+                                    .child("Add a Device"),
+                            )
+                            .child(
+                                h_flex()
+                                    .gap(px(8.))
+                                    .items_center()
+                                    .child(radar)
+                                    .child(caption(
+                                        if self.scanning {
+                                            "Looking for SOLIX devices nearby..."
+                                        } else {
+                                            "Devices found nearby"
+                                        },
+                                        cx,
+                                    )),
+                            ),
+                    )
                     .child(
                         Button::new("rescan")
-                            .small()
                             .icon(Icon::new(IconName::RefreshCw))
                             .label("Scan Again")
                             .loading(self.scanning)
@@ -160,18 +225,32 @@ impl Render for AddDevice {
             )
             .when_some(self.error.clone(), |el, err| {
                 el.child(
-                    card(cx)
-                        .border_1()
-                        .border_color(cx.theme().danger)
-                        .child(div().text_size(px(14.)).child(err)),
+                    live_card(true, cx.theme().danger, cx).child(
+                        h_flex()
+                            .gap(px(12.))
+                            .items_center()
+                            .child(icon_badge(IconName::BluetoothOff, cx.theme().danger, px(36.)))
+                            .child(div().flex_1().text_size(px(14.)).child(err)),
+                    ),
                 )
             })
             .children(rows)
             .when(empty && self.scanned && !self.scanning, |el| {
                 el.child(card(cx).child(
                     v_flex()
-                        .gap(px(8.))
-                        .child(div().text_size(px(15.)).child("No SOLIX devices found."))
+                        .gap(px(10.))
+                        .child(
+                            h_flex()
+                                .gap(px(12.))
+                                .items_center()
+                                .child(icon_badge(IconName::Bluetooth, cx.theme().muted_foreground, px(36.)))
+                                .child(
+                                    div()
+                                        .text_size(px(15.))
+                                        .font_weight(FontWeight::SEMIBOLD)
+                                        .child("No SOLIX devices found"),
+                                ),
+                        )
                         .child(caption("• Turn the device on and keep it near this Mac.", cx))
                         .child(caption(
                             "• A device that is connected to the Anker app on a phone does not advertise. Close the app or turn off Bluetooth on the phone.",
@@ -181,8 +260,43 @@ impl Render for AddDevice {
                             "• Some devices stop advertising after they are set up for Wi-Fi. Press the IoT button on the device to make it visible again.",
                             cx,
                         ))
-                        .child(caption("• Check that Xilo may use Bluetooth in System Settings > Privacy & Security.", cx)),
+                        .child(caption(
+                            "• Check that Xilo may use Bluetooth in System Settings > Privacy & Security.",
+                            cx,
+                        )),
                 ))
             })
     }
+}
+
+/// Signal strength as four bars.
+fn signal(rssi: Option<i16>, cx: &App) -> AnyElement {
+    let Some(rssi) = rssi else {
+        return div().into_any_element();
+    };
+    let level = match rssi {
+        -60.. => 4,
+        -70..=-61 => 3,
+        -80..=-71 => 2,
+        _ => 1,
+    };
+    let color = if level >= 3 {
+        cx.theme().success
+    } else if level == 2 {
+        cx.theme().warning
+    } else {
+        cx.theme().danger
+    };
+    h_flex()
+        .gap(px(2.))
+        .items_end()
+        .h(px(16.))
+        .children((1..=4).map(|i| {
+            div()
+                .w(px(4.))
+                .h(px(4. * i as f32))
+                .rounded(px(1.))
+                .bg(if i <= level { color } else { cx.theme().muted })
+        }))
+        .into_any_element()
 }

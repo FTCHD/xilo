@@ -1,6 +1,6 @@
-use gpui_kit::component::button::{Button, ButtonVariants as _};
+use gpui_kit::assets::IconName;
 use gpui_kit::component::switch::Switch;
-use gpui_kit::component::{ActiveTheme as _, Sizable as _, h_flex, v_flex};
+use gpui_kit::component::{ActiveTheme as _, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 use xilo_engine::automations::usb_watts;
@@ -9,7 +9,9 @@ use xilo_store::UsbWake;
 use crate::device_view::DeviceView;
 use crate::history_view::time_text;
 use crate::services::unix_now;
-use crate::widgets::{caption, card, divided, section};
+use crate::widgets::{
+    caption, card, divided, icon_badge, live_card, output_color, pill, section, segment, segmented,
+};
 
 const IDLE_CHOICES: [u32; 4] = [60, 80, 100, 110];
 const BATTERY_CHOICES: [u8; 4] = [5, 10, 20, 30];
@@ -67,25 +69,21 @@ pub fn render(
             .py(px(12.))
             .justify_between()
             .items_center()
-            .border_t_1()
-            .border_color(cx.theme().border)
             .child(div().text_size(px(15.)).child(label))
             .child(
-                h_flex()
-                    .gap(px(6.))
-                    .children(values.into_iter().map(|(value, text)| {
-                        let mut next = base.clone();
-                        apply(&mut next, value);
-                        Button::new(SharedString::from(format!("{id}-{value}")))
-                            .small()
-                            .when(value == current, |b| b.primary())
-                            .when(value != current, |b| b.ghost())
-                            .label(text)
-                            .on_click(
-                                cx.listener(move |view, _, _, cx| update(view, next.clone(), cx)),
-                            )
-                    })),
+                segmented(cx).children(values.into_iter().map(|(value, text)| {
+                    let mut next = base.clone();
+                    apply(&mut next, value);
+                    segment(
+                        SharedString::from(format!("{id}-{value}")),
+                        text,
+                        value == current,
+                        cx,
+                    )
+                    .on_click(cx.listener(move |view, _, _, cx| update(view, next.clone(), cx)))
+                })),
             )
+            .into_any_element()
     };
 
     let toggle = {
@@ -119,12 +117,15 @@ pub fn render(
         |w, v| w.min_battery = v as u8,
     );
 
-    let status = if !wake.enabled {
-        "Off".to_string()
+    let (status, status_color) = if !wake.enabled {
+        ("Off".to_string(), cx.theme().muted_foreground)
     } else if !snap.is_ready() {
-        "Waiting for the device to connect.".to_string()
+        ("Waiting for the device".to_string(), cx.theme().warning)
     } else {
-        format!("Watching. USB load now: {:.0} W.", usb_watts(&snap))
+        (
+            format!("Watching · USB load {:.0} W", usb_watts(&snap)),
+            cx.theme().success,
+        )
     };
 
     let log = divided(
@@ -144,32 +145,49 @@ pub fn render(
         .gap(px(14.))
         .child(section("USB Wake", cx))
         .child(
-            card(cx).p(px(4.)).child(
-                v_flex()
-                    .child(
-                        h_flex()
-                            .px(px(14.))
-                            .py(px(12.))
-                            .gap(px(16.))
-                            .justify_between()
-                            .child(
-                                v_flex()
-                                    .flex_1()
-                                    .min_w(px(0.))
-                                    .gap(px(4.))
-                                    .child(div().text_size(px(15.)).child("Keep USB ports on"))
-                                    .child(caption(
-                                        "The device turns its USB ports off after about two hours of low load. \
-                                         Xilo turns the car output on briefly before that happens, which keeps the ports on. \
-                                         If the car output was off, Xilo turns it off again 3 seconds later.",
-                                        cx,
-                                    ))
-                                    .child(caption(status, cx)),
-                            )
-                            .child(toggle),
-                    )
-                    .when(wake.enabled, |el| el.child(idle_row).child(battery_row)),
-            ),
+            live_card(wake.enabled, output_color(cx), cx).p(px(4.)).child(divided(
+                std::iter::once(
+                    h_flex()
+                        .px(px(14.))
+                        .py(px(14.))
+                        .gap(px(16.))
+                        .items_center()
+                        .child(icon_badge(
+                            IconName::Usb,
+                            if wake.enabled { output_color(cx) } else { cx.theme().muted_foreground },
+                            px(44.),
+                        ))
+                        .child(
+                            v_flex()
+                                .flex_1()
+                                .min_w(px(0.))
+                                .gap(px(6.))
+                                .child(
+                                    h_flex()
+                                        .gap(px(10.))
+                                        .items_center()
+                                        .child(
+                                            div()
+                                                .text_size(px(16.))
+                                                .font_weight(FontWeight::SEMIBOLD)
+                                                .child("Keep USB ports on"),
+                                        )
+                                        .child(pill(status, status_color)),
+                                )
+                                .child(caption(
+                                    "The device turns its USB ports off after about two hours of low load. \
+                                     Xilo turns the car output on briefly before that happens, which keeps the ports on. \
+                                     If the car output was off, Xilo turns it off again 3 seconds later.",
+                                    cx,
+                                )),
+                        )
+                        .child(toggle)
+                        .into_any_element(),
+                )
+                .chain(wake.enabled.then_some(idle_row))
+                .chain(wake.enabled.then_some(battery_row)),
+                cx,
+            )),
         )
         .when(!has_dc, |el| {
             el.child(caption("This model has no car output command, so USB wake cannot run.", cx))

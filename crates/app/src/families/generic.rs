@@ -104,24 +104,28 @@ pub fn render(
             IconName::ArrowUpFromLine
         };
         let active = value.unwrap_or(0) > 0;
-        live_card(active, color, cx).flex_1().child(
-            h_flex()
-                .gap(px(14.))
-                .items_center()
-                .child(icon_badge(icon, color, px(44.)))
-                .child(
-                    v_flex()
-                        .gap(px(2.))
-                        .child(caption(label, cx))
-                        .child(big_value(
-                            value.filter(|v| *v > 0),
-                            "W",
-                            30.,
-                            active.then_some(color),
-                            cx,
-                        )),
-                ),
-        )
+        live_card(active, color, cx)
+            .flex_1()
+            .flex()
+            .items_center()
+            .child(
+                h_flex()
+                    .gap(px(14.))
+                    .items_center()
+                    .child(icon_badge(icon, color, px(44.)))
+                    .child(
+                        v_flex()
+                            .gap(px(2.))
+                            .child(caption(label, cx))
+                            .child(big_value(
+                                value.filter(|v| *v > 0),
+                                "W",
+                                30.,
+                                active.then_some(color),
+                                cx,
+                            )),
+                    ),
+            )
     };
     let summary = h_flex()
         .gap(px(14.))

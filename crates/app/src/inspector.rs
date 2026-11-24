@@ -12,7 +12,7 @@ use xilo_store::capture::{self, Header, Record};
 
 use crate::device::DeviceModel;
 use crate::runtime::Runtime;
-use crate::widgets::{caption, card, section};
+use crate::widgets::{caption, card, divided, input_color, output_color, pill, section};
 
 const MAX_ROWS: usize = 400;
 
@@ -304,55 +304,77 @@ impl Render for Inspector {
         );
         let theme = cx.theme();
         let mono = theme.mono_font_family.clone();
-        let log = v_flex()
-            .font_family(mono)
-            .text_size(px(12.))
-            .children(self.rows.iter().map(|row| {
+        let log = divided(
+            self.rows.iter().map(|row| {
                 let r = &row.record;
-                let arrow = if r.outgoing { "→" } else { "←" };
+                let (arrow, color) = if r.outgoing {
+                    ("→", output_color(cx))
+                } else {
+                    ("←", input_color(cx))
+                };
                 let plain = r.plain.clone().unwrap_or_else(|| r.raw.clone());
                 v_flex()
-                    .py(px(5.))
-                    .border_b_1()
-                    .border_color(theme.border)
+                    .px(px(14.))
+                    .py(px(8.))
+                    .gap(px(6.))
+                    .font_family(mono.clone())
+                    .text_size(px(12.))
                     .child(
                         h_flex()
                             .gap(px(10.))
+                            .items_center()
                             .child(
                                 div()
-                                    .w(px(70.))
+                                    .w(px(52.))
+                                    .flex_none()
                                     .text_color(theme.muted_foreground)
                                     .child(format!("{:.1}s", r.ms as f64 / 1000.0)),
                             )
-                            .child(div().w(px(16.)).child(arrow))
+                            .child(div().w(px(14.)).flex_none().text_color(color).child(arrow))
                             .child(
                                 div()
-                                    .w(px(44.))
-                                    .font_weight(FontWeight::SEMIBOLD)
-                                    .child(r.cmd.clone().unwrap_or_default()),
+                                    .w(px(52.))
+                                    .flex_none()
+                                    .px(px(6.))
+                                    .py(px(1.))
+                                    .rounded(px(6.))
+                                    .bg(color.alpha(0.14))
+                                    .text_color(color)
+                                    .font_weight(FontWeight::BOLD)
+                                    .text_center()
+                                    .child(r.cmd.clone().unwrap_or_else(|| "----".into())),
                             )
                             .child(
                                 div()
                                     .flex_1()
+                                    .min_w(px(0.))
+                                    .truncate()
                                     .text_color(theme.muted_foreground)
                                     .child(plain),
                             )
-                            .when_some(r.note.clone(), |el, n| {
-                                el.child(div().text_color(theme.warning).child(n))
-                            }),
+                            .when_some(r.note.clone(), |el, n| el.child(pill(n, theme.warning))),
                     )
                     .when(!row.fields.is_empty(), |el| {
-                        el.child(h_flex().pl(px(140.)).gap(px(10.)).flex_wrap().children(
+                        el.child(h_flex().pl(px(138.)).gap(px(6.)).flex_wrap().children(
                             row.fields.iter().map(|(text, changed)| {
                                 div()
-                                    .px(px(4.))
-                                    .rounded(px(4.))
-                                    .when(*changed, |d| d.bg(theme.warning.opacity(0.25)))
+                                    .px(px(6.))
+                                    .py(px(1.))
+                                    .rounded(px(6.))
+                                    .bg(if *changed {
+                                        theme.warning.alpha(0.22)
+                                    } else {
+                                        theme.muted
+                                    })
+                                    .when(*changed, |d| d.text_color(theme.warning))
                                     .child(text.clone())
                             }),
                         ))
                     })
-            }));
+                    .into_any_element()
+            }),
+            cx,
+        );
         v_flex()
             .gap(px(14.))
             .child(section("Raw Command", cx))
@@ -363,11 +385,12 @@ impl Render for Inspector {
                     .child(section("Frames", cx))
                     .child(toolbar),
             )
-            .child(card(cx).child(if self.rows.is_empty() {
+            .child(card(cx).p(px(4.)).child(if self.rows.is_empty() {
                 caption(
                     "Frames appear here as the device sends them. Changed values are highlighted.",
                     cx,
                 )
+                .p(px(14.))
                 .into_any_element()
             } else {
                 log.into_any_element()
