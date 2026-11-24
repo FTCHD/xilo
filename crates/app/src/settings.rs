@@ -76,8 +76,6 @@ pub fn render(
     let function = rows(Group::Function, cx);
     let general = rows(Group::General, cx);
     let key = view.device.read(cx).key.clone();
-    let allow = snap.allow_unverified;
-    let verified = model.is_verified();
     let name = view.device.read(cx).name();
     let serial = snap.serial().unwrap_or("-").to_string();
     let firmware = snap.text("firmware").unwrap_or("-").to_string();
@@ -92,9 +90,13 @@ pub fn render(
         .child(
             card(cx).p(px(4.)).child(
                 v_flex()
-                    .child(info_row("Device Name", name.clone(), true, cx).id("rename").on_click(cx.listener(
-                        move |view, _, window, cx| rename(view, window, cx),
-                    )))
+                    .child(
+                        info_row("Device Name", name.clone(), true, cx)
+                            .id("rename")
+                            .on_click(
+                                cx.listener(move |view, _, window, cx| rename(view, window, cx)),
+                            ),
+                    )
                     .child(general)
                     .child(info_row("SN", serial, false, cx))
                     .child(info_row("Firmware", firmware, false, cx))
@@ -110,30 +112,28 @@ pub fn render(
             card(cx).p(px(4.)).child(
                 v_flex()
                     .child(
-                        info_row("Model", format!("{} ({})", model.name, model.code), true, cx)
-                            .id("model")
-                            .on_click(cx.listener(|view, _, window, cx| model_picker(view, window, cx))),
-                    )
-                    .when(!verified, |el| {
-                        el.child(row(
-                            "Allow control",
-                            Some("This model is not verified on hardware. Allow sending commands to it."),
-                            Switch::new("allow-unverified")
-                                .checked(allow)
-                                .on_click(cx.listener(move |view, checked: &bool, _, cx| {
-                                    set_allow(view, *checked, cx);
-                                }))
-                                .into_any_element(),
+                        info_row(
+                            "Model",
+                            format!("{} ({})", model.name, model.code),
+                            true,
                             cx,
-                        ))
-                    })
+                        )
+                        .id("model")
+                        .on_click(
+                            cx.listener(|view, _, window, cx| model_picker(view, window, cx)),
+                        ),
+                    )
                     .child(row(
                         "Release to phone",
-                        Some("Disconnect for 30 minutes so the Anker app on your phone can connect."),
+                        Some(
+                            "Disconnect for 30 minutes so the Anker app on your phone can connect.",
+                        ),
                         Button::new("release")
                             .small()
                             .label("Release")
-                            .on_click(cx.listener(|view, _, _, cx| view.device.read(cx).release(cx)))
+                            .on_click(
+                                cx.listener(|view, _, _, cx| view.device.read(cx).release(cx)),
+                            )
                             .into_any_element(),
                         cx,
                     ))
@@ -154,7 +154,9 @@ pub fn render(
                                         .title("Remove Device?")
                                         .description("The device will be removed from Xilo.")
                                         .ok_text("Remove")
-                                        .ok_variant(gpui_kit::component::button::ButtonVariant::Danger)
+                                        .ok_variant(
+                                            gpui_kit::component::button::ButtonVariant::Danger,
+                                        )
                                         .show_cancel(true)
                                         .on_ok(move |_, _, cx| {
                                             state.update(cx, |s, cx| s.remove_device(&key, cx));
@@ -173,9 +175,9 @@ pub fn render(
 /// Lets the user pick the model when detection fails or is wrong.
 fn model_picker(view: &mut DeviceView, window: &mut Window, cx: &mut Context<DeviceView>) {
     let registry = crate::runtime::Runtime::get(cx).engine.registry().clone();
-    let mut models: Vec<(String, String, bool)> = registry
+    let mut models: Vec<(String, String)> = registry
         .all()
-        .map(|m| (m.code.clone(), m.name.clone(), m.is_verified()))
+        .map(|m| (m.code.clone(), m.name.clone()))
         .collect();
     models.sort_by(|a, b| a.1.cmp(&b.1));
     let current = view
@@ -190,7 +192,7 @@ fn model_picker(view: &mut DeviceView, window: &mut Window, cx: &mut Context<Dev
     window.open_sheet_at(Placement::Right, cx, move |sheet, _, cx| {
         let list = v_flex()
             .gap(px(2.))
-            .children(models.iter().map(|(code, name, verified)| {
+            .children(models.iter().map(|(code, name)| {
                 let selected = current.as_deref() == Some(code.as_str());
                 let device = device.clone();
                 let state = state.clone();
@@ -207,14 +209,7 @@ fn model_picker(view: &mut DeviceView, window: &mut Window, cx: &mut Context<Dev
                     .child(
                         v_flex()
                             .child(div().text_size(px(14.)).child(name.clone()))
-                            .child(caption(
-                                if *verified {
-                                    format!("{code} · verified")
-                                } else {
-                                    code.clone()
-                                },
-                                cx,
-                            )),
+                            .child(caption(code.clone(), cx)),
                     )
                     .when(selected, |el| {
                         el.child(Icon::new(IconName::Check).text_color(cx.theme().primary))
@@ -244,18 +239,6 @@ fn model_picker(view: &mut DeviceView, window: &mut Window, cx: &mut Context<Dev
                 .overflow_y_scroll()
                 .child(list),
         )
-    });
-}
-
-fn set_allow(view: &mut DeviceView, allow: bool, cx: &mut Context<DeviceView>) {
-    let handle = view.device.read(cx).handle.clone();
-    let key = view.device.read(cx).key.clone();
-    crate::runtime::Runtime::spawn(cx, async move { handle.set_allow_unverified(allow).await });
-    view.state.update(cx, |s, _| {
-        if let Some(d) = s.device_config_mut(&key) {
-            d.allow_unverified = allow;
-        }
-        s.save();
     });
 }
 

@@ -324,7 +324,6 @@ fn resolve(family: &FamilyFile, model: ModelFile) -> Result<ModelSpec, String> {
     Ok(ModelSpec {
         code: model.model.code,
         name: model.model.name,
-        status: model.model.status,
         family: fam.clone(),
         serial_prefixes: model.model.serial_prefixes,
         assets,

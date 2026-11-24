@@ -2,6 +2,5 @@
 code = "A1763"
 name = "SOLIX C1000 Gen 2"
 family = "imp_a1763"
-status = "unverified"
 serial_prefixes = ["APCDK"]
 assets = "a1763"

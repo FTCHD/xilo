@@ -2,5 +2,4 @@
 code = "A1754"
 name = "SOLIX C800 Plus"
 family = "imp_a1754"
-status = "unverified"
 assets = "a1754"

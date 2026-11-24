@@ -84,28 +84,23 @@ fn builds_and_validates_commands() {
     let state = decoded("A1723", 0xc840, C300_TELEMETRY);
 
     let req = spec
-        .build(&CommandRequest::new("dc_switch", Some(1)), &state, false)
+        .build(&CommandRequest::new("dc_switch", Some(1)), &state)
         .expect("dc on");
     assert_eq!(req.id, MsgId(0x004b));
     assert_eq!(req.params, vec![(0xa2, TlvValue::U8(1))]);
 
-    let err = spec.build(
-        &CommandRequest::new("ac_charge_power", Some(250)),
-        &state,
-        false,
-    );
+    let err = spec.build(&CommandRequest::new("ac_charge_power", Some(250)), &state);
     assert!(matches!(
         err,
         Err(CommandError::InvalidValue { value: 250, .. })
     ));
 
-    let err = spec.build(&CommandRequest::new("factory_reset", None), &state, false);
+    let err = spec.build(&CommandRequest::new("factory_reset", None), &state);
     assert_eq!(err, Err(CommandError::NeedsConfirmation));
     let req = spec
         .build(
             &CommandRequest::new("factory_reset", None).confirmed(Confirmed::by_user()),
             &state,
-            false,
         )
         .expect("reset");
     assert_eq!((req.id, req.params.len()), (MsgId(0x0051), 0));
@@ -113,7 +108,6 @@ fn builds_and_validates_commands() {
     let err = spec.build(
         &CommandRequest::new("ac_frequency", Some(60)).confirmed(Confirmed::by_user()),
         &state,
-        false,
     );
     assert_eq!(
         err,
@@ -121,27 +115,11 @@ fn builds_and_validates_commands() {
     );
 
     let req = spec
-        .build(&CommandRequest::new("live_reporting", None), &state, false)
+        .build(&CommandRequest::new("live_reporting", None), &state)
         .expect("live");
     assert_eq!(
         req.params,
         vec![(0xa2, TlvValue::U8(1)), (0xa3, TlvValue::U32(300))]
-    );
-}
-
-#[test]
-fn unverified_models_are_read_only() {
-    let spec = Registry::builtin().get("A1761").expect("model");
-    let state = FieldMap::new();
-    let err = spec.build(&CommandRequest::new("dc_switch", Some(1)), &state, false);
-    assert!(matches!(err, Err(CommandError::ReadOnlyModel(_))));
-    assert!(
-        spec.build(&CommandRequest::new("status", None), &state, false)
-            .is_ok()
-    );
-    assert!(
-        spec.build(&CommandRequest::new("dc_switch", Some(1)), &state, true)
-            .is_ok()
     );
 }
 
@@ -152,7 +130,6 @@ fn inverted_modes_and_optimistic_state() {
         .build(
             &CommandRequest::new("car_saving_mode", Some(0)),
             &FieldMap::new(),
-            true,
         )
         .expect("smart on");
     assert_eq!(req.params, vec![(0xa2, TlvValue::U8(0))]);

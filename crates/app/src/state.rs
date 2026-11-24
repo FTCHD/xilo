@@ -66,7 +66,6 @@ impl AppState {
             addr: DeviceAddr::new(device.address.clone()),
             name: device.name.clone(),
             model: device.model.clone(),
-            allow_unverified: device.allow_unverified,
             auto_connect: device.auto_connect,
         };
         let handle = Runtime::enter(cx, |engine| engine.add(setup));
@@ -102,7 +101,6 @@ impl AppState {
             name,
             model: None,
             auto_connect: true,
-            allow_unverified: false,
             automations: Default::default(),
         };
         self.start(&device, cx);

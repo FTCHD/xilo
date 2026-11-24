@@ -3,8 +3,7 @@ use xilo_proto::tlv::{self, Item};
 use xilo_proto::{Message, MsgId, Request};
 
 use crate::schema::{
-    CommandDef, Condition, Danger, ErrorDef, FamilyDef, FieldDef, Input, Kind, ModelStatus,
-    ParamKind,
+    CommandDef, Condition, Danger, ErrorDef, FamilyDef, FieldDef, Input, Kind, ParamKind,
 };
 use crate::value::{FieldMap, Value};
 
@@ -12,7 +11,6 @@ use crate::value::{FieldMap, Value};
 pub struct ModelSpec {
     pub code: String,
     pub name: String,
-    pub status: ModelStatus,
     pub family: FamilyDef,
     pub serial_prefixes: Vec<String>,
     pub assets: String,
@@ -58,8 +56,6 @@ impl CommandRequest {
 pub enum CommandError {
     #[error("this model has no command \"{0}\"")]
     Unknown(String),
-    #[error("{0} is not verified on hardware, so Xilo only reads it")]
-    ReadOnlyModel(String),
     #[error("a value is required")]
     MissingValue,
     #[error("{value} is not allowed; allowed: {allowed}")]
@@ -79,10 +75,6 @@ impl ModelSpec {
             .filter_map(|m| MsgId::parse(m))
             .collect();
         self
-    }
-
-    pub fn is_verified(&self) -> bool {
-        self.status == ModelStatus::Verified
     }
 
     pub fn field(&self, id: &str) -> Option<&FieldDef> {
@@ -213,19 +205,11 @@ impl ModelSpec {
         &self,
         request: &CommandRequest,
         state: &FieldMap,
-        allow_unverified: bool,
     ) -> Result<Request, CommandError> {
         let command = self
             .commands
             .get(&request.command)
             .ok_or_else(|| CommandError::Unknown(request.command.clone()))?;
-        let session_command = self.family.keepalive.as_ref().map(|k| k.command.as_str())
-            == Some(command.id.as_str())
-            || self.family.subscribe.as_deref() == Some(command.id.as_str())
-            || self.family.status_request.as_deref() == Some(command.id.as_str());
-        if !session_command && !self.is_verified() && !allow_unverified {
-            return Err(CommandError::ReadOnlyModel(self.name.clone()));
-        }
         if let Some(reason) = self.gate(command, state) {
             return Err(CommandError::Gated(reason));
         }

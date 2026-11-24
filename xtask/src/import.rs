@@ -637,7 +637,7 @@ pub fn run(root: &Path, src: &Path) -> Result<()> {
             .map(|p| format!("serial_prefixes = [{}]\n", q(&p)))
             .unwrap_or_default();
         let model = format!(
-            "[model]\ncode = {}\nname = {}\nfamily = {}\nstatus = \"unverified\"\n{prefixes}assets = {}\n",
+            "[model]\ncode = {}\nname = {}\nfamily = {}\n{prefixes}assets = {}\n",
             q(code),
             q(&name),
             q(&family),

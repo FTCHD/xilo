@@ -2,5 +2,4 @@
 code = "A1783"
 name = "SOLIX C2000 Gen 2"
 family = "imp_a1783"
-status = "unverified"
 assets = "a1783"

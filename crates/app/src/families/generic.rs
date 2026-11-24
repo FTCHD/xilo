@@ -131,7 +131,7 @@ pub fn render(
     let values = card(cx).child(v_flex().children(rows.into_iter().map(|(field, text)| {
         let badge = match field.confidence {
             xilo_models::schema::Confidence::Verified => None,
-            xilo_models::schema::Confidence::Likely => Some("likely"),
+            xilo_models::schema::Confidence::Likely => None,
             xilo_models::schema::Confidence::Unknown => Some("unknown"),
         };
         h_flex()

@@ -66,7 +66,6 @@ pub struct ModelDef {
     pub code: String,
     pub name: String,
     pub family: String,
-    pub status: ModelStatus,
     #[serde(default)]
     pub serial_prefixes: Vec<String>,
     pub assets: Option<String>,
@@ -74,13 +73,6 @@ pub struct ModelDef {
     pub drop_commands: Vec<String>,
     #[serde(default)]
     pub drop_fields: Vec<String>,
-}
-
-#[derive(Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum ModelStatus {
-    Verified,
-    Unverified,
 }
 
 #[derive(Deserialize, Clone, Copy, Debug, PartialEq, Eq)]

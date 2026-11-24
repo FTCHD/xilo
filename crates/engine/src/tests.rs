@@ -31,7 +31,6 @@ fn engine(code: &str, serial: &str) -> (Arc<Engine>, DeviceHandle, Arc<Mutex<Sim
         addr: DeviceAddr::new("sim-1"),
         name: None,
         model: None,
-        allow_unverified: false,
         auto_connect: true,
     });
     (engine, handle, device)
@@ -132,16 +131,10 @@ async fn keeps_the_session_alive() {
 }
 
 #[tokio::test(start_paused = true)]
-async fn unverified_models_stay_read_only() {
+async fn controls_every_model() {
     let (_engine, handle, _device) = engine("A1761", "APC9FE0E27300275");
     let snap = wait_for(&handle, |s| s.is_ready() && s.model.is_some()).await;
     assert_eq!(snap.model.as_ref().map(|m| m.code.as_str()), Some("A1761"));
-    let err = handle.send(CommandRequest::new("dc_switch", Some(1))).await;
-    assert!(matches!(
-        err,
-        Err(SendError::Command(CommandError::ReadOnlyModel(_)))
-    ));
-    handle.set_allow_unverified(true).await;
     let outcome = handle.send(CommandRequest::new("dc_switch", Some(1))).await;
     assert_eq!(outcome, Ok(Outcome::Acked));
 }

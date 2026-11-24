@@ -27,7 +27,6 @@ pub struct DeviceSetup {
     pub addr: DeviceAddr,
     pub name: Option<String>,
     pub model: Option<String>,
-    pub allow_unverified: bool,
     pub auto_connect: bool,
 }
 
@@ -60,7 +59,6 @@ pub(crate) enum Control {
     Connect,
     Release(Duration),
     SetModel(Option<String>),
-    SetAllowUnverified(bool),
     SetName(Option<String>),
     Shutdown,
 }
@@ -129,10 +127,6 @@ impl DeviceHandle {
         let _ = self.tx.send(Control::SetModel(code)).await;
     }
 
-    pub async fn set_allow_unverified(&self, allow: bool) {
-        let _ = self.tx.send(Control::SetAllowUnverified(allow)).await;
-    }
-
     pub async fn set_name(&self, name: Option<String>) {
         let _ = self.tx.send(Control::SetName(name)).await;
     }
@@ -155,7 +149,6 @@ pub(crate) fn spawn(setup: DeviceSetup, shared: Arc<Shared>) -> DeviceHandle {
     let (tx, rx) = mpsc::channel(64);
     let mut snap = Snapshot::new(setup.key.clone(), setup.addr.clone());
     snap.name = setup.name.clone();
-    snap.allow_unverified = setup.allow_unverified;
     snap.model = setup
         .model
         .as_deref()
@@ -370,11 +363,6 @@ impl Actor {
                     self.last_poll = None;
                     self.schedule_periodic();
                 }
-                self.publish();
-            }
-            Control::SetAllowUnverified(allow) => {
-                self.setup.allow_unverified = allow;
-                self.snap.allow_unverified = allow;
                 self.publish();
             }
             Control::SetName(name) => {
@@ -682,12 +670,11 @@ impl Actor {
                 Ok(model.build(
                     &CommandRequest::new(command.clone(), None),
                     &self.snap.fields,
-                    self.setup.allow_unverified,
                 )?)
             }
             JobKind::Command(request) => {
                 let model = self.model().ok_or(SendError::NoModel)?;
-                Ok(model.build(request, &self.snap.fields, self.setup.allow_unverified)?)
+                Ok(model.build(request, &self.snap.fields)?)
             }
         }
     }

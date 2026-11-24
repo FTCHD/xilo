@@ -43,7 +43,6 @@ pub struct Snapshot {
     pub unsupported: BTreeSet<String>,
     pub pending: BTreeSet<String>,
     pub last_error: Option<String>,
-    pub allow_unverified: bool,
 }
 
 impl Snapshot {
@@ -61,7 +60,6 @@ impl Snapshot {
             unsupported: BTreeSet::new(),
             pending: BTreeSet::new(),
             last_error: None,
-            allow_unverified: false,
         }
     }
 

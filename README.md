@@ -20,13 +20,9 @@ Xilo is not made by or affiliated with Anker.
 
 ## Supported devices
 
-Hardware-verified: **SOLIX C300X (A1723)**.
-
-Defined but not yet verified (read-only until you allow control in the device settings):
-
 | Kind | Models |
 |---|---|
-| Power stations | C300, C300 DC, C300X DC, C200(X), C200 DC, C200X DC, C800, C800 Plus, C800X, C1000(X), C1000 Gen 2, C1000X Gen 2, C2000 Gen 2, C2000X Gen 2, S2000, F1200, F1500, F2000, F2000 Plus, F2600, F3000, F3800, F3800 Plus |
+| Power stations | C300, C300X, C300 DC, C300X DC, C200(X), C200 DC, C200X DC, C800, C800 Plus, C800X, C1000(X), C1000 Gen 2, C1000X Gen 2, C2000 Gen 2, C2000X Gen 2, S2000, F1200, F1500, F2000, F2000 Plus, F2600, F3000, F3800, F3800 Plus |
 | Solarbanks | E1600, 2 Pro, 2 AC, 2 Plus, 3 Pro, 4 Pro |
 | Home | Home Power Panel |
 | Prime and other | Prime Charger 160W and 250W, Prime Power Bank 20K, MagGo 3-in-1, Prime Charging Station 240W, EverFrost 2 40L and 58L |

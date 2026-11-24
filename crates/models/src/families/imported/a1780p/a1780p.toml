@@ -2,5 +2,4 @@
 code = "A1780P"
 name = "SOLIX F2000 Plus"
 family = "imp_a1780p"
-status = "unverified"
 assets = "a1780p"

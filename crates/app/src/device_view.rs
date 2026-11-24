@@ -175,8 +175,6 @@ impl DeviceView {
             .as_ref()
             .map(|m| format!("{} ({})", m.name, m.code))
             .unwrap_or_else(|| "Detecting model...".into());
-        let unverified =
-            snap.model.as_ref().is_some_and(|m| !m.is_verified()) && !snap.allow_unverified;
         let assets = snap
             .model
             .as_ref()
@@ -198,12 +196,22 @@ impl DeviceView {
                 h_flex()
                     .gap(px(14.))
                     .items_center()
-                    .child(asset(&format!("{assets}/product"), px(56.), IconName::BatteryCharging, cx))
+                    .child(asset(
+                        &format!("{assets}/product"),
+                        px(56.),
+                        IconName::BatteryCharging,
+                        cx,
+                    ))
                     .child(
                         v_flex()
                             .flex_1()
                             .gap(px(2.))
-                            .child(div().text_size(px(22.)).font_weight(FontWeight::BOLD).child(device.name()))
+                            .child(
+                                div()
+                                    .text_size(px(22.))
+                                    .font_weight(FontWeight::BOLD)
+                                    .child(device.name()),
+                            )
                             .child(
                                 h_flex()
                                     .gap(px(8.))
@@ -214,24 +222,17 @@ impl DeviceView {
                             ),
                     )
                     .when(disconnected, |el| {
-                        el.child(Button::new("reconnect").small().primary().label("Connect").on_click(
-                            cx.listener(|view, _, _, cx| view.device.read(cx).connect(cx)),
-                        ))
+                        el.child(
+                            Button::new("reconnect")
+                                .small()
+                                .primary()
+                                .label("Connect")
+                                .on_click(
+                                    cx.listener(|view, _, _, cx| view.device.read(cx).connect(cx)),
+                                ),
+                        )
                     }),
             )
-            .when(unverified, |el| {
-                el.child(
-                    h_flex()
-                        .gap(px(8.))
-                        .p(px(10.))
-                        .rounded(px(12.))
-                        .bg(cx.theme().warning.opacity(0.15))
-                        .child(Icon::new(IconName::Info).size_4())
-                        .child(div().text_size(px(13.)).child(
-                            "This model has not been verified on hardware yet, so Xilo only reads it. You can allow control in Settings.",
-                        )),
-                )
-            })
             .child(
                 h_flex().gap(px(6.)).children(
                     tabs.into_iter()

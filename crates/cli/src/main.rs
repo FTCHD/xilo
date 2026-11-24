@@ -28,9 +28,6 @@ struct Cli {
     /// Use a simulated device of this model instead of Bluetooth.
     #[arg(long, global = true)]
     sim: Option<String>,
-    /// Allow commands on models that are not verified on hardware.
-    #[arg(long, global = true)]
-    allow_unverified: bool,
     /// Use SolixBLE's fixed base timestamp instead of UTC.
     #[arg(long, global = true)]
     solix_timestamps: bool,
@@ -109,12 +106,7 @@ async fn main() -> Result<()> {
     match &cli.command {
         Command::Models => {
             for m in registry.all() {
-                let status = if m.is_verified() {
-                    "verified"
-                } else {
-                    "unverified"
-                };
-                println!("{}  {:<22} {:<8} {}", m.code, m.name, m.family.id, status);
+                println!("{}  {:<28} {}", m.code, m.name, m.family.id);
             }
             return Ok(());
         }
@@ -163,7 +155,6 @@ async fn main() -> Result<()> {
         addr,
         name: None,
         model: cli.model.clone(),
-        allow_unverified: cli.allow_unverified,
         auto_connect: true,
     });
     let traces = matches!(cli.command, Command::Trace { .. } | Command::Capture { .. })
@@ -294,16 +285,7 @@ fn print_state(snap: &Snapshot, raw: bool) {
     let Some(model) = &snap.model else {
         return;
     };
-    println!(
-        "{} ({}){}",
-        model.name,
-        model.code,
-        if model.is_verified() {
-            ""
-        } else {
-            "  [unverified: read-only]"
-        }
-    );
+    println!("{} ({})", model.name, model.code);
     if let Some(info) = &snap.info {
         println!(
             "module {} {}, mtu {}, capability {:#04x}, serial {}",

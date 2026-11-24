@@ -74,8 +74,6 @@ pub struct DeviceConfig {
     #[serde(default = "yes")]
     pub auto_connect: bool,
     #[serde(default)]
-    pub allow_unverified: bool,
-    #[serde(default)]
     pub automations: Automations,
 }
 
@@ -151,7 +149,6 @@ mod tests {
             name: Some("Desk".into()),
             model: Some("A1723".into()),
             auto_connect: true,
-            allow_unverified: false,
             automations: Automations::default(),
         });
         config.preferences.low_battery_alert = 15;
@@ -162,5 +159,15 @@ mod tests {
         assert!(partial.preferences.developer_mode);
         assert!(partial.preferences.keep_running_in_tray);
         let _ = std::fs::remove_dir_all(dir);
+    }
+}
+
+#[cfg(test)]
+mod compat {
+    #[test]
+    fn reads_files_with_removed_settings() {
+        let text = "[[device]]\nkey = \"k\"\naddress = \"a\"\nallow_unverified = true\n";
+        let config: super::Config = toml::from_str(text).expect("old file still loads");
+        assert_eq!(config.devices.len(), 1);
     }
 }
