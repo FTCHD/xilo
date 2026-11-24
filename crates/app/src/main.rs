@@ -28,7 +28,7 @@ use gpui_kit::*;
 use tokio::sync::mpsc;
 use xilo_engine::sim::{SimConnector, SimDevice};
 use xilo_engine::{Connector, Engine, EngineConfig, Scanner};
-use xilo_models::Registry;
+use xilo_models::{Registry, Value};
 use xilo_proto::TimestampMode;
 use xilo_store::{Config, History, Paths};
 
@@ -64,7 +64,26 @@ fn simulator(registry: &Registry) -> SimConnector {
         ("sim-sb2", "A17C1", "APCGQ00000000001"),
     ] {
         if let Some(spec) = registry.get(code) {
-            sim.add(addr, SimDevice::new(spec.clone(), serial));
+            let mut device = SimDevice::new(spec.clone(), serial);
+            if addr == "sim-c300x" {
+                for (id, value) in [
+                    ("battery_state", Value::Int(2)),
+                    ("battery_soc", Value::Int(72)),
+                    ("ac_switch", Value::Bool(true)),
+                    ("ac_output_power", Value::Int(24)),
+                    ("ac_input_power", Value::Int(118)),
+                    ("input_source", Value::Int(2)),
+                    ("total_input_power", Value::Int(118)),
+                    ("total_output_power", Value::Int(41)),
+                    ("usb_c3_state", Value::Int(1)),
+                    ("usb_c3_power", Value::Int(17)),
+                    ("remaining_time", Value::Float(1.3)),
+                    ("light_mode", Value::Int(1)),
+                ] {
+                    device.set(id, value);
+                }
+            }
+            sim.add(addr, device);
         }
     }
     sim

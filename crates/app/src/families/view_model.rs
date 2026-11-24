@@ -28,6 +28,20 @@ pub enum PortIcon {
 }
 
 impl PortIcon {
+    pub fn is_input(self) -> bool {
+        matches!(
+            self,
+            PortIcon::UsbC(2) | PortIcon::Solar(_) | PortIcon::AcInput(_)
+        )
+    }
+
+    pub fn is_on(self) -> bool {
+        match self {
+            PortIcon::UsbC(state) => state != 0,
+            PortIcon::UsbA(on) | PortIcon::Solar(on) | PortIcon::AcInput(on) => on,
+        }
+    }
+
     pub fn asset(self) -> &'static str {
         match self {
             PortIcon::UsbC(1) => "ports/usb_c_output",

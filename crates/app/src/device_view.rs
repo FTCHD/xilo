@@ -13,7 +13,7 @@ use xilo_models::CommandRequest;
 use crate::device::DeviceModel;
 use crate::families;
 use crate::state::{AppState, Route, Tab};
-use crate::widgets::{asset, caption, status_dot};
+use crate::widgets::{asset, battery_color, big_value, caption, glow, level_bar, status_dot};
 use crate::{automations, history_view, inspector, settings};
 
 pub struct DeviceView {
@@ -156,30 +156,32 @@ impl DeviceView {
         let device = self.device.read(cx);
         let snap = &device.snap;
         let theme = cx.theme();
-        let (dot, text) = match snap.link {
+        let (color, text) = match snap.link {
             LinkState::Ready => (theme.success, "Connected".to_string()),
-            LinkState::Released => (theme.warning, "Released to the phone app".to_string()),
+            LinkState::Released => (theme.warning, "Released to phone".to_string()),
             LinkState::Connecting | LinkState::Handshaking => {
-                (theme.warning, "Connecting...".to_string())
+                (theme.warning, "Connecting".to_string())
             }
-            LinkState::Disconnected => (
-                theme.danger,
-                snap.last_error
-                    .clone()
-                    .map(|e| format!("Disconnected: {e}"))
-                    .unwrap_or_else(|| "Disconnected".into()),
-            ),
+            LinkState::Disconnected => (theme.danger, "Disconnected".to_string()),
         };
+        let error = matches!(snap.link, LinkState::Disconnected)
+            .then(|| snap.last_error.clone())
+            .flatten();
         let model = snap
             .model
             .as_ref()
-            .map(|m| format!("{} ({})", m.name, m.code))
-            .unwrap_or_else(|| "Detecting model...".into());
+            .map(|m| format!("{} · {}", m.name, m.code))
+            .unwrap_or_else(|| "Detecting model".into());
         let assets = snap
             .model
             .as_ref()
             .map(|m| m.assets.clone())
             .unwrap_or_default();
+        let soc = snap
+            .is_ready()
+            .then(|| snap.int("battery_soc"))
+            .flatten()
+            .filter(|_| self.tab != Tab::Dashboard);
         let disconnected = matches!(snap.link, LinkState::Disconnected | LinkState::Released);
         let tabs = [
             (Tab::Dashboard, "Dashboard"),
@@ -190,41 +192,122 @@ impl DeviceView {
         ];
         let developer = self.state.read(cx).config.preferences.developer_mode;
         let current = self.tab;
+        let tile = div()
+            .size(px(72.))
+            .flex_none()
+            .rounded(px(20.))
+            .flex()
+            .items_center()
+            .justify_center()
+            .bg(linear_gradient(
+                160.,
+                linear_color_stop(theme.primary.alpha(0.22), 0.),
+                linear_color_stop(theme.primary.alpha(0.04), 1.),
+            ))
+            .border_1()
+            .border_color(theme.primary.alpha(0.2))
+            .child(asset(
+                &format!("{assets}/product"),
+                px(56.),
+                IconName::BatteryCharging,
+                cx,
+            ));
+        let status = h_flex()
+            .gap(px(6.))
+            .items_center()
+            .px(px(10.))
+            .py(px(3.))
+            .rounded_full()
+            .bg(color.alpha(0.14))
+            .child(status_dot(color))
+            .child(
+                div()
+                    .text_size(px(12.))
+                    .font_weight(FontWeight::SEMIBOLD)
+                    .text_color(color)
+                    .child(text),
+            );
+        let segmented = h_flex()
+            .self_start()
+            .p(px(4.))
+            .gap(px(2.))
+            .rounded_full()
+            .bg(theme.muted)
+            .border_1()
+            .border_color(theme.border.alpha(0.06))
+            .children(
+                tabs.into_iter()
+                    .filter(|(tab, _)| *tab != Tab::Inspector || developer)
+                    .map(|(tab, label)| {
+                        let selected = tab == current;
+                        div()
+                            .id(SharedString::from(label))
+                            .px(px(16.))
+                            .py(px(7.))
+                            .rounded_full()
+                            .text_size(px(13.))
+                            .font_weight(FontWeight::SEMIBOLD)
+                            .cursor_pointer()
+                            .when(selected, |el| {
+                                el.bg(cx.theme().primary)
+                                    .text_color(cx.theme().primary_foreground)
+                                    .shadow(glow(cx.theme().primary, 0.5))
+                            })
+                            .when(!selected, |el| {
+                                el.text_color(cx.theme().muted_foreground)
+                                    .hover(|s| s.text_color(cx.theme().foreground))
+                            })
+                            .child(label)
+                            .on_click(cx.listener(move |view, _, _, cx| view.set_tab(tab, cx)))
+                    }),
+            );
         v_flex()
-            .gap(px(14.))
+            .gap(px(18.))
             .child(
                 h_flex()
-                    .gap(px(14.))
+                    .gap(px(16.))
                     .items_center()
-                    .child(asset(
-                        &format!("{assets}/product"),
-                        px(56.),
-                        IconName::BatteryCharging,
-                        cx,
-                    ))
+                    .child(tile)
                     .child(
                         v_flex()
                             .flex_1()
-                            .gap(px(2.))
-                            .child(
-                                div()
-                                    .text_size(px(22.))
-                                    .font_weight(FontWeight::BOLD)
-                                    .child(device.name()),
-                            )
+                            .min_w(px(0.))
+                            .gap(px(6.))
                             .child(
                                 h_flex()
-                                    .gap(px(8.))
+                                    .gap(px(12.))
                                     .items_center()
-                                    .child(status_dot(dot))
-                                    .child(caption(text, cx))
-                                    .child(caption(format!("· {model}"), cx)),
-                            ),
+                                    .child(
+                                        div()
+                                            .text_size(px(26.))
+                                            .font_weight(FontWeight::BOLD)
+                                            .child(device.name()),
+                                    )
+                                    .child(status),
+                            )
+                            .child(caption(model, cx))
+                            .when_some(error, |el, e| {
+                                el.child(caption(e, cx).text_color(cx.theme().danger.alpha(0.85)))
+                            }),
                     )
+                    .when_some(soc, |el, soc| {
+                        el.child(
+                            v_flex()
+                                .w(px(120.))
+                                .gap(px(6.))
+                                .items_end()
+                                .child(big_value(Some(soc), "%", 24., None, cx))
+                                .child(level_bar(
+                                    soc as f32 / 100.0,
+                                    battery_color(soc, cx),
+                                    px(6.),
+                                    cx,
+                                )),
+                        )
+                    })
                     .when(disconnected, |el| {
                         el.child(
                             Button::new("reconnect")
-                                .small()
                                 .primary()
                                 .label("Connect")
                                 .on_click(
@@ -233,30 +316,7 @@ impl DeviceView {
                         )
                     }),
             )
-            .child(
-                h_flex().gap(px(6.)).children(
-                    tabs.into_iter()
-                        .filter(|(tab, _)| *tab != Tab::Inspector || developer)
-                        .map(|(tab, label)| {
-                            let selected = tab == current;
-                            div()
-                                .id(SharedString::from(label))
-                                .px(px(14.))
-                                .py(px(6.))
-                                .rounded(px(16.))
-                                .text_size(px(14.))
-                                .cursor_pointer()
-                                .when(selected, |el| {
-                                    el.bg(cx.theme().primary)
-                                        .text_color(cx.theme().primary_foreground)
-                                        .font_weight(FontWeight::SEMIBOLD)
-                                })
-                                .when(!selected, |el| el.hover(|s| s.bg(cx.theme().muted)))
-                                .child(label)
-                                .on_click(cx.listener(move |view, _, _, cx| view.set_tab(tab, cx)))
-                        }),
-                ),
-            )
+            .child(segmented)
     }
 }
 

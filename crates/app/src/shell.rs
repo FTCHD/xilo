@@ -15,7 +15,7 @@ use crate::runtime::Runtime;
 use crate::services::{AppEvent, EventKind, unix_now};
 use crate::state::{AppState, Route, Tab};
 use crate::theme;
-use crate::widgets::{caption, status_dot};
+use crate::widgets::{asset, battery_color, caption, level_bar, section, status_dot, tint};
 
 pub struct Root {
     state: Entity<AppState>,
@@ -82,16 +82,25 @@ impl Root {
         let item = |id: SharedString, selected: bool, cx: &App| {
             h_flex()
                 .id(id)
+                .relative()
                 .px(px(10.))
-                .py(px(8.))
-                .gap(px(10.))
-                .rounded(px(10.))
+                .py(px(9.))
+                .gap(px(12.))
+                .rounded(px(14.))
                 .items_center()
                 .cursor_pointer()
-                .when(selected, |el| el.bg(cx.theme().accent))
-                .when(!selected, |el| el.hover(|s| s.bg(cx.theme().muted)))
+                .when(selected, |el| {
+                    el.bg(cx.theme().primary.alpha(0.14))
+                        .border_1()
+                        .border_color(cx.theme().primary.alpha(0.3))
+                })
+                .when(!selected, |el| {
+                    el.border_1()
+                        .border_color(transparent_black())
+                        .hover(|s| s.bg(cx.theme().muted))
+                })
         };
-        let mut list = v_flex().gap(px(2.));
+        let mut list = v_flex().gap(px(4.));
         for device in devices {
             let d = device.read(cx);
             let key = d.key.clone();
@@ -104,29 +113,87 @@ impl Root {
                 }
                 LinkState::Disconnected => theme.muted_foreground,
             };
-            let detail = match (snap.is_ready(), snap.int("battery_soc")) {
-                (true, Some(soc)) => {
-                    let watts = snap.int("total_output_power").unwrap_or(0);
-                    format!("{soc}% · {watts} W out")
-                }
-                _ => snap.link.label().to_string(),
+            let soc = snap.is_ready().then(|| snap.int("battery_soc")).flatten();
+            let out = snap.int("total_output_power").unwrap_or(0);
+            let input = snap.int("total_input_power").unwrap_or(0);
+            let detail = match soc {
+                Some(_) if input > out => format!("Charging · {input} W"),
+                Some(_) if out > 0 => format!("{out} W out"),
+                Some(_) => "Idle".to_string(),
+                None => snap.link.label().to_string(),
             };
+            let assets = snap
+                .model
+                .as_ref()
+                .map(|m| m.assets.clone())
+                .unwrap_or_default();
             let state = self.state.clone();
+            let thumb = div()
+                .relative()
+                .size(px(40.))
+                .flex_none()
+                .rounded(px(12.))
+                .bg(theme.muted)
+                .flex()
+                .items_center()
+                .justify_center()
+                .child(asset(
+                    &format!("{assets}/product"),
+                    px(32.),
+                    IconName::BatteryCharging,
+                    cx,
+                ))
+                .child(
+                    div()
+                        .absolute()
+                        .bottom(px(-2.))
+                        .right(px(-2.))
+                        .size(px(12.))
+                        .rounded_full()
+                        .bg(theme.sidebar)
+                        .flex()
+                        .items_center()
+                        .justify_center()
+                        .child(status_dot(dot)),
+                );
             list = list.child(
                 item(SharedString::from(format!("nav-{key}")), selected, cx)
-                    .child(status_dot(dot))
+                    .child(thumb)
                     .child(
                         v_flex()
                             .flex_1()
-                            .overflow_hidden()
+                            .min_w(px(0.))
+                            .gap(px(4.))
                             .child(
-                                div()
-                                    .text_size(px(14.))
-                                    .font_weight(FontWeight::SEMIBOLD)
-                                    .truncate()
-                                    .child(d.name()),
+                                h_flex()
+                                    .justify_between()
+                                    .gap(px(6.))
+                                    .child(
+                                        div()
+                                            .text_size(px(14.))
+                                            .font_weight(FontWeight::SEMIBOLD)
+                                            .truncate()
+                                            .child(d.name()),
+                                    )
+                                    .when_some(soc, |el, soc| {
+                                        el.child(
+                                            div()
+                                                .text_size(px(12.))
+                                                .font_weight(FontWeight::BOLD)
+                                                .text_color(battery_color(soc, cx))
+                                                .child(format!("{soc}%")),
+                                        )
+                                    }),
                             )
-                            .child(caption(detail, cx).text_size(px(12.))),
+                            .when_some(soc, |el, soc| {
+                                el.child(level_bar(
+                                    soc as f32 / 100.0,
+                                    battery_color(soc, cx),
+                                    px(4.),
+                                    cx,
+                                ))
+                            })
+                            .child(caption(detail, cx).text_size(px(11.))),
                     )
                     .on_click(move |_, _, cx| {
                         let key = key.clone();
@@ -141,22 +208,48 @@ impl Root {
                 let state = self.state.clone();
                 let selected = route == target;
                 item(SharedString::from(id), selected, cx)
-                    .child(Icon::new(icon).size_4())
-                    .child(div().text_size(px(14.)).child(label))
+                    .child(
+                        div()
+                            .size(px(28.))
+                            .rounded(px(8.))
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .bg(if selected {
+                                cx.theme().primary.alpha(0.2)
+                            } else {
+                                cx.theme().muted
+                            })
+                            .child(Icon::new(icon).size_4().text_color(if selected {
+                                cx.theme().primary
+                            } else {
+                                cx.theme().muted_foreground
+                            })),
+                    )
+                    .child(
+                        div()
+                            .text_size(px(14.))
+                            .font_weight(FontWeight::MEDIUM)
+                            .child(label),
+                    )
                     .on_click(move |_, _, cx| {
                         let target = target.clone();
                         state.update(cx, |s, cx| s.navigate(target, cx));
                     })
             };
         v_flex()
-            .w(px(240.))
+            .w(px(260.))
             .h_full()
-            .p(px(10.))
+            .p(px(12.))
             .gap(px(10.))
             .border_r_1()
-            .border_color(theme.border)
-            .bg(theme.sidebar)
-            .child(caption("Devices", cx).px(px(10.)).pt(px(6.)))
+            .border_color(theme.border.alpha(0.06))
+            .bg(linear_gradient(
+                180.,
+                linear_color_stop(theme.sidebar, 0.),
+                linear_color_stop(tint(theme.sidebar, theme.primary, 0.04), 1.),
+            ))
+            .child(section("Devices", cx).px(px(10.)).pt(px(8.)))
             .child(list)
             .child(nav(
                 "nav-add",
