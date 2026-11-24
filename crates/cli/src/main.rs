@@ -79,6 +79,16 @@ enum Command {
         secret: String,
         frames: Vec<String>,
     },
+    /// Record a session to a redacted .xcap file for tests and analysis.
+    Capture {
+        #[arg(long, default_value_t = 30)]
+        secs: u64,
+        #[arg(long, short)]
+        out: std::path::PathBuf,
+        /// Keep serial numbers and MAC addresses.
+        #[arg(long)]
+        no_redact: bool,
+    },
     /// Print every frame sent and received.
     Trace {
         #[arg(long, default_value_t = 30)]
@@ -154,7 +164,8 @@ async fn main() -> Result<()> {
         allow_unverified: cli.allow_unverified,
         auto_connect: true,
     });
-    let traces = matches!(cli.command, Command::Trace { .. }).then(|| handle.traces());
+    let traces = matches!(cli.command, Command::Trace { .. } | Command::Capture { .. })
+        .then(|| handle.traces());
     let snap = wait(&handle, Duration::from_secs(60), |s| {
         s.is_ready() && s.model.is_some() && s.updated.is_some()
     })
@@ -188,6 +199,11 @@ async fn main() -> Result<()> {
             Ok(())
         }
         Command::Trace { secs } => trace(traces, secs).await,
+        Command::Capture {
+            secs,
+            out,
+            no_redact,
+        } => capture(&handle, traces, secs, &out, !no_redact).await,
         Command::Scan { .. } | Command::Models | Command::Decode { .. } => Ok(()),
     };
     engine.shutdown().await;
@@ -451,6 +467,51 @@ async fn trace(
         }
     })
     .await;
+    Ok(())
+}
+
+async fn capture(
+    handle: &DeviceHandle,
+    traces: Option<tokio::sync::broadcast::Receiver<xilo_proto::Trace>>,
+    secs: u64,
+    out: &std::path::Path,
+    redact: bool,
+) -> Result<()> {
+    use xilo_store::capture::{self, Header, Record};
+    let Some(mut rx) = traces else {
+        return Ok(());
+    };
+    let start = std::time::Instant::now();
+    let mut records = Vec::new();
+    let _ = handle.send(CommandRequest::new("status", None)).await;
+    let _ = tokio::time::timeout(Duration::from_secs(secs), async {
+        while let Ok(t) = rx.recv().await {
+            records.push(Record::from_trace(start.elapsed().as_millis() as u64, &t));
+        }
+    })
+    .await;
+    let snap = handle.snapshot();
+    if redact {
+        let mut secrets: Vec<Vec<u8>> = Vec::new();
+        if let Some(serial) = snap.serial() {
+            secrets.push(serial.as_bytes().to_vec());
+        }
+        if let Some(mac) = snap.info.as_ref().and_then(|i| i.mac) {
+            secrets.push(mac.to_vec());
+        }
+        for r in &mut records {
+            capture::redact(r, &secrets);
+        }
+    }
+    let header = Header {
+        xilo_capture: 1,
+        model: snap.model.as_ref().map(|m| m.code.clone()),
+        firmware: snap.text("firmware").map(str::to_string),
+        redacted: redact,
+    };
+    let mut file = std::fs::File::create(out)?;
+    capture::write(&mut file, &header, &records)?;
+    println!("wrote {} records to {}", records.len(), out.display());
     Ok(())
 }
 
