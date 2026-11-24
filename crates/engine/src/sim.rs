@@ -33,6 +33,9 @@ pub struct SimDevice {
     pub usb_idle: Option<UsbIdle>,
     pub usb_dead: bool,
     pub drop_next_connect: bool,
+    /// Old firmware without ECDH: the key comes from `0022`.
+    pub legacy: bool,
+    client_id: Option<Vec<u8>>,
     pub received: Vec<MsgId>,
     usb_idle_since: Option<Instant>,
     keys: KeyPair,
@@ -77,6 +80,8 @@ impl SimDevice {
             usb_idle: None,
             usb_dead: false,
             drop_next_connect: false,
+            legacy: false,
+            client_id: None,
             received: Vec::new(),
             usb_idle_since: None,
             keys: KeyPair::from_bytes(&DEVICE_KEY)
@@ -156,7 +161,7 @@ impl SimDevice {
             return self.handshake(frame);
         }
         if frame.cmd.is_encrypted() && frame.function == FUNCTION_HANDSHAKE {
-            return Vec::new();
+            return self.legacy_handshake(frame);
         }
         let Some(cipher) = &self.cipher else {
             return Vec::new();
@@ -232,13 +237,29 @@ impl SimDevice {
         match frame.cmd.0 {
             0x0001 => {
                 self.reset_link();
+                self.client_id = request.get(0xa2).map(|i| i.data.clone());
                 vec![reply(0x0801, vec![0x00, 0xa1, 0x01, 0x01])]
             }
             0x0003 => vec![reply(
                 0x0803,
                 vec![
-                    0x00, 0xa1, 0x01, 0x02, 0xa2, 0x02, 0xfd, 0x00, 0xa3, 0x01, 0x44, 0xa4, 0x01,
-                    0x01, 0xa5, 0x01, 0x02,
+                    0x00,
+                    0xa1,
+                    0x01,
+                    0x02,
+                    0xa2,
+                    0x02,
+                    0xfd,
+                    0x00,
+                    0xa3,
+                    0x01,
+                    if self.legacy { 0x04 } else { 0x44 },
+                    0xa4,
+                    0x01,
+                    0x01,
+                    0xa5,
+                    0x01,
+                    0x02,
                 ],
             )],
             0x0029 => {
@@ -264,6 +285,63 @@ impl SimDevice {
                 body.extend(tlv::build_untyped(&[(0xa1, &self.keys.public_xy())]));
                 vec![reply(0x0821, body)]
             }
+            _ => Vec::new(),
+        }
+    }
+
+    /// The legacy key exchange, mirroring `legacy_cipher` in the protocol crate.
+    fn legacy_handshake(&mut self, frame: Frame) -> Vec<Vec<u8>> {
+        if !self.legacy {
+            return Vec::new();
+        }
+        let iv: [u8; 16] = self
+            .serial
+            .as_bytes()
+            .get(..16)
+            .and_then(|s| s.try_into().ok())
+            .unwrap_or([0; 16]);
+        let default_key = |client: &[u8]| {
+            let mut key = [0u8; 16];
+            let n = client.len().min(16);
+            key[..n].copy_from_slice(&client[..n]);
+            key
+        };
+        let reply = |cipher: &Cipher, cmd: u16, plain: Vec<u8>| {
+            Frame {
+                dir: 0x00,
+                function: FUNCTION_HANDSHAKE,
+                cmd: Cmd(cmd),
+                body: cipher.seal(&plain),
+            }
+            .encode()
+        };
+        match frame.cmd.0 {
+            0x4022 => {
+                let Some(client) = self.client_id.clone() else {
+                    return Vec::new();
+                };
+                let default = Cipher::Cbc {
+                    key: default_key(&client),
+                    iv,
+                };
+                if default.open(&frame.body).is_err() {
+                    return Vec::new();
+                }
+                let session_key = *b"xilo-sim-legacy!";
+                let mut body = vec![0x00];
+                body.extend(tlv::build_untyped(&[(0xa1, &session_key)]));
+                self.cipher = Some(Cipher::Cbc {
+                    key: session_key,
+                    iv,
+                });
+                vec![reply(&default, 0x4822, body)]
+            }
+            0x4023 => match &self.cipher {
+                Some(cipher) if cipher.open(&frame.body).is_ok() => {
+                    vec![reply(cipher, 0x4823, vec![0x00])]
+                }
+                _ => Vec::new(),
+            },
             _ => Vec::new(),
         }
     }

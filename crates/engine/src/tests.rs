@@ -173,3 +173,17 @@ async fn dc_on_revives_dead_usb_ports() {
         .expect("dc on");
     assert!(device.lock().expect("lock").draw_usb(30), "ports revived");
 }
+
+#[tokio::test(start_paused = true)]
+async fn connects_with_legacy_aes() {
+    let (_engine, handle, device) = engine("A1723", "ALFSBK1G33300077");
+    device.lock().expect("lock").legacy = true;
+    let snap = wait_for(&handle, |s| s.is_ready() && s.int("battery_soc").is_some()).await;
+    assert_eq!(snap.int("battery_soc"), Some(80));
+    assert_eq!(snap.info.as_ref().map(|i| i.capability), Some(0x04));
+    let outcome = handle
+        .send(CommandRequest::new("light_mode", Some(2)))
+        .await
+        .expect("sent");
+    assert_eq!(outcome, Outcome::Acked);
+}

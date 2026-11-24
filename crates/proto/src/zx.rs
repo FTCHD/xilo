@@ -134,6 +134,8 @@ pub enum Phase {
     PublicKey,
     Auth,
     Bind,
+    LegacyKey,
+    LegacyBind,
     Ready,
     Failed,
 }
@@ -141,6 +143,8 @@ pub enum Phase {
 pub struct ZxSession {
     config: ZxConfig,
     flavor: Flavor,
+    /// The device lacks ECDH, so the older key exchange is used.
+    legacy: bool,
     phase: Phase,
     decoder: StreamDecoder,
     reassembler: Reassembler,
@@ -156,6 +160,7 @@ impl ZxSession {
     pub fn new(config: ZxConfig) -> Self {
         Self {
             flavor: config.flavor,
+            legacy: false,
             config,
             phase: Phase::Idle,
             decoder: StreamDecoder::new(),
@@ -218,6 +223,7 @@ impl ZxSession {
         self.decoder.reset();
         self.reassembler.clear();
         self.cipher = None;
+        self.legacy = false;
         self.info = SessionInfo::default();
         self.session_start = None;
         self.auth_sent = None;
@@ -375,37 +381,61 @@ impl ZxSession {
             (0x0803, Phase::Capability) => {
                 self.info.mtu = payload.get(0xa2).and_then(Item::uint).unwrap_or(0) as u16;
                 self.info.capability = payload.get(0xa3).and_then(Item::uint).unwrap_or(0) as u8;
-                if self.info.capability & CAPABILITY_ECDH == 0 {
-                    self.phase = Phase::Failed;
-                    out.push(Output::Failed(ProtoError::UnsupportedAuth(
-                        self.info.capability,
-                    )));
-                    return;
-                }
+                self.legacy = self.info.capability & CAPABILITY_ECDH == 0;
                 self.phase = Phase::Info;
                 let ts = self.handshake_timestamp(now, 0);
                 let body = tlv::build_untyped(&[(0xa1, &ts), (0xa2, id.as_bytes())]);
                 self.write_handshake(Cmd(0x0029), body, out);
             }
             (0x0829, Phase::Info) => {
-                self.info.module = payload.get(0xa2).map(Item::text).unwrap_or_default();
-                self.info.module_firmware = payload.get(0xa3).map(Item::text).unwrap_or_default();
-                self.info.serial = payload.get(0xa4).map(Item::text).filter(|s| !s.is_empty());
-                self.info.mac = payload
-                    .get(0xa5)
-                    .and_then(|i| <[u8; 6]>::try_from(i.data.as_slice()).ok());
+                self.read_info(&payload);
                 self.session_start = Some(now.instant);
                 self.phase = Phase::SetCapability;
+                let capability = if self.legacy {
+                    self.cipher = Some(legacy_cipher(
+                        id.as_bytes(),
+                        self.info.serial.as_deref().unwrap_or_default(),
+                        None,
+                    ));
+                    self.info.capability
+                } else {
+                    CAPABILITY_ECDH
+                };
                 let ts = self.handshake_timestamp(now, 1);
                 let body = tlv::build_untyped(&[
                     (0xa1, &ts),
                     (0xa2, id.as_bytes()),
                     (0xa3, &[0x20]),
                     (0xa4, &[0x00, 0xf0]),
-                    (0xa5, &[CAPABILITY_ECDH]),
+                    (0xa5, &[capability]),
                 ]);
                 self.write_handshake(Cmd(0x0005), body, out);
             }
+            (0x0805, Phase::SetCapability) if self.legacy => {
+                self.phase = Phase::LegacyKey;
+                let ts = self.handshake_timestamp(now, 1);
+                let body = tlv::build_untyped(&[(0xa1, &ts), (0xa2, id.as_bytes())]);
+                self.write_handshake(Cmd(0x4022), body, out);
+            }
+            (0x0822, Phase::LegacyKey) => {
+                let Some(key) = payload.get(0xa1).and_then(|i| session_key(&i.data)) else {
+                    self.phase = Phase::Failed;
+                    out.push(Output::Failed(ProtoError::UnsupportedAuth(
+                        self.info.capability,
+                    )));
+                    return;
+                };
+                self.cipher = Some(legacy_cipher(
+                    id.as_bytes(),
+                    self.info.serial.as_deref().unwrap_or_default(),
+                    Some(key),
+                ));
+                self.phase = Phase::LegacyBind;
+                let ts = self.handshake_timestamp(now, 1);
+                let body = tlv::build_untyped(&[(0xa1, &ts), (0xa2, id.as_bytes())]);
+                self.write_handshake(Cmd(0x4023), body, out);
+            }
+            (0x0823, Phase::LegacyBind) => self.ready(out),
             (0x0805, Phase::SetCapability) => {
                 self.phase = Phase::PublicKey;
                 let key = self.config.keys.public_xy();
@@ -592,8 +622,8 @@ impl ZxSession {
     }
 
     fn write_handshake(&self, cmd: Cmd, body: Vec<u8>, out: &mut Vec<Output>) {
-        let wire = match (self.flavor, self.cipher.as_ref()) {
-            (Flavor::Prime, Some(cipher)) => cipher.seal(&body),
+        let wire = match self.cipher.as_ref() {
+            Some(cipher) if cmd.is_encrypted() => cipher.seal(&body),
             _ => body.clone(),
         };
         let bytes = Frame::new(FUNCTION_HANDSHAKE, cmd, wire).encode();
@@ -626,6 +656,36 @@ impl ZxSession {
             }
         }
     }
+}
+
+/// The older AES scheme from the app's `AesConferV1`: the key starts as the
+/// first 16 characters of the client id and becomes the key the device sends
+/// in `0822`; the IV is the first 16 characters of the serial number.
+fn legacy_cipher(client_id: &[u8], serial: &str, key: Option<[u8; 16]>) -> Cipher {
+    let mut default = [0u8; 16];
+    let n = client_id.len().min(16);
+    default[..n].copy_from_slice(&client_id[..n]);
+    let iv = if serial.len() >= 16 {
+        let mut iv = [0u8; 16];
+        iv.copy_from_slice(&serial.as_bytes()[..16]);
+        iv
+    } else {
+        default
+    };
+    Cipher::Cbc {
+        key: key.unwrap_or(default),
+        iv,
+    }
+}
+
+/// The session key in `0822`, sent as 16 raw bytes or as 32 hex characters.
+fn session_key(data: &[u8]) -> Option<[u8; 16]> {
+    if let Ok(key) = <[u8; 16]>::try_from(data) {
+        return Some(key);
+    }
+    let text = std::str::from_utf8(data).ok()?;
+    let bytes = decode_hex(text.trim());
+    <[u8; 16]>::try_from(bytes.as_slice()).ok()
 }
 
 fn trace_in(

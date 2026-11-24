@@ -1,0 +1,6 @@
+[model]
+code = "A1771"
+name = "SOLIX F1200"
+family = "f1200"
+status = "unverified"
+assets = "a1771"
