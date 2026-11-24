@@ -81,7 +81,7 @@ impl AddDevice {
 impl Render for AddDevice {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let mut found: Vec<&Found> = self.found.iter().collect();
-        found.sort_by_key(|f| f.known);
+        found.sort_by_key(|f| (f.known, f.advert.name.clone().unwrap_or_default()));
         let rows: Vec<AnyElement> = found
             .into_iter()
             .filter_map(|f| {
@@ -156,15 +156,10 @@ impl Render for AddDevice {
                     .justify_between()
                     .items_center()
                     .child(
-                        v_flex()
-                            .gap(px(4.))
-                            .child(
-                                div()
-                                    .text_size(px(26.))
-                                    .font_weight(FontWeight::BOLD)
-                                    .child("Add a Device"),
-                            )
-                            .child(section("Nearby", cx)),
+                        div()
+                            .text_size(px(26.))
+                            .font_weight(FontWeight::BOLD)
+                            .child("Add a Device"),
                     )
                     .child(
                         Button::new("rescan")
@@ -174,6 +169,7 @@ impl Render for AddDevice {
                             .on_click(cx.listener(|view, _, _, cx| view.scan(cx))),
                     ),
             )
+            .child(section("Nearby", cx))
             .when_some(self.error.clone(), |el, err| {
                 el.child(
                     live_card(true, cx.theme().danger, cx).child(
