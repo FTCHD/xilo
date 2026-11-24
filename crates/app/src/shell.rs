@@ -17,6 +17,8 @@ use crate::state::{AppState, Route, Tab};
 use crate::theme;
 use crate::widgets::{asset, battery_color, caption, section, status_dot, tint};
 
+pub const SIDEBAR_WIDTH: Pixels = px(260.);
+
 pub struct Root {
     state: Entity<AppState>,
     views: HashMap<String, Entity<DeviceView>>,
@@ -232,7 +234,8 @@ impl Root {
                     })
             };
         v_flex()
-            .w(px(260.))
+            .w(SIDEBAR_WIDTH)
+            .flex_none()
             .h_full()
             .p(px(12.))
             .gap(px(10.))

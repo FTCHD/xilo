@@ -168,7 +168,7 @@ pub fn open_main_window(state: Entity<AppState>, cx: &mut App) {
             size(px(1200.), px(820.)),
             cx,
         ))),
-        window_min_size: Some(size(px(960.), px(640.))),
+        window_min_size: Some(size(px(800.), px(600.))),
         ..TitleBar::window_options()
     };
     if let Err(err) = gpui_kit::open_window(options, cx, |window, cx| {

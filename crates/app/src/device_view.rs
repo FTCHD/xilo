@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use gpui_kit::assets::IconName;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
+use gpui_kit::component::tooltip::Tooltip;
 use gpui_kit::component::{
     ActiveTheme as _, Icon, Placement, Sizable as _, WindowExt as _, h_flex, v_flex,
 };
@@ -13,6 +14,7 @@ use xilo_models::CommandRequest;
 use crate::device::DeviceModel;
 use crate::families;
 use crate::families::view_model::{duration_text, temperature_text};
+use crate::shell::SIDEBAR_WIDTH;
 use crate::state::{AppState, Route, Tab};
 use crate::widgets::{battery_color, caption};
 use crate::{automations, history_view, inspector, settings};
@@ -26,6 +28,7 @@ pub struct DeviceView {
     pub inspector: Option<Entity<inspector::Inspector>>,
     pub history: Option<Entity<history_view::HistoryView>>,
     pub schedule_editor: Option<automations::Editor>,
+    scroll: ScrollHandle,
     _blink: Task<()>,
     _observe: Subscription,
 }
@@ -63,6 +66,7 @@ impl DeviceView {
             inspector: None,
             history: None,
             schedule_editor: None,
+            scroll: ScrollHandle::new(),
             _blink: blink,
             _observe: observe,
         }
@@ -78,6 +82,7 @@ impl DeviceView {
 
     pub fn set_tab(&mut self, tab: Tab, cx: &mut Context<Self>) {
         self.tab = tab;
+        self.scroll.set_offset(point(px(0.), px(0.)));
         let key = self.device.read(cx).key.clone();
         self.state
             .update(cx, |s, cx| s.navigate(Route::Device(key, tab), cx));
@@ -155,10 +160,9 @@ impl DeviceView {
         });
     }
 
-    fn header(&self, cx: &mut Context<Self>) -> impl IntoElement {
+    fn header(&self, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
         let device = self.device.read(cx);
         let snap = &device.snap;
-        let theme = cx.theme();
         let error = matches!(snap.link, LinkState::Disconnected)
             .then(|| snap.last_error.clone())
             .flatten();
@@ -191,104 +195,199 @@ impl DeviceView {
             other => Some(other.label().to_string()),
         };
         let disconnected = matches!(snap.link, LinkState::Disconnected | LinkState::Released);
-        let tabs = [
-            (Tab::Dashboard, "Dashboard"),
-            (Tab::Settings, "Settings"),
-            (Tab::History, "History"),
-            (Tab::Automations, "Automations"),
-            (Tab::Inspector, "Inspector"),
-        ];
+        let name = device.name();
+
         let developer = self.state.read(cx).config.preferences.developer_mode;
+        let tabs: Vec<(Tab, &'static str, IconName)> = [
+            (Tab::Dashboard, "Dashboard", IconName::LayoutDashboard),
+            (Tab::Settings, "Settings", IconName::Settings),
+            (Tab::History, "History", IconName::ChartLine),
+            (Tab::Automations, "Automations", IconName::Workflow),
+            (Tab::Inspector, "Inspector", IconName::SquareTerminal),
+        ]
+        .into_iter()
+        .filter(|(tab, ..)| *tab != Tab::Inspector || developer)
+        .collect();
+
+        let subtitle = match soc {
+            Some(soc) if !details.is_empty() => {
+                text_width(&format!("{soc}%"), 15., FontWeight::BOLD, window, cx)
+                    + px(6.)
+                    + text_width(
+                        &format!("· {}", details.join(" · ")),
+                        13.,
+                        FontWeight::NORMAL,
+                        window,
+                        cx,
+                    )
+            }
+            Some(soc) => text_width(&format!("{soc}%"), 15., FontWeight::BOLD, window, cx),
+            None => status.as_deref().map_or(px(0.), |s| {
+                text_width(s, 13., FontWeight::NORMAL, window, cx)
+            }),
+        };
+        let title = px(AVATAR)
+            + GAP
+            + text_width(&name, 26., FontWeight::BOLD, window, cx).max(subtitle)
+            + if disconnected { CONNECT } else { px(0.) };
+        let count = tabs.len() as f32;
+        let text = tabs
+            .iter()
+            .map(|(_, label, _)| text_width(label, 13., FontWeight::SEMIBOLD, window, cx))
+            .fold(px(0.), |sum, w| sum + w);
+        let available = window.viewport_size().width - SIDEBAR_WIDTH - PADDING * 2.;
+        let track = |items: Pixels| items + px(2.) * (count - 1.) + px(10.);
+        let labels = track(text + px(32.) * count);
+        let layout = if title + GAP + labels <= available {
+            TabLayout::Labels
+        } else if title + GAP + track(px(40.) * count) <= available {
+            TabLayout::Icons
+        } else {
+            TabLayout::Below
+        };
+        let below = layout == TabLayout::Below;
+        let compact = match layout {
+            TabLayout::Labels => false,
+            TabLayout::Icons => true,
+            TabLayout::Below => track(text + px(16.) * count) > available,
+        };
+        let padding = match (compact, below) {
+            (true, _) => 12.,
+            (false, true) => 8.,
+            (false, false) => 16.,
+        };
+
         let current = self.tab;
-        let segmented = h_flex()
-            .self_start()
+        let theme = cx.theme();
+        let bar = h_flex()
+            .flex_none()
             .p(px(4.))
             .gap(px(2.))
             .rounded_full()
             .bg(theme.muted)
             .border_1()
             .border_color(theme.border.alpha(0.06))
-            .children(
-                tabs.into_iter()
-                    .filter(|(tab, _)| *tab != Tab::Inspector || developer)
-                    .map(|(tab, label)| {
-                        let selected = tab == current;
-                        div()
-                            .id(SharedString::from(label))
-                            .px(px(16.))
-                            .py(px(7.))
-                            .rounded_full()
-                            .text_size(px(13.))
-                            .font_weight(FontWeight::SEMIBOLD)
-                            .cursor_pointer()
-                            .when(selected, |el| {
-                                el.bg(cx.theme().primary)
-                                    .text_color(cx.theme().primary_foreground)
-                            })
-                            .when(!selected, |el| {
-                                el.text_color(cx.theme().muted_foreground)
-                                    .hover(|s| s.text_color(cx.theme().foreground))
-                            })
-                            .child(label)
-                            .on_click(cx.listener(move |view, _, _, cx| view.set_tab(tab, cx)))
-                    }),
-            );
-        v_flex()
-            .gap(px(18.))
-            .child(
-                h_flex()
-                    .gap(px(16.))
+            .when(below, |el| el.w_full())
+            .children(tabs.into_iter().map(|(tab, label, icon)| {
+                let selected = tab == current;
+                div()
+                    .id(label)
+                    .flex()
                     .items_center()
-                    .child(families::avatar(self, 96., cx))
+                    .justify_center()
+                    .when(below, |el| el.flex_1())
+                    .px(px(padding))
+                    .py(px(7.))
+                    .rounded_full()
+                    .text_size(px(13.))
+                    .font_weight(FontWeight::SEMIBOLD)
+                    .cursor_pointer()
+                    .when(selected, |el| {
+                        el.bg(cx.theme().primary)
+                            .text_color(cx.theme().primary_foreground)
+                    })
+                    .when(!selected, |el| {
+                        el.text_color(cx.theme().muted_foreground)
+                            .hover(|s| s.text_color(cx.theme().foreground))
+                    })
+                    .map(|el| {
+                        if compact {
+                            el.child(Icon::new(icon).size(px(16.)))
+                                .tooltip(move |window, cx| Tooltip::new(label).build(window, cx))
+                        } else {
+                            el.child(label)
+                        }
+                    })
+                    .on_click(cx.listener(move |view, _, _, cx| view.set_tab(tab, cx)))
+            }));
+
+        let row = h_flex()
+            .gap(GAP)
+            .items_center()
+            .child(families::avatar(self, AVATAR, cx))
+            .child(
+                v_flex()
+                    .flex_1()
+                    .min_w(px(0.))
+                    .gap(px(4.))
                     .child(
-                        v_flex()
-                            .flex_1()
-                            .min_w(px(0.))
-                            .gap(px(4.))
-                            .child(
-                                div()
-                                    .text_size(px(26.))
-                                    .font_weight(FontWeight::BOLD)
-                                    .child(device.name()),
-                            )
-                            .map(|el| match soc {
-                                Some(soc) => el.child(
-                                    h_flex()
-                                        .gap(px(6.))
-                                        .items_center()
-                                        .child(
-                                            div()
-                                                .text_size(px(15.))
-                                                .font_weight(FontWeight::BOLD)
-                                                .text_color(battery_color(soc, cx))
-                                                .child(format!("{soc}%")),
-                                        )
-                                        .when(!details.is_empty(), |el| {
-                                            el.child(caption(
-                                                format!("· {}", details.join(" · ")),
-                                                cx,
-                                            ))
-                                        }),
-                                ),
-                                None => el.when_some(status, |el, s| el.child(caption(s, cx))),
-                            })
-                            .when_some(error, |el, e| {
-                                el.child(caption(e, cx).text_color(cx.theme().danger))
-                            }),
+                        div()
+                            .text_size(px(26.))
+                            .font_weight(FontWeight::BOLD)
+                            .truncate()
+                            .child(name),
                     )
-                    .when(disconnected, |el| {
-                        el.child(
-                            Button::new("reconnect")
-                                .primary()
-                                .label("Connect")
-                                .on_click(
-                                    cx.listener(|view, _, _, cx| view.device.read(cx).connect(cx)),
-                                ),
-                        )
+                    .map(|el| match soc {
+                        Some(soc) => el.child(
+                            h_flex()
+                                .gap(px(6.))
+                                .items_center()
+                                .child(
+                                    div()
+                                        .text_size(px(15.))
+                                        .font_weight(FontWeight::BOLD)
+                                        .text_color(battery_color(soc, cx))
+                                        .child(format!("{soc}%")),
+                                )
+                                .when(!details.is_empty(), |el| {
+                                    el.child(caption(format!("· {}", details.join(" · ")), cx))
+                                }),
+                        ),
+                        None => el.when_some(status, |el, s| el.child(caption(s, cx))),
+                    })
+                    .when_some(error, |el, e| {
+                        el.child(caption(e, cx).text_color(cx.theme().danger))
                     }),
             )
-            .child(segmented)
+            .when(disconnected, |el| {
+                el.child(
+                    Button::new("reconnect")
+                        .primary()
+                        .label("Connect")
+                        .on_click(cx.listener(|view, _, _, cx| view.device.read(cx).connect(cx))),
+                )
+            });
+        if below {
+            v_flex().gap(px(18.)).child(row).child(bar)
+        } else {
+            v_flex().child(row.child(bar))
+        }
     }
+}
+
+const AVATAR: f32 = 96.;
+const GAP: Pixels = px(16.);
+const CONNECT: Pixels = px(110.);
+const PADDING: Pixels = px(24.);
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum TabLayout {
+    Labels,
+    Icons,
+    Below,
+}
+
+fn text_width(text: &str, size: f32, weight: FontWeight, window: &Window, cx: &App) -> Pixels {
+    if text.is_empty() {
+        return px(0.);
+    }
+    let font = Font {
+        family: cx.theme().font_family.clone(),
+        weight,
+        ..window.text_style().font()
+    };
+    let run = TextRun {
+        len: text.len(),
+        font,
+        color: black(),
+        background_color: None,
+        underline: None,
+        strikethrough: None,
+    };
+    window
+        .text_system()
+        .shape_line(SharedString::from(text.to_string()), px(size), &[run], None)
+        .width
 }
 
 impl Render for DeviceView {
@@ -313,13 +412,34 @@ impl Render for DeviceView {
                 view.clone().into_any_element()
             }
         };
+        let scrolled = self.scroll.offset().y < px(0.);
         v_flex()
-            .id("device-scroll")
             .size_full()
-            .overflow_y_scroll()
-            .p(px(24.))
-            .gap(px(18.))
-            .child(self.header(cx))
-            .child(body)
+            .child(
+                div()
+                    .flex_none()
+                    .px(PADDING)
+                    .pt(PADDING)
+                    .pb(px(18.))
+                    .border_b_1()
+                    .border_color(if scrolled {
+                        cx.theme().border.alpha(0.08)
+                    } else {
+                        transparent_black()
+                    })
+                    .child(self.header(window, cx)),
+            )
+            .child(
+                div()
+                    .id("device-scroll")
+                    .flex_1()
+                    .min_h(px(0.))
+                    .overflow_y_scroll()
+                    .track_scroll(&self.scroll)
+                    .px(PADDING)
+                    .pt(px(18.))
+                    .pb(PADDING)
+                    .child(body),
+            )
     }
 }
