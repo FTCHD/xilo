@@ -9,6 +9,7 @@ mod families;
 mod history_view;
 mod inspector;
 mod instance;
+mod login;
 mod preferences;
 mod runtime;
 mod services;
@@ -16,6 +17,7 @@ mod settings;
 mod shell;
 mod state;
 mod theme;
+mod tray;
 mod widgets;
 
 use std::sync::Arc;
@@ -172,59 +174,60 @@ fn main() -> anyhow::Result<()> {
         .flatten()
         .or_else(|| History::open(&paths.history_file()).ok());
 
-    gpui_kit::application()
-        .with_assets(gpui_kit::assets::AllAssets)
-        .run(move |cx| {
-            gpui_kit::init(cx);
-            theme::init(cx, config.preferences.theme);
-            cx.set_global(runtime);
+    let app = gpui_kit::application().with_assets(gpui_kit::assets::AllAssets);
+    app.on_reopen(|cx| cx.dispatch_action(&ShowWindow));
+    app.run(move |cx| {
+        gpui_kit::init(cx);
+        theme::init(cx, config.preferences.theme);
+        cx.set_global(runtime);
 
-            let (events_tx, events_rx) = mpsc::unbounded_channel();
-            let tray_mode = config.preferences.keep_running_in_tray;
-            let state = cx.new(|cx| AppState::new(config, history, events_tx, cx));
-            shell::listen(state.clone(), events_rx, cx);
-            instance::listen(wake, state.clone(), cx);
+        let (events_tx, events_rx) = mpsc::unbounded_channel();
+        let tray_mode = config.preferences.keep_running_in_tray;
+        let state = cx.new(|cx| AppState::new(config, history, events_tx, cx));
+        shell::listen(state.clone(), events_rx, cx);
+        instance::listen(wake, state.clone(), cx);
+        tray::init(state.clone(), cx);
 
-            cx.on_action(|_: &Quit, cx| cx.quit());
-            let show = state.clone();
-            cx.on_action(move |_: &ShowWindow, cx| open_main_window(show.clone(), cx));
-            cx.on_action(|_: &CloseWindow, cx| {
-                if let Some(window) = cx.active_window() {
-                    let _ = window.update(cx, |_, window, _| window.remove_window());
-                }
-            });
-            cx.bind_keys([
-                KeyBinding::new("cmd-q", Quit, None),
-                KeyBinding::new("cmd-w", CloseWindow, None),
-            ]);
-            cx.set_menus(vec![Menu {
-                name: "Xilo".into(),
-                items: vec![
-                    MenuItem::action("Show Xilo", ShowWindow),
-                    MenuItem::separator(),
-                    MenuItem::action("Close Window", CloseWindow),
-                    MenuItem::action("Quit Xilo", Quit),
-                ],
-                disabled: false,
-            }]);
-            cx.set_quit_mode(if tray_mode {
-                QuitMode::Explicit
-            } else {
-                QuitMode::LastWindowClosed
-            });
-            cx.on_app_quit(|cx| {
-                let runtime = cx.global::<Runtime>();
-                let engine = runtime.engine.clone();
-                let done = Runtime::run(cx, async move {
-                    let _ = tokio::time::timeout(Duration::from_secs(2), engine.shutdown()).await;
-                });
-                async move {
-                    let _ = done.await;
-                }
-            })
-            .detach();
-
-            open_main_window(state, cx);
+        cx.on_action(|_: &Quit, cx| cx.quit());
+        let show = state.clone();
+        cx.on_action(move |_: &ShowWindow, cx| open_main_window(show.clone(), cx));
+        cx.on_action(|_: &CloseWindow, cx| {
+            if let Some(window) = cx.active_window() {
+                let _ = window.update(cx, |_, window, _| window.remove_window());
+            }
         });
+        cx.bind_keys([
+            KeyBinding::new("cmd-q", Quit, None),
+            KeyBinding::new("cmd-w", CloseWindow, None),
+        ]);
+        cx.set_menus(vec![Menu {
+            name: "Xilo".into(),
+            items: vec![
+                MenuItem::action("Show Xilo", ShowWindow),
+                MenuItem::separator(),
+                MenuItem::action("Close Window", CloseWindow),
+                MenuItem::action("Quit Xilo", Quit),
+            ],
+            disabled: false,
+        }]);
+        cx.set_quit_mode(if tray_mode {
+            QuitMode::Explicit
+        } else {
+            QuitMode::LastWindowClosed
+        });
+        cx.on_app_quit(|cx| {
+            let runtime = cx.global::<Runtime>();
+            let engine = runtime.engine.clone();
+            let done = Runtime::run(cx, async move {
+                let _ = tokio::time::timeout(Duration::from_secs(2), engine.shutdown()).await;
+            });
+            async move {
+                let _ = done.await;
+            }
+        })
+        .detach();
+
+        open_main_window(state, cx);
+    });
     Ok(())
 }

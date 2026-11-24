@@ -12,6 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 gpui-kit = { workspace = true }
+gpui-tray = { workspace = true }
 xilo-proto = { workspace = true }
 xilo-models = { workspace = true }
 xilo-engine = { workspace = true }
@@ -20,6 +21,7 @@ xilo-store = { workspace = true }
 tokio = { workspace = true }
 anyhow = { workspace = true }
 hex = { workspace = true }
+directories = { workspace = true }
 jiff = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }

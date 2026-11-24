@@ -177,6 +177,16 @@ impl AppState {
                 .send_replace(i64::from(prefs.low_battery_alert));
             s.record.send_replace(prefs.record_history);
         }
+        cx.set_quit_mode(if prefs.keep_running_in_tray {
+            QuitMode::Explicit
+        } else {
+            QuitMode::LastWindowClosed
+        });
+        if prefs.launch_at_login != self.config.preferences.launch_at_login
+            && let Err(err) = crate::login::set(prefs.launch_at_login)
+        {
+            tracing::warn!("could not change open at login: {err}");
+        }
         self.config.preferences = prefs;
         self.save();
         cx.notify();
