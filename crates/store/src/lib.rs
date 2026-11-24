@@ -6,7 +6,10 @@ pub mod history;
 
 use std::path::PathBuf;
 
-pub use config::{Automations, Config, DeviceConfig, Preferences, ThemeChoice, UsbWake};
+pub use config::{
+    Automations, Config, DeviceConfig, EVERY_DAY, Preferences, Reserve, Schedule, ThemeChoice,
+    UsbWake,
+};
 pub use history::History;
 
 #[derive(Debug, thiserror::Error)]

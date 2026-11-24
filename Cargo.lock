@@ -9397,6 +9397,7 @@ dependencies = [
  "async-trait",
  "getrandom 0.4.3",
  "indexmap",
+ "jiff",
  "thiserror 2.0.21",
  "tokio",
  "tracing",

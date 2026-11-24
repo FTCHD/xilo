@@ -11,8 +11,11 @@ Xilo is not made by or affiliated with Anker.
 - **Dashboards** for the C300X and C1000 that follow the Anker app: battery, temperature, remaining time, port status, AC and car outputs with live graphs, light and screen controls, and error messages.
 - **Every setting** from the Anker app, with option lists and limits checked before anything is sent. Risky changes (AC frequency, factory reset) ask for confirmation, and each one is written to an audit log.
 - **38 models** in total. Models without their own dashboard get a generic one with all decoded values.
+- **Schedules**: turn outputs, the light or the screen on or off at set times and on chosen days.
+- **Battery reserve**: when the battery drops to a set level, Xilo turns off the outputs you choose, so some charge stays for later.
 - **USB wake**: the C300X turns its USB ports off after about two hours of low load. Xilo keeps them on by switching the car output on briefly before that happens.
-- **Alerts**: errors, low battery, full battery and long disconnects, shown in the app and as system notifications.
+- **Alerts**: errors, low battery, a chosen charge level (80%, 90% or 100%), AC power lost and back, and long disconnects. They show in the app and as system notifications.
+- Automations and alerts run while Xilo is open or in the menu bar, and the device is in Bluetooth range.
 - **History**: battery and power every 10 seconds, stored on this Mac. It includes charts, energy per day and CSV export.
 - **Menu bar**: battery level in the menu bar, quick AC and car output toggles, and "release to phone" so the Anker app can connect.
 - **Inspector** (developer mode): raw and decrypted frames, a per-message diff, redacted capture files and a guarded raw command console.

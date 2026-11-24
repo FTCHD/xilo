@@ -204,7 +204,7 @@ pub fn render(
         .into_any_element()
 }
 
-fn control_icon(id: &str) -> IconName {
+pub fn control_icon(id: &str) -> IconName {
     match id {
         "ac_switch" => IconName::PlugZap,
         "dc_switch" => IconName::Car,

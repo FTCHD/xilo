@@ -505,7 +505,7 @@ state = "dc_timer_remaining"
 [[command]]
 id = "light_mode"
 msg = "004f"
-label = "Brightness"
+label = "Light"
 group = "control"
 input = "choice"
 param = { kind = "u8" }

@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use gpui_kit::*;
 use tokio::sync::mpsc;
 use xilo_engine::{DeviceAddr, DeviceSetup};
-use xilo_store::{Config, DeviceConfig, History, Preferences, UsbWake};
+use xilo_store::{Automations, Config, DeviceConfig, History, Preferences};
 
 use crate::device::DeviceModel;
 use crate::runtime::Runtime;
@@ -70,8 +70,8 @@ impl AppState {
         let started = services::start(services::Start {
             runtime: &Runtime::get(cx).tokio,
             handle: handle.clone(),
-            wake: services::wake_config(&device.automations.usb_wake),
-            low_battery: i64::from(prefs.low_battery_alert),
+            automations: services::automation_config(&device.automations),
+            alerts: services::alert_config(prefs),
             record: prefs.record_history,
             history: self.history.clone(),
             events: self.events.clone(),
@@ -156,20 +156,27 @@ impl AppState {
         self.config.device_mut(key)
     }
 
-    pub fn set_usb_wake(&mut self, key: &str, wake: UsbWake) {
+    pub fn automations(&self, key: &str) -> Automations {
+        self.config
+            .device(key)
+            .map(|d| d.automations.clone())
+            .unwrap_or_default()
+    }
+
+    pub fn set_automations(&mut self, key: &str, automations: Automations) {
         if let Some(s) = self.services.get(key) {
-            s.wake.send_replace(services::wake_config(&wake));
+            s.automations
+                .send_replace(services::automation_config(&automations));
         }
         if let Some(d) = self.config.device_mut(key) {
-            d.automations.usb_wake = wake;
+            d.automations = automations;
         }
         self.save();
     }
 
     pub fn set_preferences(&mut self, prefs: Preferences, cx: &mut Context<Self>) {
         for s in self.services.values() {
-            s.low_battery
-                .send_replace(i64::from(prefs.low_battery_alert));
+            s.alerts.send_replace(services::alert_config(&prefs));
             s.record.send_replace(prefs.record_history);
         }
         cx.set_quit_mode(if prefs.keep_running_in_tray {

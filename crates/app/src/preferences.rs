@@ -158,6 +158,27 @@ pub fn render(state: &Entity<AppState>, cx: &App) -> AnyElement {
                     ),
                     cx,
                 ),
+                row(
+                    IconName::BatteryFull,
+                    "Charged alert",
+                    "Many people stop charging at 80% to keep the battery healthy.",
+                    choices(
+                        "charged",
+                        &[(0u8, "Off"), (80, "80%"), (90, "90%"), (100, "100%")],
+                        p.charged_alert,
+                        state,
+                        |p, v| p.charged_alert = v,
+                        cx,
+                    ),
+                    cx,
+                ),
+                row(
+                    IconName::Unplug,
+                    "AC power alerts",
+                    "When a device loses AC power and runs on its battery, and when the power comes back.",
+                    switch("power", p.power_alerts, state, |p, v| p.power_alerts = v),
+                    cx,
+                ),
             ],
             cx,
         )))

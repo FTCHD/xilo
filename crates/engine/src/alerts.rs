@@ -5,6 +5,8 @@ use tokio::time::Instant;
 use crate::{LinkState, Snapshot};
 
 const OFFLINE_AFTER: Duration = Duration::from_secs(10 * 60);
+/// How long a change in AC power must last before it is reported.
+const POWER_HOLD: Duration = Duration::from_secs(20);
 const HYSTERESIS: i64 = 5;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -12,8 +14,34 @@ pub enum AlertKind {
     Error(i64),
     ErrorCleared,
     LowBattery(i64),
-    Full,
+    Charged(i64),
+    PowerLost,
+    PowerBack,
     Offline,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AlertConfig {
+    /// 0 turns the alert off.
+    pub low_battery: i64,
+    /// 0 turns the alert off.
+    pub charged: i64,
+    pub power: bool,
+}
+
+impl Default for AlertConfig {
+    fn default() -> Self {
+        Self {
+            low_battery: 20,
+            charged: 100,
+            power: true,
+        }
+    }
+}
+
+/// True when the device gets AC power, if the model reports its input source.
+pub fn ac_present(snap: &Snapshot) -> Option<bool> {
+    snap.int("input_source").map(|s| matches!(s, 2 | 3))
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -26,22 +54,28 @@ pub struct Alert {
 /// Turns snapshots into alerts. Each alert fires once until its cause clears.
 #[derive(Debug)]
 pub struct Alerts {
-    pub low_battery: i64,
+    pub config: AlertConfig,
     error: Option<i64>,
     low: bool,
-    full: bool,
+    charged: bool,
+    last_soc: Option<i64>,
+    ac: Option<bool>,
+    ac_change: Option<(bool, Instant)>,
     seen_ready: bool,
     lost_at: Option<Instant>,
     offline: bool,
 }
 
 impl Alerts {
-    pub fn new(low_battery: i64) -> Self {
+    pub fn new(config: AlertConfig) -> Self {
         Self {
-            low_battery,
+            config,
             error: None,
             low: false,
-            full: false,
+            charged: false,
+            last_soc: None,
+            ac: None,
+            ac_change: None,
             seen_ready: false,
             lost_at: None,
             offline: false,
@@ -96,27 +130,75 @@ impl Alerts {
             self.error = error;
         }
 
-        if let Some(soc) = snap.int("battery_soc") {
+        let soc = snap.int("battery_soc");
+        if let Some(soc) = soc {
+            let low = self.config.low_battery;
             let charging = snap.int("battery_state") == Some(2);
-            if !self.low && !charging && soc <= self.low_battery && self.low_battery > 0 {
+            if !self.low && !charging && soc <= low && low > 0 {
                 self.low = true;
                 out.push(Alert {
                     kind: AlertKind::LowBattery(soc),
                     title: name.clone(),
                     text: format!("Battery is at {soc}%."),
                 });
-            } else if self.low && soc > self.low_battery + HYSTERESIS {
+            } else if self.low && soc > low + HYSTERESIS {
                 self.low = false;
             }
-            if !self.full && soc >= 100 && charging {
-                self.full = true;
+
+            let target = self.config.charged;
+            let rose = self.last_soc.is_some_and(|last| last < target);
+            if !self.charged && target > 0 && soc >= target && rose {
+                self.charged = true;
                 out.push(Alert {
-                    kind: AlertKind::Full,
-                    title: name,
-                    text: "Battery is full.".into(),
+                    kind: AlertKind::Charged(soc),
+                    title: name.clone(),
+                    text: if target >= 100 {
+                        "Battery is full.".into()
+                    } else {
+                        format!("Battery is charged to {soc}%.")
+                    },
                 });
-            } else if self.full && soc < 100 - HYSTERESIS {
-                self.full = false;
+            } else if self.charged && soc < target - HYSTERESIS {
+                self.charged = false;
+            }
+            self.last_soc = Some(soc);
+        }
+
+        if let Some(ac) = ac_present(snap) {
+            match self.ac {
+                None => self.ac = Some(ac),
+                Some(known) if known == ac => self.ac_change = None,
+                Some(_) => {
+                    let since = match self.ac_change {
+                        Some((value, since)) if value == ac => since,
+                        _ => now,
+                    };
+                    self.ac_change = Some((ac, since));
+                    if now.duration_since(since) >= POWER_HOLD {
+                        self.ac = Some(ac);
+                        self.ac_change = None;
+                        if self.config.power {
+                            out.push(if ac {
+                                Alert {
+                                    kind: AlertKind::PowerBack,
+                                    title: name,
+                                    text: "AC power is back.".into(),
+                                }
+                            } else {
+                                Alert {
+                                    kind: AlertKind::PowerLost,
+                                    title: name,
+                                    text: match soc {
+                                        Some(soc) => format!(
+                                            "AC power was lost. The device now runs on its battery, which is at {soc}%."
+                                        ),
+                                        None => "AC power was lost. The device now runs on its battery.".into(),
+                                    },
+                                }
+                            });
+                        }
+                    }
+                }
             }
         }
         out
@@ -132,6 +214,12 @@ mod tests {
     use super::*;
     use crate::DeviceAddr;
 
+    fn powered(soc: i64, source: i64) -> Snapshot {
+        let mut s = snap(soc, 0, 1);
+        s.fields.insert("input_source".into(), Value::Int(source));
+        s
+    }
+
     fn snap(soc: i64, error: i64, state: i64) -> Snapshot {
         let mut s = Snapshot::new("k".into(), DeviceAddr::new("a"));
         s.link = LinkState::Ready;
@@ -145,7 +233,7 @@ mod tests {
     #[test]
     fn deduplicates_with_hysteresis() {
         let t = Instant::now();
-        let mut a = Alerts::new(20);
+        let mut a = Alerts::new(AlertConfig::default());
         assert!(a.observe(t, &snap(50, 0, 1)).is_empty());
         assert_eq!(
             a.observe(t, &snap(20, 0, 1))[0].kind,
@@ -167,14 +255,72 @@ mod tests {
             AlertKind::ErrorCleared
         );
 
-        assert_eq!(a.observe(t, &snap(100, 0, 2))[0].kind, AlertKind::Full);
-        assert!(a.observe(t, &snap(100, 0, 2)).is_empty());
+        assert!(a.observe(t, &snap(99, 0, 2)).is_empty());
+        assert_eq!(
+            a.observe(t, &snap(100, 0, 2))[0].kind,
+            AlertKind::Charged(100)
+        );
+        assert!(a.observe(t, &snap(100, 0, 1)).is_empty());
+    }
+
+    #[test]
+    fn charged_alert_at_a_chosen_level() {
+        let t = Instant::now();
+        let mut a = Alerts::new(AlertConfig {
+            charged: 80,
+            ..Default::default()
+        });
+        assert!(a.observe(t, &snap(85, 0, 2)).is_empty(), "already above");
+        assert!(a.observe(t, &snap(60, 0, 2)).is_empty());
+        let fired = a.observe(t, &snap(81, 0, 2));
+        assert_eq!(fired[0].kind, AlertKind::Charged(81));
+        assert_eq!(fired[0].text, "Battery is charged to 81%.");
+        assert!(a.observe(t, &snap(90, 0, 2)).is_empty());
+        assert!(
+            a.observe(t, &snap(78, 0, 1)).is_empty(),
+            "within hysteresis"
+        );
+        assert!(a.observe(t, &snap(80, 0, 2)).is_empty());
+
+        a.config.charged = 0;
+        a.observe(t, &snap(50, 0, 1));
+        assert!(a.observe(t, &snap(100, 0, 2)).is_empty(), "turned off");
+    }
+
+    #[test]
+    fn reports_ac_power_after_it_holds() {
+        let t = Instant::now();
+        let s = Duration::from_secs;
+        let mut a = Alerts::new(AlertConfig::default());
+        assert!(a.observe(t, &powered(70, 2)).is_empty(), "first reading");
+        assert!(a.observe(t + s(1), &powered(70, 0)).is_empty());
+        assert!(
+            a.observe(t + s(5), &powered(70, 2)).is_empty(),
+            "short drop"
+        );
+        assert!(a.observe(t + s(30), &powered(70, 2)).is_empty());
+
+        assert!(a.observe(t + s(40), &powered(70, 0)).is_empty());
+        let lost = a.observe(t + s(60), &powered(69, 0));
+        assert_eq!(lost[0].kind, AlertKind::PowerLost);
+        assert!(lost[0].text.contains("69%"));
+        assert!(a.observe(t + s(90), &powered(68, 0)).is_empty());
+
+        a.observe(t + s(100), &powered(68, 3));
+        assert_eq!(
+            a.observe(t + s(120), &powered(68, 3))[0].kind,
+            AlertKind::PowerBack
+        );
+
+        a.config.power = false;
+        a.observe(t + s(200), &powered(68, 1));
+        assert!(a.observe(t + s(300), &powered(68, 1)).is_empty());
     }
 
     #[test]
     fn offline_after_ten_minutes() {
         let t = Instant::now();
-        let mut a = Alerts::new(20);
+        let mut a = Alerts::new(AlertConfig::default());
         a.observe(t, &snap(50, 0, 1));
         let mut lost = snap(50, 0, 1);
         lost.link = LinkState::Disconnected;

@@ -1,13 +1,10 @@
 use std::time::Duration;
 
-use tokio::sync::{mpsc, watch};
 use tokio::time::Instant;
-use xilo_models::CommandRequest;
 
-use crate::{DeviceHandle, Outcome, Snapshot};
+use crate::Snapshot;
 
 const MIN_GAP: Duration = Duration::from_secs(10 * 60);
-const RESTORE_DELAY: Duration = Duration::from_secs(3);
 const IDLE_WATTS: f64 = 1.0;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -90,59 +87,6 @@ impl UsbWake {
             restore_off: !snap.flag("dc_switch"),
         })
     }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct AutomationEvent {
-    pub device: String,
-    pub text: String,
-    pub failed: bool,
-}
-
-/// Runs USB wake for one device until the handle closes.
-pub fn spawn_usb_wake(
-    handle: DeviceHandle,
-    mut config: watch::Receiver<UsbWakeConfig>,
-    events: mpsc::UnboundedSender<AutomationEvent>,
-) -> tokio::task::JoinHandle<()> {
-    tokio::spawn(async move {
-        let mut wake = UsbWake::new(config.borrow().clone());
-        let mut snaps = handle.watch();
-        let mut tick = tokio::time::interval(Duration::from_secs(30));
-        loop {
-            tokio::select! {
-                changed = snaps.changed() => if changed.is_err() { break },
-                changed = config.changed() => {
-                    if changed.is_err() { break }
-                    wake.config = config.borrow().clone();
-                }
-                _ = tick.tick() => {}
-            }
-            let snap = snaps.borrow().clone();
-            let Some(pulse) = wake.observe(Instant::now(), &snap) else {
-                continue;
-            };
-            let device = handle.key().to_string();
-            let report = |text: String, failed: bool| {
-                let _ = events.send(AutomationEvent {
-                    device: device.clone(),
-                    text,
-                    failed,
-                });
-            };
-            match handle.send(CommandRequest::new("dc_switch", Some(1))).await {
-                Ok(Outcome::Acked) => {
-                    if pulse.restore_off {
-                        tokio::time::sleep(RESTORE_DELAY).await;
-                        let _ = handle.send(CommandRequest::new("dc_switch", Some(0))).await;
-                    }
-                    report("USB wake: turned the ports back on.".into(), false);
-                }
-                Ok(other) => report(format!("USB wake did not work: {other:?}."), true),
-                Err(err) => report(format!("USB wake did not work: {err}."), true),
-            }
-        }
-    })
 }
 
 #[cfg(test)]

@@ -25,6 +25,7 @@ pub struct DeviceView {
     pub custom_minutes: i64,
     pub inspector: Option<Entity<inspector::Inspector>>,
     pub history: Option<Entity<history_view::HistoryView>>,
+    pub schedule_editor: Option<automations::Editor>,
     _blink: Task<()>,
     _observe: Subscription,
 }
@@ -61,6 +62,7 @@ impl DeviceView {
             custom_minutes: 60,
             inspector: None,
             history: None,
+            schedule_editor: None,
             _blink: blink,
             _observe: observe,
         }

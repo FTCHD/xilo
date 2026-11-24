@@ -21,6 +21,9 @@ pub struct Preferences {
     pub launch_at_login: bool,
     pub notifications: bool,
     pub low_battery_alert: u8,
+    /// Battery level for the charged alert. 0 turns it off.
+    pub charged_alert: u8,
+    pub power_alerts: bool,
     pub record_history: bool,
     pub history_days: u32,
     pub developer_mode: bool,
@@ -34,6 +37,8 @@ impl Default for Preferences {
             launch_at_login: false,
             notifications: true,
             low_battery_alert: 20,
+            charged_alert: 100,
+            power_alerts: true,
             record_history: true,
             history_days: 90,
             developer_mode: false,
@@ -59,10 +64,50 @@ impl Default for UsbWake {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Reserve {
+    pub enabled: bool,
+    pub level: u8,
+    /// Commands to switch off at the reserve level.
+    pub outputs: Vec<String>,
+}
+
+impl Default for Reserve {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            level: 20,
+            outputs: vec!["ac_switch".into(), "dc_switch".into()],
+        }
+    }
+}
+
+pub const EVERY_DAY: u8 = 0x7f;
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Schedule {
+    pub command: String,
+    pub value: i64,
+    pub hour: u8,
+    pub minute: u8,
+    /// Monday is bit 0, Sunday is bit 6.
+    #[serde(default = "every_day")]
+    pub days: u8,
+    #[serde(default = "yes")]
+    pub enabled: bool,
+}
+
+fn every_day() -> u8 {
+    EVERY_DAY
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Automations {
     pub usb_wake: UsbWake,
+    pub reserve: Reserve,
+    pub schedules: Vec<Schedule>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -149,7 +194,17 @@ mod tests {
             name: Some("Desk".into()),
             model: Some("A1723".into()),
             auto_connect: true,
-            automations: Automations::default(),
+            automations: Automations {
+                schedules: vec![Schedule {
+                    command: "ac_switch".into(),
+                    value: 0,
+                    hour: 23,
+                    minute: 30,
+                    days: 0x1f,
+                    enabled: true,
+                }],
+                ..Default::default()
+            },
         });
         config.preferences.low_battery_alert = 15;
         config.save(&path).expect("save");

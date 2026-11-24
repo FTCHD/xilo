@@ -10,6 +10,7 @@ publish.workspace = true
 xilo-proto = { workspace = true }
 xilo-models = { workspace = true }
 tokio = { workspace = true }
+jiff = { workspace = true }
 async-trait = { workspace = true }
 getrandom = { workspace = true }
 indexmap = { workspace = true }
