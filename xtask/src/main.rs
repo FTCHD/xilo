@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fs::{self, File};
-use std::io::{Cursor, Read};
+use std::io::{Cursor, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command as Process;
 
@@ -35,6 +35,13 @@ enum Command {
     Bundle {
         #[arg(long)]
         release: bool,
+    },
+    /// Build the release downloads for one target in dist/release.
+    /// They never contain Anker assets.
+    Dist {
+        /// Rust target triple. The default is this computer.
+        #[arg(long)]
+        target: Option<String>,
     },
 }
 
@@ -99,6 +106,7 @@ fn main() -> Result<()> {
         } => import::run(&root(), &root().join(src)),
         Command::CheckPublic => check_public(),
         Command::Bundle { release } => bundle(release),
+        Command::Dist { target } => dist(target),
     }
 }
 
@@ -256,37 +264,183 @@ fn bundle(release: bool) -> Result<()> {
         bail!("build failed");
     }
     let app = root.join("dist/Xilo.app");
+    make_app(&app, &root.join(format!("target/{profile}")), true)?;
+    println!("built {}", app.display());
+    Ok(())
+}
+
+/// Writes a signed Xilo.app from the binaries in `bin`.
+fn make_app(app: &Path, bin: &Path, vendor: bool) -> Result<()> {
+    let root = root();
     let contents = app.join("Contents");
-    let _ = fs::remove_dir_all(&app);
+    let _ = fs::remove_dir_all(app);
     fs::create_dir_all(contents.join("MacOS"))?;
     fs::create_dir_all(contents.join("Resources"))?;
-    fs::copy(
-        root.join(format!("target/{profile}/xilo")),
-        contents.join("MacOS/Xilo"),
-    )?;
-    let version = env!("CARGO_PKG_VERSION");
+    fs::copy(bin.join("xilo"), contents.join("MacOS/Xilo"))?;
+    if bin.join("xilo-cli").exists() {
+        fs::copy(bin.join("xilo-cli"), contents.join("MacOS/xilo-cli"))?;
+    }
     fs::write(
         contents.join("Info.plist"),
-        INFO_PLIST.replace("{version}", version),
+        INFO_PLIST.replace("{version}", env!("CARGO_PKG_VERSION")),
     )?;
     let icon = root.join("assets/builtin/icons/Xilo.icns");
     if icon.exists() {
         fs::copy(&icon, contents.join("Resources/Xilo.icns"))?;
     }
-    let vendor = root.join("assets/vendor");
-    if vendor.exists() {
-        copy_dir(&vendor, &contents.join("Resources/vendor"))?;
+    let vendor_dir = root.join("assets/vendor");
+    if vendor && vendor_dir.exists() {
+        copy_dir(&vendor_dir, &contents.join("Resources/vendor"))?;
     }
     let identity = std::env::var("XILO_SIGN_IDENTITY").unwrap_or_else(|_| "-".into());
     let status = Process::new("codesign")
         .args(["--force", "--deep", "--sign", &identity])
-        .arg(&app)
+        .arg(app)
         .status()?;
     if !status.success() {
         bail!("codesign failed");
     }
-    println!("built {}", app.display());
     Ok(())
+}
+
+fn host_target() -> Result<String> {
+    let out = Process::new("rustc").arg("-vV").output()?;
+    String::from_utf8_lossy(&out.stdout)
+        .lines()
+        .find_map(|l| l.strip_prefix("host: ").map(str::to_string))
+        .context("rustc did not report its host target")
+}
+
+/// The system and processor names used in download file names.
+fn platform(target: &str) -> Result<(&'static str, &'static str)> {
+    let os = if target.contains("apple-darwin") {
+        "macos"
+    } else if target.contains("windows") {
+        "windows"
+    } else if target.contains("linux") {
+        "linux"
+    } else {
+        bail!("no release format for {target}");
+    };
+    let arch = match target.split('-').next() {
+        Some("aarch64") => "arm64",
+        Some("x86_64") => "x64",
+        _ => bail!("no release format for {target}"),
+    };
+    Ok((os, arch))
+}
+
+fn dist(target: Option<String>) -> Result<()> {
+    let root = root();
+    let target = match target {
+        Some(t) => t,
+        None => host_target()?,
+    };
+    let (os, arch) = platform(&target)?;
+    let mut build = Process::new("cargo");
+    build
+        .args([
+            "build",
+            "--release",
+            "--locked",
+            "-p",
+            "xilo",
+            "-p",
+            "xilo-cli",
+        ])
+        .args(["--target", &target])
+        .current_dir(&root);
+    if os == "macos" {
+        build.env("MACOSX_DEPLOYMENT_TARGET", "13.0");
+    }
+    if !build.status()?.success() {
+        bail!("build failed");
+    }
+
+    let bin = root.join("target").join(&target).join("release");
+    let out = root.join("dist/release");
+    let _ = fs::remove_dir_all(&out);
+    fs::create_dir_all(&out)?;
+    let name = format!("Xilo-{}-{os}-{arch}", env!("CARGO_PKG_VERSION"));
+    let docs = ["README.md", "THIRD_PARTY_NOTICES.md"];
+    let file = match os {
+        "macos" => {
+            let stage = out.join("stage");
+            make_app(&stage.join("Xilo.app"), &bin, false)?;
+            for doc in docs {
+                fs::copy(root.join(doc), stage.join(doc))?;
+            }
+            applications_link(&stage)?;
+            let dmg = out.join(format!("{name}.dmg"));
+            let status = Process::new("hdiutil")
+                .args(["create", "-volname", "Xilo", "-format", "UDZO", "-ov"])
+                .arg("-srcfolder")
+                .arg(&stage)
+                .arg(&dmg)
+                .status()?;
+            fs::remove_dir_all(&stage)?;
+            if !status.success() {
+                bail!("hdiutil failed");
+            }
+            dmg
+        }
+        "windows" => {
+            let zip_path = out.join(format!("{name}.zip"));
+            let mut zip = zip::ZipWriter::new(File::create(&zip_path)?);
+            let options = zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Deflated);
+            let files = [
+                (bin.join("xilo.exe"), "Xilo.exe"),
+                (bin.join("xilo-cli.exe"), "xilo-cli.exe"),
+                (root.join(docs[0]), docs[0]),
+                (root.join(docs[1]), docs[1]),
+            ];
+            for (path, entry) in files {
+                zip.start_file(format!("{name}/{entry}"), options)?;
+                zip.write_all(&fs::read(&path).with_context(|| path.display().to_string())?)?;
+            }
+            zip.finish()?;
+            zip_path
+        }
+        _ => {
+            let stage = out.join("stage");
+            let folder = stage.join(&name);
+            fs::create_dir_all(&folder)?;
+            for exe in ["xilo", "xilo-cli"] {
+                fs::copy(bin.join(exe), folder.join(exe))?;
+            }
+            for doc in docs {
+                fs::copy(root.join(doc), folder.join(doc))?;
+            }
+            let tar = out.join(format!("{name}.tar.gz"));
+            let status = Process::new("tar")
+                .arg("-czf")
+                .arg(&tar)
+                .arg("-C")
+                .arg(&stage)
+                .arg(&name)
+                .status()?;
+            fs::remove_dir_all(&stage)?;
+            if !status.success() {
+                bail!("tar failed");
+            }
+            tar
+        }
+    };
+    println!("built {}", file.display());
+    Ok(())
+}
+
+/// The shortcut to /Applications in the disk image, for drag and drop installs.
+#[cfg(unix)]
+fn applications_link(stage: &Path) -> Result<()> {
+    std::os::unix::fs::symlink("/Applications", stage.join("Applications"))?;
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn applications_link(_stage: &Path) -> Result<()> {
+    bail!("macOS disk images can only be built on macOS")
 }
 
 fn copy_dir(from: &Path, to: &Path) -> Result<()> {

@@ -1,5 +1,3 @@
-use std::io::Write as _;
-
 use gpui_kit::*;
 use tokio::sync::mpsc;
 use xilo_store::Paths;
@@ -13,7 +11,7 @@ pub type Wake = mpsc::UnboundedReceiver<()>;
 /// instance is running; that instance is asked to show its window.
 #[cfg(unix)]
 pub fn claim(paths: &Paths) -> Option<Wake> {
-    use std::io::Read as _;
+    use std::io::{Read as _, Write as _};
     use std::os::unix::net::{UnixListener, UnixStream};
 
     let _ = std::fs::create_dir_all(&paths.data);

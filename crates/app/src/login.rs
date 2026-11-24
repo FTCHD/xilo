@@ -1,5 +1,7 @@
+#[cfg(target_os = "macos")]
 use std::path::PathBuf;
 
+#[cfg(target_os = "macos")]
 const LABEL: &str = "dev.xilo.app";
 
 /// Adds or removes Xilo from the programs that open at login.
@@ -28,6 +30,7 @@ pub fn set(_enabled: bool) -> std::io::Result<()> {
 }
 
 /// The app bundle when running from one, else the executable.
+#[cfg(target_os = "macos")]
 fn launch_target() -> std::io::Result<Vec<String>> {
     let exe: PathBuf = std::env::current_exe()?;
     let bundle = exe
@@ -44,12 +47,14 @@ fn launch_target() -> std::io::Result<Vec<String>> {
     })
 }
 
+#[cfg(target_os = "macos")]
 fn escape(s: &str) -> String {
     s.replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
 }
 
+#[cfg(target_os = "macos")]
 fn agent(program: &[String]) -> String {
     let args: String = program
         .iter()
@@ -73,7 +78,7 @@ fn agent(program: &[String]) -> String {
     )
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "macos"))]
 mod tests {
     #[test]
     fn agent_escapes_paths() {

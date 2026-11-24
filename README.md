@@ -62,6 +62,17 @@ cargo run -p xtask -- bundle --release   # creates dist/Xilo.app
 
 The bundle is signed ad hoc. macOS then asks for Bluetooth permission again after every rebuild. To avoid that, create a code signing certificate in Keychain Access and set `XILO_SIGN_IDENTITY` to its name before you bundle.
 
+### Release downloads
+
+```sh
+cargo run -p xtask -- dist                                   # this computer
+cargo run -p xtask -- dist --target x86_64-apple-darwin      # another target
+```
+
+This writes one download to `dist/release`: a disk image on macOS, a zip file on Windows and a tar.gz file on Linux. Each one contains the app and `xilo-cli`. The downloads never include the Anker images and fonts, even when `assets/vendor` exists.
+
+To publish a release, set the version in `Cargo.toml` and push a tag with the same version, for example `v0.2.0`. The `release` workflow then builds macOS, Windows and Linux downloads for x64 and Arm, and creates a GitHub release with checksums. To build the downloads without a release, run the workflow by hand from the Actions tab.
+
 ## Command line
 
 ```sh
