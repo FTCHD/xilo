@@ -1,0 +1,6 @@
+[model]
+code = "A1765"
+name = "SOLIX C1000X Gen 2"
+family = "imp_a1765"
+status = "unverified"
+assets = "a1765"

@@ -1,0 +1,6 @@
+[model]
+code = "A17C5"
+name = "Solarbank 3 Pro"
+family = "imp_a17c5"
+status = "unverified"
+assets = "a17c5"

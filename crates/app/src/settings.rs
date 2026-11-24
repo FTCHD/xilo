@@ -28,10 +28,29 @@ pub fn render(
     let connected = snap.is_ready();
     let Some(model) = snap.model.clone() else {
         return card(cx)
-            .child(caption(
-                "Settings appear once the device model is known.",
-                cx,
-            ))
+            .child(
+                h_flex()
+                    .gap(px(16.))
+                    .justify_between()
+                    .items_center()
+                    .child(
+                        caption(
+                            "Xilo could not detect the model yet. Choose it to see its settings.",
+                            cx,
+                        )
+                        .flex_1()
+                        .min_w(px(0.)),
+                    )
+                    .child(
+                        Button::new("choose-model")
+                            .small()
+                            .primary()
+                            .label("Choose Model")
+                            .on_click(
+                                cx.listener(|view, _, window, cx| model_picker(view, window, cx)),
+                            ),
+                    ),
+            )
             .into_any_element();
     };
     let mut rows = |group: Group, cx: &mut Context<DeviceView>| {
@@ -90,6 +109,11 @@ pub fn render(
         .child(
             card(cx).p(px(4.)).child(
                 v_flex()
+                    .child(
+                        info_row("Model", format!("{} ({})", model.name, model.code), true, cx)
+                            .id("model")
+                            .on_click(cx.listener(|view, _, window, cx| model_picker(view, window, cx))),
+                    )
                     .when(!verified, |el| {
                         el.child(row(
                             "Allow control",
@@ -144,6 +168,83 @@ pub fn render(
             ),
         )
         .into_any_element()
+}
+
+/// Lets the user pick the model when detection fails or is wrong.
+fn model_picker(view: &mut DeviceView, window: &mut Window, cx: &mut Context<DeviceView>) {
+    let registry = crate::runtime::Runtime::get(cx).engine.registry().clone();
+    let mut models: Vec<(String, String, bool)> = registry
+        .all()
+        .map(|m| (m.code.clone(), m.name.clone(), m.is_verified()))
+        .collect();
+    models.sort_by(|a, b| a.1.cmp(&b.1));
+    let current = view
+        .device
+        .read(cx)
+        .snap
+        .model
+        .as_ref()
+        .map(|m| m.code.clone());
+    let device = view.device.clone();
+    let state = view.state.clone();
+    window.open_sheet_at(Placement::Right, cx, move |sheet, _, cx| {
+        let list = v_flex()
+            .gap(px(2.))
+            .children(models.iter().map(|(code, name, verified)| {
+                let selected = current.as_deref() == Some(code.as_str());
+                let device = device.clone();
+                let state = state.clone();
+                let pick = code.clone();
+                h_flex()
+                    .id(SharedString::from(format!("model-{code}")))
+                    .px(px(12.))
+                    .py(px(8.))
+                    .rounded(px(10.))
+                    .gap(px(8.))
+                    .justify_between()
+                    .cursor_pointer()
+                    .hover(|s| s.bg(cx.theme().muted))
+                    .child(
+                        v_flex()
+                            .child(div().text_size(px(14.)).child(name.clone()))
+                            .child(caption(
+                                if *verified {
+                                    format!("{code} · verified")
+                                } else {
+                                    code.clone()
+                                },
+                                cx,
+                            )),
+                    )
+                    .when(selected, |el| {
+                        el.child(Icon::new(IconName::Check).text_color(cx.theme().primary))
+                    })
+                    .on_click(move |_, window, cx| {
+                        let handle = device.read(cx).handle.clone();
+                        let key = device.read(cx).key.clone();
+                        let code = pick.clone();
+                        let chosen = Some(code.clone());
+                        crate::runtime::Runtime::spawn(cx, async move {
+                            handle.set_model(chosen).await
+                        });
+                        state.update(cx, |s, cx| {
+                            if let Some(d) = s.device_config_mut(&key) {
+                                d.model = Some(code);
+                            }
+                            s.save();
+                            cx.notify();
+                        });
+                        window.close_sheet(cx);
+                    })
+            }));
+        sheet.title("Choose Model").size(px(360.)).child(
+            div()
+                .id("model-list")
+                .size_full()
+                .overflow_y_scroll()
+                .child(list),
+        )
+    });
 }
 
 fn set_allow(view: &mut DeviceView, allow: bool, cx: &mut Context<DeviceView>) {

@@ -1,0 +1,6 @@
+[model]
+code = "A17X7US"
+name = "Smart Meter (US)"
+family = "imp_a17x7us"
+status = "unverified"
+assets = "a17x7us"

@@ -1,0 +1,6 @@
+[model]
+code = "AS220"
+name = "SOLIX S2000"
+family = "imp_as220"
+status = "unverified"
+assets = "as220"

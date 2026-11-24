@@ -1,0 +1,6 @@
+[model]
+code = "AE103"
+name = "Solarbank 4 Pro"
+family = "imp_ae103"
+status = "unverified"
+assets = "ae103"

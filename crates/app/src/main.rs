@@ -60,6 +60,8 @@ fn simulator(registry: &Registry) -> SimConnector {
     for (addr, code, serial) in [
         ("sim-c300x", "A1723", "ALFSBK1G00000001"),
         ("sim-c1000", "A1761", "APC9FQ0E00000001"),
+        ("sim-c1000g2", "A1763", "APCDK00000000001"),
+        ("sim-sb2", "A17C1", "APCGQ00000000001"),
     ] {
         if let Some(spec) = registry.get(code) {
             sim.add(addr, SimDevice::new(spec.clone(), serial));

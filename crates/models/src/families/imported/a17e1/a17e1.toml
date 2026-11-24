@@ -1,0 +1,6 @@
+[model]
+code = "A17E1"
+name = "SOLIX E10"
+family = "imp_a17e1"
+status = "unverified"
+assets = "a17e1"

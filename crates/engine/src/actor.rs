@@ -361,6 +361,13 @@ impl Actor {
             Control::SetModel(code) => {
                 self.setup.model = code.clone();
                 self.snap.model = code.and_then(|c| self.shared.registry.get(&c).cloned());
+                self.snap.fields.clear();
+                self.snap.unsupported.clear();
+                if self.snap.link == LinkState::Ready {
+                    self.last_keepalive = None;
+                    self.last_poll = None;
+                    self.schedule_periodic();
+                }
                 self.publish();
             }
             Control::SetAllowUnverified(allow) => {

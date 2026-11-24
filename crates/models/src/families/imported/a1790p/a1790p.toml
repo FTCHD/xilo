@@ -1,0 +1,6 @@
+[model]
+code = "A1790P"
+name = "SOLIX F3800 Plus"
+family = "imp_a1790p"
+status = "unverified"
+assets = "a1790p"

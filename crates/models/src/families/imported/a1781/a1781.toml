@@ -1,0 +1,6 @@
+[model]
+code = "A1781"
+name = "SOLIX F2600"
+family = "imp_a1781"
+status = "unverified"
+assets = "a1781"

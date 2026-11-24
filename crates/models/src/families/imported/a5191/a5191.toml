@@ -1,0 +1,6 @@
+[model]
+code = "A5191"
+name = "EV Charger"
+family = "imp_a5191"
+status = "unverified"
+assets = "a5191"

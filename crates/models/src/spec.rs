@@ -146,7 +146,15 @@ impl ModelSpec {
         {
             return label.clone();
         }
+        let version = field.id.contains("version")
+            || field.id.contains("firmware")
+            || field.id.starts_with("sw_");
         match (&field.unit, value) {
+            (_, Value::Bytes(bytes)) if version => bytes
+                .iter()
+                .map(u8::to_string)
+                .collect::<Vec<_>>()
+                .join("."),
             (Some(unit), Value::Int(_) | Value::Float(_)) => format!("{value} {unit}"),
             _ => value.to_string(),
         }
@@ -274,8 +282,12 @@ impl ModelSpec {
         Some(match field.kind {
             Kind::U8 | Kind::I8 | Kind::Bool => (key, tlv::TYPE_U8, vec![raw as u8]),
             Kind::U16 | Kind::I16 => (key, tlv::TYPE_U16, (raw as u16).to_le_bytes().to_vec()),
-            Kind::U32 => (key, tlv::TYPE_U32, (raw as u32).to_le_bytes().to_vec()),
+            Kind::U32 | Kind::I32 => (key, tlv::TYPE_U32, (raw as u32).to_le_bytes().to_vec()),
             Kind::Text => (key, tlv::TYPE_STR, value.as_text()?.as_bytes().to_vec()),
+            Kind::Auto => match value {
+                Value::Text(s) => (key, tlv::TYPE_STR, s.as_bytes().to_vec()),
+                _ => (key, tlv::TYPE_U16, (raw as u16).to_le_bytes().to_vec()),
+            },
             Kind::VersionDigits => {
                 let digits: String = value
                     .to_string()
@@ -285,7 +297,7 @@ impl ModelSpec {
                 let n: u16 = digits.parse().ok()?;
                 (key, tlv::TYPE_U16, n.to_le_bytes().to_vec())
             }
-            Kind::Hex | Kind::Bit => return None,
+            Kind::Hex | Kind::Bit | Kind::F32 | Kind::PrefixedText => return None,
         })
     }
 }
@@ -333,31 +345,71 @@ pub(crate) fn parse_key(key: &str) -> Option<u8> {
     u8::from_str_radix(key, 16).ok()
 }
 
+#[cfg(test)]
+pub(crate) fn decode_for_test(field: &FieldDef, item: &Item) -> Option<Value> {
+    decode_field(field, item)
+}
+
+fn auto_kind(field: &FieldDef, ty: Option<u8>) -> Kind {
+    match (ty, field.signed) {
+        (Some(tlv::TYPE_STR), _) => Kind::Text,
+        (Some(tlv::TYPE_U8), false) => Kind::U8,
+        (Some(tlv::TYPE_U8), true) => Kind::I8,
+        (Some(tlv::TYPE_U16), false) => Kind::U16,
+        (Some(tlv::TYPE_U16), true) => Kind::I16,
+        (Some(tlv::TYPE_U32), false) => Kind::U32,
+        (Some(tlv::TYPE_U32), true) => Kind::I32,
+        (Some(0x05), _) => Kind::F32,
+        (Some(_), _) => Kind::Hex,
+        (None, true) => Kind::I16,
+        (None, false) => Kind::U32,
+    }
+}
+
 fn decode_field(field: &FieldDef, item: &Item) -> Option<Value> {
     let data = match field.offset {
         Some(offset) => item.data.get(offset..)?,
         None => item.data.as_slice(),
     };
-    let width = match field.kind {
+    let kind = match field.kind {
+        Kind::Auto => auto_kind(field, item.ty),
+        k => k,
+    };
+    let natural = match kind {
         Kind::U8 | Kind::I8 | Kind::Bool | Kind::Bit => 1,
         Kind::U16 | Kind::I16 | Kind::VersionDigits => 2,
-        Kind::U32 => 4,
-        Kind::Text | Kind::Hex => data.len(),
+        Kind::U32 | Kind::I32 | Kind::F32 => 4,
+        Kind::Text | Kind::PrefixedText | Kind::Hex | Kind::Auto => data.len(),
+    };
+    let fixed = field.offset.is_some() || field.len.is_some();
+    let width = field.len.unwrap_or(natural);
+    let bytes = if fixed {
+        data.get(..width.min(data.len()))?
+    } else {
+        data
     };
     let unsigned = || -> Option<u64> {
-        let bytes = if field.offset.is_some() {
-            data.get(..width)?
-        } else {
-            &data[..data.len().min(8)]
-        };
+        let bytes = &bytes[..bytes.len().min(8)];
         if bytes.is_empty() {
             return None;
         }
         let mut buf = [0u8; 8];
         buf[..bytes.len()].copy_from_slice(bytes);
-        Some(u64::from_le_bytes(buf))
+        let raw = u64::from_le_bytes(buf);
+        Some(match field.mask {
+            Some(mask) if mask != 0 => (raw & mask) >> mask.trailing_zeros(),
+            _ => raw,
+        })
     };
-    let value = match field.kind {
+    let signed = || -> Option<i64> {
+        Some(match bytes.len() {
+            0 => return None,
+            1 => i64::from(bytes[0] as i8),
+            2 | 3 => i64::from(i16::from_le_bytes([bytes[0], bytes[1]])),
+            _ => i64::from(i32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])),
+        })
+    };
+    let value = match kind {
         Kind::U8 | Kind::U16 | Kind::U32 => {
             let raw = unsigned()?;
             if field.na == Some(raw) {
@@ -365,15 +417,20 @@ fn decode_field(field: &FieldDef, item: &Item) -> Option<Value> {
             }
             scaled(field, raw as i64)
         }
-        Kind::I8 => scaled(field, i64::from(*data.first()? as i8)),
-        Kind::I16 => scaled(
-            field,
-            i64::from(i16::from_le_bytes([*data.first()?, *data.get(1)?])),
-        ),
+        Kind::I8 | Kind::I16 | Kind::I32 => scaled(field, signed()?),
+        Kind::F32 => {
+            let b = bytes.get(..4)?;
+            let v = f64::from(f32::from_le_bytes([b[0], b[1], b[2], b[3]]));
+            Value::Float(v * field.scale.unwrap_or(1.0))
+        }
         Kind::Bool => Value::Bool(unsigned()? != 0),
         Kind::Bit => Value::Bool((data.first()? >> field.bit.unwrap_or(0)) & 1 == 1),
-        Kind::Text => Value::Text(item_text(data)),
-        Kind::Hex => Value::Bytes(data.to_vec()),
+        Kind::Text => Value::Text(item_text(bytes)),
+        Kind::PrefixedText => {
+            let len = usize::from(*data.first()?);
+            Value::Text(item_text(data.get(1..1 + len.min(data.len() - 1))?))
+        }
+        Kind::Hex => Value::Bytes(bytes.to_vec()),
         Kind::VersionDigits => {
             let raw = unsigned()?;
             let digits = raw.to_string();
@@ -385,6 +442,7 @@ fn decode_field(field: &FieldDef, item: &Item) -> Option<Value> {
                     .join("."),
             )
         }
+        Kind::Auto => return None,
     };
     Some(value)
 }

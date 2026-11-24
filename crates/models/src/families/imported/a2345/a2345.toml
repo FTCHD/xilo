@@ -1,0 +1,6 @@
+[model]
+code = "A2345"
+name = "Prime Charger 250W"
+family = "imp_a2345"
+status = "unverified"
+assets = "a2345"

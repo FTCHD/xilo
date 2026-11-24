@@ -324,3 +324,164 @@ path = "assets/flutter_assets/assets/lottie/1722_low_battery_lottie.zip"
 key = "shared/reconnect"
 apk = "base"
 path = "assets/flutter_assets/assets/lottie/1781_reconnect_lottie.zip"
+
+# Product images for imported models.
+[[asset]]
+key = "a1725/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1723_a1725_normal.webp"
+
+[[asset]]
+key = "a1726/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1726_normal.webp"
+
+[[asset]]
+key = "a1727/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1727_normal.webp"
+
+[[asset]]
+key = "a1729/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/a1729_normal.webp"
+
+[[asset]]
+key = "a1728/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1720/picl_A1728_normal.webp"
+
+[[asset]]
+key = "a1753/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1753_normal.webp"
+
+[[asset]]
+key = "a1754/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1754_normal.webp"
+
+[[asset]]
+key = "a1755/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1755_normal.webp"
+
+[[asset]]
+key = "a1763/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/picl_A1763_normal.png"
+
+[[asset]]
+key = "a1765/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource_core/assets/img/shared/picl_A1765_normal.png"
+
+[[asset]]
+key = "a1772/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1772_homepage_blue_off.webp"
+
+[[asset]]
+key = "a1780/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1780_homepage_blue_off.webp"
+
+[[asset]]
+key = "a1780p/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1780_homepage_plus_blue_off.webp"
+
+[[asset]]
+key = "a1782/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1782/picl_A1782_normal.webp"
+
+[[asset]]
+key = "a1783/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1783/picl_A1783_normal.webp"
+
+[[asset]]
+key = "a1785/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a1785/a1785_normal.webp"
+
+[[asset]]
+key = "a17c0/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a17C0/picl_A17C0_normal.webp"
+
+[[asset]]
+key = "a17c1/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a17C1/picl_A17C1_normal.webp"
+
+[[asset]]
+key = "a17c3/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a17C1/picl_A17C3_normal.webp"
+
+[[asset]]
+key = "a17x7/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a17C1/picl_A17X7_normal.webp"
+
+[[asset]]
+key = "a17x7us/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a17C1/picl_A17X7_normal.webp"
+
+[[asset]]
+key = "a17x8/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a17X8/picl_A17X8_normal.webp"
+
+[[asset]]
+key = "a17a4/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a17a3/A17A4_normal.webp"
+
+[[asset]]
+key = "a17a5/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a17a3/A17A5_normal.webp"
+
+[[asset]]
+key = "a17b1/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a17b1/a17b1_normal.png"
+
+[[asset]]
+key = "a17e1/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a17e1/picl_A17E1_normal.webp"
+
+[[asset]]
+key = "ae103/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a17e2/picl_AE103_normal.webp"
+
+[[asset]]
+key = "a2345/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a2345/picl_a2345_normal.webp"
+
+[[asset]]
+key = "a91b2/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a91b2/picl_a91b2_normal.webp"
+
+[[asset]]
+key = "ae100/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/ae100/picl_AE100_normal.png"
+
+[[asset]]
+key = "ax170/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/ax170/picl_AX170_normal.webp"
+
+[[asset]]
+key = "a7320/product"
+apk = "images"
+path = "assets/flutter_assets/packages/resource/assets/img/a7320/picl_A7320_normal.webp"

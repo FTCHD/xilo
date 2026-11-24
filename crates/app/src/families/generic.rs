@@ -85,6 +85,7 @@ pub fn render(
             ),
         );
 
+    let has_controls = !controls.is_empty();
     let control_cards = h_flex()
         .gap(px(12.))
         .flex_wrap()
@@ -165,8 +166,9 @@ pub fn render(
     v_flex()
         .gap(px(16.))
         .child(summary)
-        .child(section("Controls", cx))
-        .child(control_cards)
+        .when(has_controls, |el| {
+            el.child(section("Controls", cx)).child(control_cards)
+        })
         .child(section("All Values", cx))
         .child(values)
         .into_any_element()

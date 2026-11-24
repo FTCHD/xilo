@@ -1,0 +1,6 @@
+[model]
+code = "AX170"
+name = "SOLIX E10 Power Dock"
+family = "imp_ax170"
+status = "unverified"
+assets = "ax170"

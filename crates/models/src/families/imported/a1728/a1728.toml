@@ -1,0 +1,6 @@
+[model]
+code = "A1728"
+name = "SOLIX C300X DC"
+family = "imp_a1728"
+status = "unverified"
+assets = "a1728"

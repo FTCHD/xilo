@@ -1,0 +1,6 @@
+[model]
+code = "A17X8"
+name = "Smart Plug"
+family = "imp_a17x8"
+status = "unverified"
+assets = "a17x8"

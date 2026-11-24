@@ -1,0 +1,6 @@
+[model]
+code = "A17B1"
+name = "Home Power Panel"
+family = "imp_a17b1"
+status = "unverified"
+assets = "a17b1"

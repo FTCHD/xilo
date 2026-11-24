@@ -244,9 +244,9 @@ fn type_byte(kind: Kind) -> Option<u8> {
     match kind {
         Kind::U8 | Kind::I8 | Kind::Bool => Some(tlv::TYPE_U8),
         Kind::U16 | Kind::I16 | Kind::VersionDigits => Some(tlv::TYPE_U16),
-        Kind::U32 => Some(tlv::TYPE_U32),
+        Kind::U32 | Kind::I32 => Some(tlv::TYPE_U32),
         Kind::Text => Some(tlv::TYPE_STR),
-        Kind::Bit | Kind::Hex => None,
+        Kind::Bit | Kind::Hex | Kind::F32 | Kind::PrefixedText | Kind::Auto => None,
     }
 }
 

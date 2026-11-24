@@ -4,6 +4,8 @@ use std::io::{Cursor, Read};
 use std::path::{Path, PathBuf};
 use std::process::Command as Process;
 
+mod import;
+
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 use serde::Deserialize;
@@ -22,6 +24,11 @@ enum Command {
         #[command(subcommand)]
         action: AssetAction,
     },
+    /// Generate model definitions from a reference project.
+    Import {
+        #[command(subcommand)]
+        source: ImportSource,
+    },
     /// Fail if private files are tracked by git.
     CheckPublic,
     /// Build a macOS app bundle in dist/.
@@ -39,6 +46,18 @@ enum AssetAction {
         apks: PathBuf,
     },
     Check,
+}
+
+#[derive(Subcommand)]
+enum ImportSource {
+    /// Field and command maps from anker-solix-api.
+    SolixApi {
+        #[arg(
+            long,
+            default_value = ".research/anker-solix-api/repo/src/anker_solix_api"
+        )]
+        src: PathBuf,
+    },
 }
 
 #[derive(Deserialize)]
@@ -75,6 +94,9 @@ fn main() -> Result<()> {
         Command::Assets {
             action: AssetAction::Check,
         } => check(),
+        Command::Import {
+            source: ImportSource::SolixApi { src },
+        } => import::run(&root(), &root().join(src)),
         Command::CheckPublic => check_public(),
         Command::Bundle { release } => bundle(release),
     }

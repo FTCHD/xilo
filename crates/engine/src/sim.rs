@@ -171,7 +171,7 @@ impl SimDevice {
             return Vec::new();
         }
         match id.0 {
-            0x0040 => self.state_frames(0xc840),
+            0x0040 => self.state_reply(0xc840),
             0x0041 => {
                 let mut body = tlv::SESSION_HEADER.to_vec();
                 body[2] = 0x31;
@@ -214,7 +214,7 @@ impl SimDevice {
         }
         let ack = [0x00, 0xa1, 0x01, 0x31];
         let mut out = vec![self.session_frame(id.response().0 | 0x4000, &ack)];
-        out.extend(self.state_frames(0xc405));
+        out.extend(self.state_reply(0xc405));
         out
     }
 
@@ -283,8 +283,25 @@ impl SimDevice {
         .encode()
     }
 
+    /// State on every state message of the model, or on `preferred` if the model uses it.
+    fn state_reply(&self, preferred: u16) -> Vec<Vec<u8>> {
+        let msgs: Vec<u16> = self
+            .spec
+            .family
+            .state_msgs
+            .iter()
+            .filter_map(|m| u16::from_str_radix(m, 16).ok())
+            .collect();
+        if msgs.contains(&(preferred & !0xc000)) {
+            return self.state_frames(preferred);
+        }
+        msgs.iter()
+            .flat_map(|m| self.state_frames(0xc000 | m))
+            .collect()
+    }
+
     fn state_frames(&self, cmd: u16) -> Vec<Vec<u8>> {
-        let plain = self.state_plaintext();
+        let plain = self.state_plaintext(cmd & !0xc000);
         let body = self
             .cipher
             .as_ref()
@@ -302,11 +319,14 @@ impl SimDevice {
             .collect()
     }
 
-    fn state_plaintext(&self) -> Vec<u8> {
+    fn state_plaintext(&self, msg: u16) -> Vec<u8> {
         let mut out = vec![0xa1, 0x01, 0x31];
         let mut packed: HashMap<u8, Vec<u8>> = HashMap::new();
         let mut keys: Vec<(u8, u8, Vec<u8>)> = Vec::new();
-        for field in self.spec.fields.iter().filter(|f| f.msgs.is_empty()) {
+        let applies = |f: &&xilo_models::schema::FieldDef| {
+            f.msgs.is_empty() || f.msgs.iter().any(|m| u16::from_str_radix(m, 16) == Ok(msg))
+        };
+        for field in self.spec.fields.iter().filter(applies) {
             let Some(key) = u8::from_str_radix(&field.key, 16).ok() else {
                 continue;
             };

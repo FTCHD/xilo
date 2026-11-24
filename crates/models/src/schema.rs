@@ -93,9 +93,15 @@ pub enum Kind {
     I16,
     Bool,
     Bit,
+    I32,
+    F32,
     Text,
+    /// A string whose first byte is its length.
+    PrefixedText,
     Hex,
     VersionDigits,
+    /// Decoded from the type byte the device sends.
+    Auto,
 }
 
 #[derive(Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -125,7 +131,14 @@ pub struct FieldDef {
     pub options: IndexMap<String, String>,
     /// Byte offset inside the value, for keys that pack several values.
     pub offset: Option<usize>,
+    /// Byte count at the offset, when it differs from the kind's width.
+    pub len: Option<usize>,
     pub bit: Option<u8>,
+    /// Bits of the raw value to keep, shifted down to bit 0.
+    pub mask: Option<u64>,
+    /// Signed reading for `auto` fields.
+    #[serde(default)]
+    pub signed: bool,
     #[serde(default)]
     pub confidence: Confidence,
     #[serde(default)]

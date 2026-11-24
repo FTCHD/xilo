@@ -215,3 +215,75 @@ fn guesses_model_from_advert() {
     assert_eq!(codes(&c1000), vec!["A1761".to_string()]);
     assert!(codes(&[1, 2]).is_empty());
 }
+
+#[test]
+fn decodes_imported_kinds() {
+    use crate::schema::{FieldDef, Kind};
+    use xilo_proto::tlv::Item;
+    let field = |kind: Kind| FieldDef {
+        key: "a2".into(),
+        id: "x".into(),
+        label: "x".into(),
+        kind,
+        msgs: Vec::new(),
+        unit: None,
+        scale: None,
+        na: None,
+        options: Default::default(),
+        offset: None,
+        len: None,
+        bit: None,
+        mask: None,
+        signed: false,
+        confidence: Default::default(),
+        hidden: false,
+    };
+    let item = |ty: u8, data: &[u8]| Item {
+        key: 0xa2,
+        ty: Some(ty),
+        data: data.to_vec(),
+    };
+    let decode = |f: &FieldDef, i: &Item| crate::spec::decode_for_test(f, i);
+
+    let mut signed = field(Kind::Auto);
+    signed.signed = true;
+    assert_eq!(
+        decode(&signed, &item(0x02, &[0xfe, 0xff])),
+        Some(Value::Int(-2))
+    );
+    assert_eq!(
+        decode(&field(Kind::Auto), &item(0x02, &[0x10, 0x01])),
+        Some(Value::Int(272))
+    );
+    assert_eq!(
+        decode(&field(Kind::Auto), &item(0x00, b"ABC")),
+        Some(Value::Text("ABC".into()))
+    );
+    assert_eq!(
+        decode(&field(Kind::F32), &item(0x05, &1.5f32.to_le_bytes())),
+        Some(Value::Float(1.5))
+    );
+
+    let mut packed = field(Kind::PrefixedText);
+    packed.offset = Some(1);
+    assert_eq!(
+        decode(&packed, &item(0x06, b"\x00\x03ABCxyz")),
+        Some(Value::Text("ABC".into()))
+    );
+
+    let mut masked = field(Kind::U8);
+    masked.offset = Some(2);
+    masked.mask = Some(0b0110);
+    assert_eq!(
+        decode(&masked, &item(0x04, &[0, 0, 0b0100])),
+        Some(Value::Int(2))
+    );
+
+    let mut first = field(Kind::VersionDigits);
+    first.offset = Some(0);
+    first.len = Some(1);
+    assert_eq!(
+        decode(&first, &item(0x03, &[123, 9, 9, 9])),
+        Some(Value::Text("1.2.3".into()))
+    );
+}
