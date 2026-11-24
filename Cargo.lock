@@ -8801,6 +8801,14 @@ version = "0.1.0"
 [[package]]
 name = "xilo-models"
 version = "0.1.0"
+dependencies = [
+ "hex",
+ "indexmap",
+ "serde",
+ "thiserror 2.0.21",
+ "toml 1.2.2+spec-1.1.0",
+ "xilo-proto",
+]
 
 [[package]]
 name = "xilo-proto"

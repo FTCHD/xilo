@@ -1,0 +1,7 @@
+[model]
+code = "A1761"
+name = "SOLIX C1000"
+family = "c1000"
+status = "unverified"
+serial_prefixes = ["APC9F"]
+assets = "a1761"

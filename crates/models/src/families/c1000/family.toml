@@ -1,0 +1,737 @@
+[family]
+id = "c1000"
+protocol = "zx"
+gatt = "g1"
+state_msgs = ["0840", "0405", "0402"]
+status_request = "status"
+keepalive = { command = "live_reporting", every_s = 60 }
+poll = { command = "status", every_s = 60 }
+dashboard = "c1000"
+
+[[field]]
+key = "a2"
+id = "ac_timer_remaining"
+label = "AC timer remaining"
+kind = "u32"
+unit = "s"
+
+[[field]]
+key = "a3"
+id = "dc_timer_remaining"
+label = "Car timer remaining"
+kind = "u32"
+unit = "s"
+
+[[field]]
+key = "a4"
+id = "remaining_time"
+label = "Remaining time"
+kind = "u16"
+scale = 0.1
+unit = "h"
+na = 65535
+
+[[field]]
+key = "a5"
+id = "ac_input_power"
+label = "AC input"
+kind = "u16"
+unit = "W"
+
+[[field]]
+key = "a6"
+id = "ac_output_power"
+label = "AC output"
+kind = "u16"
+unit = "W"
+
+[[field]]
+key = "a7"
+id = "usb_c1_power"
+label = "USB-C1"
+kind = "u16"
+unit = "W"
+
+[[field]]
+key = "a8"
+id = "usb_c2_power"
+label = "USB-C2"
+kind = "u16"
+unit = "W"
+
+[[field]]
+key = "a9"
+id = "usb_a1_power"
+label = "USB-A1"
+kind = "u16"
+unit = "W"
+
+[[field]]
+key = "aa"
+id = "usb_a2_power"
+label = "USB-A2"
+kind = "u16"
+unit = "W"
+
+[[field]]
+key = "ae"
+id = "solar_input_power"
+label = "Solar input"
+kind = "u16"
+unit = "W"
+
+[[field]]
+key = "af"
+id = "total_input_power"
+label = "Total input"
+kind = "u16"
+unit = "W"
+confidence = "likely"
+
+[[field]]
+key = "b0"
+id = "total_output_power"
+label = "Total output"
+kind = "u16"
+unit = "W"
+
+[[field]]
+key = "b3"
+id = "firmware"
+label = "Firmware"
+kind = "version_digits"
+
+[[field]]
+key = "b9"
+id = "expansion_version"
+label = "Expansion firmware"
+kind = "version_digits"
+hidden = true
+
+[[field]]
+key = "ba"
+id = "controller_version"
+label = "Controller firmware"
+kind = "version_digits"
+
+[[field]]
+key = "bb"
+id = "ac_output_active"
+label = "AC output active"
+kind = "u16"
+enum = { "0" = "Off", "1" = "On" }
+
+[[field]]
+key = "bc"
+id = "input_source"
+label = "Input source"
+kind = "u8"
+enum = { "0" = "None", "1" = "Solar / DC", "2" = "AC", "3" = "AC and solar" }
+
+[[field]]
+key = "bd"
+id = "temperature"
+label = "Temperature"
+kind = "i8"
+unit = "°C"
+
+[[field]]
+key = "be"
+id = "expansion_temperature"
+label = "Expansion temperature"
+kind = "i8"
+unit = "°C"
+
+[[field]]
+key = "bf"
+id = "battery_state"
+label = "Battery"
+kind = "u8"
+enum = { "0" = "Idle", "1" = "Discharging", "2" = "Charging" }
+confidence = "likely"
+
+[[field]]
+key = "c1"
+id = "battery_soc"
+label = "Battery level"
+kind = "u8"
+unit = "%"
+
+[[field]]
+key = "c2"
+id = "expansion_soc"
+label = "Expansion battery level"
+kind = "u8"
+unit = "%"
+
+[[field]]
+key = "c3"
+id = "battery_health"
+label = "Battery health"
+kind = "u8"
+unit = "%"
+
+[[field]]
+key = "c4"
+id = "expansion_health"
+label = "Expansion battery health"
+kind = "u8"
+unit = "%"
+
+[[field]]
+key = "c5"
+id = "expansion_count"
+label = "Expansion batteries"
+kind = "u8"
+
+[[field]]
+key = "c6"
+id = "usb_c1_state"
+label = "USB-C1 state"
+kind = "u8"
+enum = { "0" = "Off", "1" = "Output" }
+
+[[field]]
+key = "c7"
+id = "usb_c2_state"
+label = "USB-C2 state"
+kind = "u8"
+enum = { "0" = "Off", "1" = "Output" }
+
+[[field]]
+key = "c8"
+id = "usb_a1_state"
+label = "USB-A1 state"
+kind = "u8"
+enum = { "0" = "Off", "1" = "Output" }
+
+[[field]]
+key = "c9"
+id = "usb_a2_state"
+label = "USB-A2 state"
+kind = "u8"
+enum = { "0" = "Off", "1" = "Output" }
+
+[[field]]
+key = "cc"
+id = "car_state"
+label = "Car charger state"
+kind = "u8"
+enum = { "0" = "Off", "1" = "Output" }
+
+[[field]]
+key = "d0"
+id = "serial_number"
+label = "Serial number"
+kind = "text"
+
+[[field]]
+key = "d1"
+id = "ac_charge_power"
+label = "AC recharging power"
+kind = "u16"
+unit = "W"
+
+[[field]]
+key = "d2"
+id = "device_timeout"
+label = "Device timeout"
+kind = "u16"
+unit = "min"
+
+[[field]]
+key = "d3"
+id = "screen_timeout"
+label = "Screen timeout"
+kind = "u16"
+unit = "s"
+
+[[field]]
+key = "d7"
+id = "ac_switch"
+label = "AC output switch"
+kind = "bool"
+
+[[field]]
+key = "d8"
+id = "dc_switch"
+label = "Car charger switch"
+kind = "bool"
+
+[[field]]
+key = "d9"
+id = "screen_brightness"
+label = "Screen brightness"
+kind = "u8"
+enum = { "0" = "Off", "1" = "Low", "2" = "Mid", "3" = "High" }
+
+[[field]]
+key = "da"
+id = "ac_frequency"
+label = "AC frequency"
+kind = "u8"
+unit = "Hz"
+
+[[field]]
+key = "dc"
+id = "light_mode"
+label = "Light"
+kind = "u8"
+enum = { "0" = "Off", "1" = "Low", "2" = "Mid", "3" = "High", "4" = "SOS" }
+
+[[field]]
+key = "dd"
+id = "temperature_unit"
+label = "Temperature unit"
+kind = "u8"
+enum = { "0" = "°C", "1" = "°F" }
+
+[[field]]
+key = "de"
+id = "screen_on"
+label = "Screen"
+kind = "bool"
+
+[[field]]
+key = "e5"
+id = "ultrafast"
+label = "UltraFast charging"
+kind = "bool"
+
+[[field]]
+key = "f8"
+id = "car_saving_mode"
+label = "Car charger power saving"
+kind = "u8"
+offset = 0
+enum = { "0" = "Not supported", "1" = "Off", "2" = "On" }
+
+[[field]]
+key = "f8"
+id = "ac_smart_mode"
+label = "Smart AC output"
+kind = "u8"
+offset = 1
+enum = { "0" = "Not supported", "1" = "Off", "2" = "On" }
+
+[[field]]
+key = "f9"
+id = "voltage_type"
+label = "Voltage type"
+kind = "u8"
+hidden = true
+
+[[field]]
+key = "a2"
+id = "ac_switch"
+label = "AC output switch"
+kind = "bool"
+msgs = ["0401"]
+confidence = "likely"
+
+[[field]]
+key = "a3"
+id = "dc_switch"
+label = "Car charger switch"
+kind = "bool"
+msgs = ["0401"]
+confidence = "likely"
+
+[[field]]
+key = "a5"
+id = "light_mode"
+label = "Light"
+kind = "u8"
+msgs = ["0401"]
+confidence = "likely"
+
+[[field]]
+key = "a6"
+id = "screen_on"
+label = "Screen"
+kind = "bool"
+msgs = ["0401"]
+confidence = "likely"
+
+[[field]]
+key = "e5"
+id = "ultrafast"
+label = "UltraFast charging"
+kind = "bool"
+msgs = ["0401"]
+confidence = "likely"
+
+[[field]]
+key = "a2"
+id = "ac_timer_remaining"
+label = "AC timer remaining"
+kind = "u32"
+unit = "s"
+msgs = ["0404", "0841"]
+
+[[field]]
+key = "a3"
+id = "dc_timer_remaining"
+label = "Car timer remaining"
+kind = "u32"
+unit = "s"
+msgs = ["0404", "0841"]
+
+[[field]]
+key = "a2"
+id = "error_code"
+label = "Error code"
+kind = "u8"
+msgs = ["0400"]
+[[field]]
+key = "ab"
+id = "x_ab"
+label = "Unknown ab"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "ac"
+id = "x_ac"
+label = "Unknown ac"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "ad"
+id = "x_ad"
+label = "Unknown ad"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "b1"
+id = "x_b1"
+label = "Unknown b1"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "b2"
+id = "x_b2"
+label = "Unknown b2"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "b4"
+id = "x_b4"
+label = "Unknown b4"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "b5"
+id = "x_b5"
+label = "Unknown b5"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "b6"
+id = "x_b6"
+label = "Unknown b6"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "b7"
+id = "x_b7"
+label = "Unknown b7"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "b8"
+id = "x_b8"
+label = "Unknown b8"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "c0"
+id = "x_c0"
+label = "Unknown c0"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "ca"
+id = "x_ca"
+label = "Unknown ca"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "cb"
+id = "x_cb"
+label = "Unknown cb"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "cd"
+id = "x_cd"
+label = "Unknown cd"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "ce"
+id = "x_ce"
+label = "Unknown ce"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "cf"
+id = "x_cf"
+label = "Unknown cf"
+kind = "hex"
+confidence = "unknown"
+hidden = true
+
+[[field]]
+key = "fd"
+id = "expansion_type"
+label = "Expansion type"
+kind = "text"
+hidden = true
+
+[[command]]
+id = "status"
+msg = "0040"
+label = "Read status"
+input = "none"
+
+[[command]]
+id = "live_reporting"
+msg = "0057"
+label = "Live reporting"
+input = "none"
+fixed = [{ key = "a2", kind = "u8", value = 1 }, { key = "a3", kind = "u32", value = 300 }]
+
+[[command]]
+id = "timers"
+msg = "0041"
+label = "Read timers"
+input = "none"
+
+[[command]]
+id = "ac_switch"
+msg = "004a"
+label = "AC Output"
+group = "control"
+input = "switch"
+param = { kind = "u8" }
+state = "ac_switch"
+
+[[command]]
+id = "dc_switch"
+msg = "004b"
+label = "Car Charger Output"
+group = "control"
+input = "switch"
+param = { kind = "u8" }
+state = "dc_switch"
+
+[[command]]
+id = "ac_timer"
+msg = "0042"
+label = "AC Output Timer"
+group = "control"
+input = "number"
+param = { kind = "u32" }
+min = 0
+max = 86400
+step = 300
+unit = "s"
+state = "ac_timer_remaining"
+
+[[command]]
+id = "dc_timer"
+msg = "0043"
+label = "Car Charger Timer"
+group = "control"
+input = "number"
+param = { kind = "u32" }
+min = 0
+max = 86400
+step = 300
+unit = "s"
+state = "dc_timer_remaining"
+
+[[command]]
+id = "light_mode"
+msg = "004f"
+label = "Light"
+group = "control"
+input = "choice"
+param = { kind = "u8" }
+options = [
+  { value = 0, label = "Off" },
+  { value = 1, label = "Low" },
+  { value = 2, label = "Mid" },
+  { value = 3, label = "High" },
+]
+state = "light_mode"
+
+[[command]]
+id = "screen_switch"
+msg = "0052"
+label = "Screen"
+group = "control"
+input = "switch"
+param = { kind = "u8" }
+state = "screen_on"
+
+[[command]]
+id = "ultrafast"
+msg = "005e"
+label = "UltraFast Charging"
+group = "function"
+input = "switch"
+param = { kind = "u8" }
+state = "ultrafast"
+
+[[command]]
+id = "ac_charge_power"
+msg = "0044"
+label = "AC Recharging Power"
+group = "function"
+input = "number"
+param = { kind = "u16" }
+min = 100
+max = 1000
+step = 100
+unit = "W"
+state = "ac_charge_power"
+
+[[command]]
+id = "device_timeout"
+msg = "0045"
+label = "Device Timeout"
+group = "function"
+input = "choice"
+param = { kind = "u16" }
+options = [
+  { value = 30, label = "30mins" },
+  { value = 60, label = "1Hr" },
+  { value = 120, label = "2Hr" },
+  { value = 240, label = "4Hr" },
+  { value = 360, label = "6Hr" },
+  { value = 720, label = "12Hr" },
+  { value = 1440, label = "24Hr" },
+  { value = 0, label = "Never" },
+]
+state = "device_timeout"
+tip = "If the device is not being charged or discharged, it will enter sleep mode and shut down after a set time."
+
+[[command]]
+id = "car_saving_mode"
+msg = "0076"
+label = "Car Charger Output Power Saving Mode"
+group = "function"
+input = "switch"
+param = { kind = "u8" }
+state = "car_saving_mode"
+on_value = 0
+off_value = 1
+on_state = 2
+visible_if = [{ field = "car_saving_mode", ne = 0 }]
+tip = "When enabled, the car charger output turns off automatically when its power stays below 3W."
+
+[[command]]
+id = "ac_smart_mode"
+msg = "0077"
+label = "Smart AC Output Mode"
+group = "function"
+input = "switch"
+param = { kind = "u8" }
+state = "ac_smart_mode"
+on_value = 0
+off_value = 1
+on_state = 2
+visible_if = [{ field = "ac_smart_mode", ne = 0 }]
+tip = "When enabled, the AC output turns off automatically when nothing is drawing power from it."
+
+[[command]]
+id = "sos"
+msg = "004f"
+label = "Light SOS Mode"
+group = "function"
+input = "switch"
+param = { kind = "u8" }
+state = "light_mode"
+on_value = 4
+off_value = 0
+on_state = 4
+
+[[command]]
+id = "screen_brightness"
+msg = "004c"
+label = "Screen Brightness"
+group = "function"
+input = "choice"
+param = { kind = "u8" }
+options = [
+  { value = 1, label = "Low" },
+  { value = 2, label = "Mid" },
+  { value = 3, label = "High" },
+]
+state = "screen_brightness"
+
+[[command]]
+id = "screen_timeout"
+msg = "0046"
+label = "Screen Timeout"
+group = "function"
+input = "choice"
+param = { kind = "u16" }
+options = [
+  { value = 20, label = "20s" },
+  { value = 30, label = "30s" },
+  { value = 60, label = "1min" },
+  { value = 300, label = "5mins" },
+  { value = 1800, label = "30mins" },
+]
+state = "screen_timeout"
+
+[[command]]
+id = "temperature_unit"
+msg = "0050"
+label = "Temperature"
+group = "general"
+input = "choice"
+param = { kind = "u8" }
+options = [{ value = 0, label = "℃" }, { value = 1, label = "℉" }]
+state = "temperature_unit"
+
+[[command]]
+id = "factory_reset"
+msg = "0051"
+label = "Restore Default Settings"
+group = "general"
+input = "none"
+danger = "destructive"
+danger_text = "The device will be restored to factory settings."

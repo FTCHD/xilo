@@ -1,0 +1,7 @@
+[model]
+code = "A1722"
+name = "SOLIX C300"
+family = "c300"
+status = "unverified"
+serial_prefixes = ["AZVSB"]
+assets = "a1722"

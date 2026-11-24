@@ -1,0 +1,7 @@
+[model]
+code = "A1723"
+name = "SOLIX C300X"
+family = "c300"
+status = "verified"
+serial_prefixes = ["ALFSB"]
+assets = "a1723"
