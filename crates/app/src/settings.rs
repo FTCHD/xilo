@@ -90,6 +90,11 @@ pub fn render(
                 )
                 .chain(general)
                 .chain([
+                    info_row("Model", model.name.clone(), true, cx)
+                        .id("model")
+                        .on_click(cx.listener(|view, _, window, cx| model_picker(view, window, cx)))
+                        .into_any_element(),
+                    info_row("Model Number", model.code.clone(), false, cx).into_any_element(),
                     info_row("SN", serial, false, cx).into_any_element(),
                     info_row("Firmware", firmware, false, cx).into_any_element(),
                     info_row("User Manual", String::new(), true, cx)
@@ -104,15 +109,6 @@ pub fn render(
         .child(
             card(cx).p(px(4.)).child(divided(
                 [
-                    info_row(
-                        "Model",
-                        format!("{} ({})", model.name, model.code),
-                        true,
-                        cx,
-                    )
-                    .id("model")
-                    .on_click(cx.listener(|view, _, window, cx| model_picker(view, window, cx)))
-                    .into_any_element(),
                     row(
                         "Release to phone",
                         Some(

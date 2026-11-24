@@ -14,7 +14,7 @@ use crate::device::DeviceModel;
 use crate::families;
 use crate::families::view_model::{duration_text, temperature_text};
 use crate::state::{AppState, Route, Tab};
-use crate::widgets::{battery_color, big_value, caption, level_bar};
+use crate::widgets::{battery_color, caption};
 use crate::{automations, history_view, inspector, settings};
 
 pub struct DeviceView {
@@ -160,11 +160,6 @@ impl DeviceView {
         let error = matches!(snap.link, LinkState::Disconnected)
             .then(|| snap.last_error.clone())
             .flatten();
-        let model = snap
-            .model
-            .as_ref()
-            .map(|m| format!("{} · {}", m.name, m.code))
-            .unwrap_or_else(|| "Detecting model".into());
         let ready = snap.is_ready();
         let soc = ready.then(|| snap.int("battery_soc")).flatten();
         let fahrenheit = snap.int("temperature_unit") == Some(1);
@@ -187,6 +182,12 @@ impl DeviceView {
                 }
             });
         let details: Vec<String> = temperature.into_iter().chain(remaining).collect();
+        let status = match snap.link {
+            LinkState::Ready if snap.model.is_none() => Some("Detecting model".to_string()),
+            LinkState::Ready if details.is_empty() => None,
+            LinkState::Ready => Some(details.join(" · ")),
+            other => Some(other.label().to_string()),
+        };
         let disconnected = matches!(snap.link, LinkState::Disconnected | LinkState::Released);
         let tabs = [
             (Tab::Dashboard, "Dashboard"),
@@ -248,29 +249,31 @@ impl DeviceView {
                                     .font_weight(FontWeight::BOLD)
                                     .child(device.name()),
                             )
-                            .child(caption(model, cx))
+                            .map(|el| match soc {
+                                Some(soc) => el.child(
+                                    h_flex()
+                                        .gap(px(6.))
+                                        .items_center()
+                                        .child(
+                                            div()
+                                                .text_size(px(15.))
+                                                .font_weight(FontWeight::BOLD)
+                                                .text_color(battery_color(soc, cx))
+                                                .child(format!("{soc}%")),
+                                        )
+                                        .when(!details.is_empty(), |el| {
+                                            el.child(caption(
+                                                format!("· {}", details.join(" · ")),
+                                                cx,
+                                            ))
+                                        }),
+                                ),
+                                None => el.when_some(status, |el, s| el.child(caption(s, cx))),
+                            })
                             .when_some(error, |el, e| {
                                 el.child(caption(e, cx).text_color(cx.theme().danger))
                             }),
                     )
-                    .when_some(soc, |el, soc| {
-                        el.child(
-                            v_flex()
-                                .w(px(160.))
-                                .gap(px(6.))
-                                .items_end()
-                                .child(big_value(Some(soc), "%", 26., None, cx))
-                                .child(level_bar(
-                                    soc as f32 / 100.0,
-                                    battery_color(soc, cx),
-                                    px(6.),
-                                    cx,
-                                ))
-                                .when(!details.is_empty(), |el| {
-                                    el.child(caption(details.join(" · "), cx).text_size(px(12.)))
-                                }),
-                        )
-                    })
                     .when(disconnected, |el| {
                         el.child(
                             Button::new("reconnect")

@@ -152,27 +152,6 @@ pub fn big_value(value: Option<i64>, unit: &str, size: f32, color: Option<Hsla>,
     }
 }
 
-/// A thin level bar.
-pub fn level_bar(level: f32, color: Hsla, height: Pixels, cx: &App) -> Div {
-    let level = level.clamp(0., 1.);
-    div()
-        .w_full()
-        .h(height)
-        .rounded_full()
-        .bg(cx.theme().muted)
-        .child(
-            div()
-                .h_full()
-                .w(relative(level))
-                .rounded_full()
-                .bg(linear_gradient(
-                    90.,
-                    linear_color_stop(color.alpha(0.7), 0.),
-                    linear_color_stop(color, 1.),
-                )),
-        )
-}
-
 /// Colour for a battery level: red when low, amber when getting low.
 pub fn battery_color(soc: i64, cx: &App) -> Hsla {
     match soc {
