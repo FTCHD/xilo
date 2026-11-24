@@ -9,7 +9,7 @@ use xilo_engine::Found;
 
 use crate::runtime::Runtime;
 use crate::state::AppState;
-use crate::widgets::{asset, caption, card, icon_badge, live_card, pill};
+use crate::widgets::{asset, caption, card, icon_badge, live_card, pill, section};
 
 const SCAN_WINDOW: Duration = Duration::from_secs(6);
 const SOLIX_COMPANY: u16 = 0xffff;
@@ -164,14 +164,7 @@ impl Render for AddDevice {
                                     .font_weight(FontWeight::BOLD)
                                     .child("Add a Device"),
                             )
-                            .child(caption(
-                                        if self.scanning {
-                                            "Looking for SOLIX devices nearby..."
-                                        } else {
-                                            "Devices found nearby"
-                                        },
-                                cx,
-                            )),
+                            .child(section("Nearby", cx)),
                     )
                     .child(
                         Button::new("rescan")
