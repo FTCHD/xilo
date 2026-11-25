@@ -137,7 +137,7 @@ jobs:
               --repo "$GITHUB_REPOSITORY" \
               --draft \
               --target "$GITHUB_SHA" \
-              --title "Xilo ${TAG#v}" \
+              --title "$TAG" \
               --notes-file .github/release-notes.md \
               "${flags[@]}" "$@"
           }
