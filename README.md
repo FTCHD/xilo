@@ -11,15 +11,25 @@ Xilo is not made by or affiliated with Anker.
 - **Dashboards** for the C300X and C1000 that follow the Anker app: battery, temperature, remaining time, port status, AC and car outputs with live graphs, light and screen controls, and error messages.
 - **Every setting** from the Anker app, with option lists and limits checked before anything is sent. Risky changes (AC frequency, factory reset) ask for confirmation, and each one is written to an audit log.
 - **38 models** in total. Models without their own dashboard get a generic one with all decoded values.
-- **Schedules**: turn outputs, the light or the screen on or off at set times and on chosen days.
-- **Battery reserve**: when the battery drops to a set level, Xilo turns off the outputs you choose, so some charge stays for later.
-- **USB wake**: the C300X turns its USB ports off after about two hours of low load. Xilo keeps them on by switching the car output on briefly before that happens.
-- **Alerts**: errors, low battery, a chosen charge level (80%, 90% or 100%), AC power lost and back, and long disconnects. They show in the app and as system notifications.
-- Automations and alerts run while Xilo is open or in the menu bar, and the device is in Bluetooth range.
+- **Automations**: schedules, a battery reserve, USB wake and alerts. See [Automations](#automations).
 - **History**: battery and power every 10 seconds, stored on this Mac. It includes charts, energy per day and CSV export.
 - **Menu bar**: battery level in the menu bar, quick AC and car output toggles, and "release to phone" so the Anker app can connect.
 - **Inspector** (developer mode): raw and decrypted frames, a per-message diff, redacted capture files and a guarded raw command console.
 - **`xilo`**: the same engine on the command line.
+
+## Automations
+
+Xilo can look after your devices while it runs, in its window or in the menu bar. Each device has its own Automations tab.
+
+![The Automations tab of a C300X: three schedules, a battery reserve at 20% and USB wake](.demo/sections/automations.jpg)
+
+- **Schedules**: turn the AC output, the car output or the screen on or off, or set the light, at a set time on the days you choose. You can pause a schedule without deleting it.
+- **Battery reserve**: when the battery drops to 10, 20, 30 or 50% while it discharges, Xilo turns off the outputs you choose. If you turn an output on again, Xilo leaves it on until the battery charges above the reserve. A schedule doesn't turn an output on while the battery is at the reserve.
+- **USB wake**: the C300X turns its USB ports off after about two hours of low load. Xilo switches the car output on briefly before that happens, which keeps the ports on. If the car output was off, Xilo turns it off again 3 seconds later.
+- **Alerts**: errors, low battery, a chosen charge level (80, 90 or 100%), AC power lost and back, and devices out of reach for 10 minutes. They show in the app and as system notifications. You choose them in Preferences.
+- **Activity**: every automation and alert from the last 7 days, at the bottom of the tab.
+
+Automations run while Xilo is open or in the menu bar, and the device is in Bluetooth range. If a device is out of range when a schedule is due, Xilo waits up to 10 minutes, then notes the schedule as missed.
 
 ## Supported devices
 
@@ -29,8 +39,6 @@ Xilo is not made by or affiliated with Anker.
 | Solarbanks      | E1600, 2 Pro, 2 AC, 2 Plus, 3 Pro, 4 Pro                                                                                                                                                                                    |
 | Home            | Home Power Panel                                                                                                                                                                                                            |
 | Prime and other | Prime Charger 160W and 250W, Prime Power Bank 20K, MagGo 3-in-1, Prime Charging Station 240W, EverFrost 2 40L and 58L                                                                                                       |
-
-Most of these maps come from [anker-solix-api](https://github.com/thomluther/anker-solix-api) and [SolixBLE](https://github.com/flip-dots/SolixBLE). Their published test payloads decode to the same values in Xilo (`crates/models/tests/solixble_values.rs`).
 
 Protocols: ZX with ECDH and AES-CBC, ZX Gen 2, Prime with AES-GCM, the older AES key exchange, and the 2540 GATT service.
 
