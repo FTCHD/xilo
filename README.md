@@ -25,7 +25,7 @@ Xilo can look after your devices while it runs, in its window or in the menu bar
 
 - **Schedules**: turn the AC output, the car output or the screen on or off, or set the light, at a set time on the days you choose. You can pause a schedule without deleting it.
 - **Battery reserve**: when the battery drops to 10, 20, 30 or 50% while it discharges, Xilo turns off the outputs you choose. If you turn an output on again, Xilo leaves it on until the battery charges above the reserve. A schedule doesn't turn an output on while the battery is at the reserve.
-- **USB wake**: the C300X turns its USB ports off after about two hours of low load. Xilo switches the car output on briefly before that happens, which keeps the ports on. If the car output was off, Xilo turns it off again 3 seconds later.
+- **USB wake**: some devices, like the C300X, turn their USB ports off after about two hours of low load. Xilo switches the car output on briefly before that happens, which keeps the ports on. If the car output was off, Xilo turns it off again 3 seconds later.
 - **Alerts**: errors, low battery, a chosen charge level (80, 90 or 100%), AC power lost and back, and devices out of reach for 10 minutes. They show in the app and as system notifications. You choose them in Preferences.
 - **Activity**: every automation and alert from the last 7 days, at the bottom of the tab.
 
@@ -44,7 +44,7 @@ Protocols: ZX with ECDH and AES-CBC, ZX Gen 2, Prime with AES-GCM, the older AES
 
 ## Command line
 
-In the downloads, `xilo` is in `Xilo.app/Contents/Helpers/` on macOS and in `bin/` on Windows and Linux.
+You can find `xilo` in `Xilo.app/Contents/Helpers/` on macOS and in `bin/` on Windows and Linux.
 
 ```sh
 xilo scan
