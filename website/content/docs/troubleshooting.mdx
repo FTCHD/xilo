@@ -1,0 +1,32 @@
+---
+title: Troubleshooting
+description: What to do when Xilo doesn't find your Anker SOLIX device, stays on "Connecting", or the system blocks the app.
+---
+
+## Xilo doesn't find my device
+
+- **Close the Anker app.** A device accepts one Bluetooth connection at a time. Close the Anker app on your phone, or turn off Bluetooth on the phone.
+- **Move closer.** Keep the device within a few meters of your computer.
+- **Wake the device.** Some devices stop sending Bluetooth signals after a while. Press the power button or the IoT button. A C1000, for example, may only accept a connection after you press its IoT button.
+- **Allow Bluetooth.** On macOS, check **System Settings → Privacy & Security → Bluetooth**, and make sure Xilo is on.
+- **On Linux,** make sure the Bluetooth service is running: `systemctl status bluetooth`.
+
+## Xilo stays on "Connecting"
+
+Another app is probably connected to the device. Close the Anker app on your phone, then click **Connect** in Xilo.
+
+## The device shows the wrong model
+
+Choose the right model in **Settings → Model**. Xilo remembers your choice.
+
+## macOS says Xilo can't be opened
+
+The download isn't signed by Apple. Go to **System Settings → Privacy & Security** and click **Open Anyway**.
+
+## Windows protected your PC
+
+The download isn't signed by Microsoft. Click **More info**, then **Run anyway**.
+
+## Still stuck?
+
+[Open an issue](https://github.com/ftchd/xilo/issues) with your model and your system. The log file helps: see [Privacy](/docs/privacy) for where it is.

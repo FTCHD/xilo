@@ -1,0 +1,154 @@
+---
+title: "Anker SOLIX C2000X Gen 2 (A1785)"
+description: "Monitor and control the Anker SOLIX C2000X Gen 2 (A1785) from macOS, Windows or Linux over Bluetooth, without an account: battery, power, settings and automations."
+---
+
+{/* Made by `cargo xtask site` from the model definitions. Changes here are overwritten. */}
+
+<DeviceImage src="/devices/c2000x-gen-2.webp" alt="Anker SOLIX C2000X Gen 2" />
+
+Xilo connects to the Anker SOLIX C2000X Gen 2 (A1785) over Bluetooth, with no account, cloud or internet. Xilo shows the C2000X Gen 2 on its general dashboard: the power in and out, the controls, and every value the device reports.
+
+## What Xilo shows
+
+<Columns>
+
+- OTA progress
+- Device SN
+- Model variant
+- Working status
+- Error code
+- Package count
+- Package use count
+- AC input limit max
+- Rssi
+- Mtu size
+- Silent charge power (W)
+- Weak light lock
+- AC output timeout (s)
+- AC input limit (W)
+- AC frequency
+- AC output mode
+- DC output timeout (s)
+- DC 12V output mode
+- Device timeout (min)
+- Display timeout (s)
+- Display mode
+- Temperature unit fahrenheit
+- AC fast charge switch
+- Display switch
+- Port memory switch
+- Max SOC (%)
+- Min SOC (%)
+- Display language
+- Temperature (°C)
+- Battery status
+- Battery SOC (%)
+- Output power total (W)
+- AC input power total (W)
+- DC input power total (W)
+- Remaining time (h)
+- Main battery SOC (%)
+- AC output power switch (W)
+- AC output power (W)
+- AC input plug status
+- AC input power (W)
+- DC input plug status
+- DC input power (W)
+- USB-C 1 status
+- USB-C 1 power (W)
+- USB-C 2 status
+- USB-C 2 power (W)
+- USB-C 3 status
+- USB-C 3 power (W)
+- USB-A 1 status
+- USB-A 1 power (W)
+- DC output power switch (W)
+- DC output power total (W)
+- Device 1 PN
+- Device 1 SN
+- Device 1 mode
+- Device 1 output power (W)
+- Theme download state
+- Theme ID
+- Theme size
+- Clock mode
+- Clock display start (min)
+- Clock display end (min)
+- Clock display weekdays
+- Display night switch
+- Display brightness level
+- Display night brightness level
+- Display night start (min)
+- Display night end (min)
+- Port memory switch error
+- Transaction ID
+- Solar to battery energy
+- Grid to battery energy
+- Battery to load energy
+- Tou seconds type 1
+- Tou seconds type 2
+- Tou seconds type 3
+- HW version
+- SW version
+
+</Columns>
+
+## What you can change
+
+### Controls
+
+| | Values |
+| --- | --- |
+| AC Output | On or off |
+| UltraFast Charging | On or off |
+| Car Charger Output | On or off |
+| Screen | On or off |
+
+### Settings
+
+| | Values |
+| --- | --- |
+| Backup Charge Storm Guard | On or off |
+| Backup Charge Plan | On or off |
+| Usage Mode | Standard, Time of use |
+| Backup SOC | 5 to 100 % |
+| Clock Mode | 12h, 24h |
+| Screen Brightness | 20, 5 |
+| Night Brightness | 20, 5 |
+| AC Output Timer | 0 to 86400 s, in steps of 300 s |
+| AC Recharging Power | 200 to 1800 W, in steps of 100 W |
+| AC Output Frequency | 50, 60 |
+| AC Output Mode | Normal, Smart |
+| Battery Only | On or off |
+| Car Charger Timer | 0 to 86400 s, in steps of 300 s |
+| Car Charger Output Mode | Normal, Smart |
+| Screen Brightness | High, Low, Medium |
+| Screen Timeout | 0 s, 10 s, 20 s, 30 s, 60 s, 300 s, 1800 s |
+| Device Timeout | 0 min, 30 min, 60 min, 120 min, 240 min, 360 min, 720 min, 1440 min |
+| Output Port Memory | On or off |
+| Display Language | Chinese, English, French, German, Japanese |
+| Outage Alert | On or off |
+
+### General
+
+| | Values |
+| --- | --- |
+| Temperature Unit | Celsius, Fahrenheit |
+
+Xilo checks every value against these limits before it sends anything, because the device itself accepts values it can't handle.
+
+## Automations
+
+- **Schedules** can switch AC Output, UltraFast Charging, Car Charger Output, Screen at set times, on the days you choose.
+- **Battery reserve** turns outputs off when the battery drops to a level you choose.
+- **USB wake** keeps the USB ports on, for devices that turn them off after a while at low load.
+- **Alerts** for errors, battery levels, AC power and connection.
+
+See [Automations](/docs/automations) for how they work.
+
+## Connection
+
+Xilo talks to the C2000X Gen 2 with Anker's ZX Bluetooth protocol, encrypted. It finds the device by itself when you scan, and remembers it. The model number is A1785.
+
+[Download Xilo](/docs/install) for macOS, Windows or Linux.

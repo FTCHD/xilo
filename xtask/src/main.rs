@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command as Process;
 
 mod import;
+mod site;
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
@@ -35,6 +36,12 @@ enum Command {
     Bundle {
         #[arg(long)]
         release: bool,
+    },
+    /// Write the website's device pages from the model definitions.
+    Site {
+        /// Only fail if the pages are out of date.
+        #[arg(long)]
+        check: bool,
     },
     /// Build the release downloads for one target in dist/release.
     Dist {
@@ -106,6 +113,7 @@ fn main() -> Result<()> {
         Command::CheckPublic => check_public(),
         Command::Bundle { release } => bundle(release),
         Command::Dist { target } => dist(target),
+        Command::Site { check } => site::run(&root(), check),
     }
 }
 

@@ -1,0 +1,85 @@
+---
+title: "Anker SOLIX C200X DC (A1729)"
+description: "Monitor and control the Anker SOLIX C200X DC (A1729) from macOS, Windows or Linux over Bluetooth, without an account: battery, power, settings and automations."
+---
+
+{/* Made by `cargo xtask site` from the model definitions. Changes here are overwritten. */}
+
+<DeviceImage src="/devices/c200x-dc.webp" alt="Anker SOLIX C200X DC" />
+
+Xilo connects to the Anker SOLIX C200X DC (A1729) over Bluetooth, with no account, cloud or internet. Xilo shows the C200X DC on its general dashboard: the power in and out, the controls, and every value the device reports.
+
+## What Xilo shows
+
+<Columns>
+
+- Display switch
+- DC output timeout (s)
+- Remaining time (h)
+- USB-C 1 power (W)
+- USB-C 2 power (W)
+- USB-C 3 power (W)
+- USB-A 1 power (W)
+- USB-A 2 power (W)
+- Photovoltaic power (W)
+- DC input power total (W)
+- DC output power total (W)
+- Battery SOC ah (%)
+- SW version
+- Temperature (°C)
+- Battery status
+- Battery SOC (%)
+- Battery SOH (%)
+- USB-C 1 status
+- USB-C 2 status
+- USB-C 3 status
+- USB-A 1 status
+- USB-A 2 status
+- Device SN
+- Device timeout (min)
+- Display timeout (s)
+- Display mode
+- Temperature unit fahrenheit
+- PV 1 status
+- HW version
+
+</Columns>
+
+## What you can change
+
+### Controls
+
+| | Values |
+| --- | --- |
+| Screen | On or off |
+
+### Settings
+
+| | Values |
+| --- | --- |
+| Car Charger Timer | 0 to 86100 s, in steps of 300 s |
+| Device Timeout | 0 min, 30 min, 60 min, 120 min, 240 min, 360 min, 720 min, 1440 min |
+| Screen Timeout | 20 s, 30 s, 60 s, 300 s, 1800 s |
+| Screen Brightness | High, Low, Medium |
+
+### General
+
+| | Values |
+| --- | --- |
+| Temperature Unit | Celsius, Fahrenheit |
+
+Xilo checks every value against these limits before it sends anything, because the device itself accepts values it can't handle.
+
+## Automations
+
+- **Schedules** can switch Screen at set times, on the days you choose.
+- **Battery reserve** turns outputs off when the battery drops to a level you choose.
+- **Alerts** for errors, battery levels, AC power and connection.
+
+See [Automations](/docs/automations) for how they work.
+
+## Connection
+
+Xilo talks to the C200X DC with Anker's ZX Bluetooth protocol, encrypted. It finds the device by itself when you scan, and remembers it. The model number is A1729.
+
+[Download Xilo](/docs/install) for macOS, Windows or Linux.

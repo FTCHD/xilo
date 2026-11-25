@@ -1,0 +1,149 @@
+---
+title: "Anker SOLIX F3800 Plus (A1790P)"
+description: "Monitor and control the Anker SOLIX F3800 Plus (A1790P) from macOS, Windows or Linux over Bluetooth, without an account: battery, power, settings and automations."
+---
+
+{/* Made by `cargo xtask site` from the model definitions. Changes here are overwritten. */}
+
+Xilo connects to the Anker SOLIX F3800 Plus (A1790P) over Bluetooth, with no account, cloud or internet. Xilo shows the F3800 Plus on its general dashboard: the power in and out, the controls, and every value the device reports.
+
+## What Xilo shows
+
+<Columns>
+
+- AC output timeout (s)
+- DC output timeout (s)
+- Remaining time (h)
+- AC input power (W)
+- AC output power (W)
+- USB-C 1 power (W)
+- USB-C 2 power (W)
+- USB-C 3 power (W)
+- USB-A 1 power (W)
+- USB-A 2 power (W)
+- DC 12V 1 power (W)
+- Battery SOC (%)
+- Photovoltaic power (W)
+- PV 1 power (W)
+- PV 2 power (W)
+- Bat charge power (W)
+- Output power total (W)
+- SW version
+- SW expansion
+- SW controller
+- AC output power switch (W)
+- Charging status
+- Temperature (°C)
+- Battery status
+- Main battery SOC (%)
+- Battery SOH (%)
+- USB-C 1 status
+- USB-C 2 status
+- USB-C 3 status
+- USB-A 1 status
+- USB-A 2 status
+- DC 12V 1 status
+- Device SN
+- AC input limit (W)
+- Device timeout (min)
+- Display timeout (s)
+- DC output power switch (W)
+- Display mode
+- AC frequency
+- Temperature unit fahrenheit
+- Light mode
+- AC input limit max
+- Country code
+- Port memory switch
+- Exp 1 type
+- Wifi name
+- Wifi signal
+- Expansion packs
+- Expansion SOC (%)
+- Exp 1 SN
+- Exp 1 temperature (°C)
+- Exp 1 SOC (%)
+- Exp 1 SOH (%)
+- Exp 2 SN
+- Exp 2 temperature (°C)
+- Exp 2 SOC (%)
+- Exp 2 SOH (%)
+- Exp 2 type
+- Exp 3 SN
+- Exp 3 temperature (°C)
+- Exp 3 SOC (%)
+- Exp 3 SOH (%)
+- Exp 3 type
+- Exp 4 SN
+- Exp 4 temperature (°C)
+- Exp 4 SOC (%)
+- Exp 4 SOH (%)
+- Exp 4 type
+- Exp 5 SN
+- Exp 5 temperature (°C)
+- Exp 5 SOC (%)
+- Exp 5 SOH (%)
+- Exp 5 type
+- Exp 6 SN
+- Exp 6 temperature (°C)
+- Exp 6 SOC (%)
+- Exp 6 SOH (%)
+- Exp 6 type
+- Power panel SN
+- Device 1 SN
+- Device 1 SOC (%)
+- Device 1 temperature (°C)
+- Device 2 SN
+- Device 2 SOC (%)
+- Device 2 temperature (°C)
+- Device 1 PN
+- Device 2 PN
+- HW version
+
+</Columns>
+
+## What you can change
+
+### Controls
+
+| | Values |
+| --- | --- |
+| AC Output | On or off |
+| Car Charger Output | On or off |
+| Light | Blinking, High, Low, Medium, Off |
+| Screen | On or off |
+
+### Settings
+
+| | Values |
+| --- | --- |
+| AC Recharging Power | 100 to 1800 W, in steps of 100 W |
+| Device Timeout | 0 min, 30 min, 60 min, 120 min, 240 min, 360 min, 720 min, 1440 min |
+| Screen Timeout | 20 s, 30 s, 60 s, 300 s, 1800 s |
+| Screen Brightness | High, Low, Medium, Off |
+| Car Charger Output Mode | Normal, Smart |
+| AC Output Mode | Normal, Smart |
+| Output Port Memory | On or off |
+
+### General
+
+| | Values |
+| --- | --- |
+| Temperature Unit | Celsius, Fahrenheit |
+
+Xilo checks every value against these limits before it sends anything, because the device itself accepts values it can't handle.
+
+## Automations
+
+- **Schedules** can switch AC Output, Car Charger Output, Light, Screen at set times, on the days you choose.
+- **Battery reserve** turns outputs off when the battery drops to a level you choose.
+- **USB wake** keeps the USB ports on, for devices that turn them off after a while at low load.
+- **Alerts** for errors, battery levels, AC power and connection.
+
+See [Automations](/docs/automations) for how they work.
+
+## Connection
+
+Xilo talks to the F3800 Plus with Anker's ZX Bluetooth protocol, encrypted. It finds the device by itself when you scan, and remembers it. The model number is A1790P.
+
+[Download Xilo](/docs/install) for macOS, Windows or Linux.

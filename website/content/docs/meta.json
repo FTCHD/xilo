@@ -1,0 +1,20 @@
+{
+  "title": "Xilo",
+  "pages": [
+    "index",
+    "install",
+    "getting-started",
+    "---Using Xilo---",
+    "dashboard",
+    "automations",
+    "history",
+    "menu-bar",
+    "command-line",
+    "---Help---",
+    "privacy",
+    "troubleshooting",
+    "faq",
+    "---Devices---",
+    "devices"
+  ]
+}

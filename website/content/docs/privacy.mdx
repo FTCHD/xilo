@@ -1,0 +1,23 @@
+---
+title: Privacy
+description: Xilo talks to your Anker SOLIX devices over Bluetooth only. It has no account, sends nothing to the internet, and keeps your settings and history on your computer.
+---
+
+Xilo is private by design.
+
+- **No account.** There is nothing to sign up for and nothing to sign in to.
+- **Bluetooth only.** Xilo talks to your devices directly. It doesn't use Anker's cloud or any other server.
+- **No internet.** Xilo works without an internet connection, for example during a power cut.
+- **Your data stays on your computer.** Your settings, the history and the logs are stored only there.
+
+## What Xilo stores
+
+| What | Where on macOS |
+| --- | --- |
+| Settings and your devices | `~/Library/Application Support/dev.xilo.Xilo/config.toml` |
+| History | `~/Library/Application Support/dev.xilo.Xilo/history.sqlite` |
+| Logs | `~/Library/Application Support/dev.xilo.Xilo/logs` |
+
+On Windows and Linux, the same files are in the usual folder for app data.
+
+To remove a device and its history, use **Settings → Remove device**.

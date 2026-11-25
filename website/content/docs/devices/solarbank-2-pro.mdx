@@ -1,0 +1,130 @@
+---
+title: "Anker SOLIX Solarbank 2 Pro (A17C1)"
+description: "Monitor and control the Anker SOLIX Solarbank 2 Pro (A17C1) from macOS, Windows or Linux over Bluetooth, without an account: battery, power, settings and automations."
+---
+
+{/* Made by `cargo xtask site` from the model definitions. Changes here are overwritten. */}
+
+<DeviceImage src="/devices/solarbank-2-pro.webp" alt="Anker SOLIX Solarbank 2 Pro" />
+
+Xilo connects to the Anker SOLIX Solarbank 2 Pro (A17C1) over Bluetooth, with no account, cloud or internet. Xilo shows the Solarbank 2 Pro on its general dashboard: the power in and out, the controls, and every value the device reports.
+
+## What Xilo shows
+
+<Columns>
+
+- Device SN
+- Main battery SOC (%)
+- Error code
+- SW version
+- SW expansion
+- Temperature unit fahrenheit
+- Temperature (°C)
+- Photovoltaic power (W)
+- AC output power (W)
+- Battery SOC (%)
+- Bat charge power (W)
+- PV yield
+- Charged energy
+- Output energy
+- Min SOC (%)
+- Lowpower input data
+- Active charge SOC (%)
+- Bat discharge power (W)
+- Grid to home power (W)
+- PV to grid power (W)
+- Grid import energy
+- Grid export energy
+- Max load (W)
+- Home demand
+- Usage mode
+- Home load preset
+- AC socket power (W)
+- Consumed energy
+- PV 1 power (W)
+- PV 2 power (W)
+- PV 3 power (W)
+- PV 4 power (W)
+- Light mode
+- Output power (W)
+- Grid status
+- Light off switch
+- Battery heating
+- Max SOC (%)
+- Wifi name
+- Wifi signal
+- Charging status
+- Discharged energy
+- Expansion packs
+- Exp 1 controller SN
+- Exp 1 temperature (°C)
+- Exp 1 SOC (%)
+- Exp 1 SOH (%)
+- Exp 1 SN
+- Exp 2 controller SN
+- Exp 2 temperature (°C)
+- Exp 2 SOC (%)
+- Exp 2 SOH (%)
+- Exp 2 SN
+- Exp 3 controller SN
+- Exp 3 temperature (°C)
+- Exp 3 SOC (%)
+- Exp 3 SOH (%)
+- Exp 3 SN
+- Exp 4 controller SN
+- Exp 4 temperature (°C)
+- Exp 4 SOC (%)
+- Exp 4 SOH (%)
+- Exp 4 SN
+- Exp 5 controller SN
+- Exp 5 temperature (°C)
+- Exp 5 SOC (%)
+- Exp 5 SOH (%)
+- Exp 5 SN
+- Battery position
+- Battery type
+- Main controller SN
+- Exp 1 position
+- Exp 1 type
+- Exp 2 position
+- Exp 2 type
+- Exp 3 position
+- Exp 3 type
+- Exp 4 position
+- Exp 4 type
+- Exp 5 position
+- Exp 5 type
+
+</Columns>
+
+## What you can change
+
+### Settings
+
+| | Values |
+| --- | --- |
+| Max Load Parallel | 1200 W, 2400 W, 3600 W, 4800 W |
+| Light Mode | Mood, Normal |
+| Light | On or off |
+| Max Load | 350 W, 600 W, 800 W, 1000 W |
+| Disable Grid Export | On or off |
+
+### General
+
+| | Values |
+| --- | --- |
+| Temperature Unit | Celsius, Fahrenheit |
+
+Xilo checks every value against these limits before it sends anything, because the device itself accepts values it can't handle.
+
+## Automations
+
+This model has no controls that a schedule can switch. Alerts still work: errors, battery levels, AC power and connection.
+
+See [Automations](/docs/automations) for how they work.
+
+## Connection
+
+Xilo talks to the Solarbank 2 Pro with Anker's ZX Bluetooth protocol, encrypted. It finds the device by itself when you scan, and remembers it. The model number is A17C1.
+
+[Download Xilo](/docs/install) for macOS, Windows or Linux.

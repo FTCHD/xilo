@@ -1,0 +1,116 @@
+---
+title: "Anker SOLIX C300X (A1723)"
+description: "Monitor and control the Anker SOLIX C300X (A1723) from macOS, Windows or Linux over Bluetooth, without an account: battery, power, settings and automations."
+---
+
+{/* Made by `cargo xtask site` from the model definitions. Changes here are overwritten. */}
+
+<DeviceImage src="/devices/c300x.webp" alt="Anker SOLIX C300X" />
+
+Xilo connects to the Anker SOLIX C300X (A1723) over Bluetooth, with no account, cloud or internet. Xilo has a dashboard made for the C300X, like the one in the Anker app: the battery, every port with its power, the AC and car outputs with live charts, and the light and screen controls.
+
+## What Xilo shows
+
+<Columns>
+
+- AC timer remaining (s)
+- Car timer remaining (s)
+- Remaining time (h)
+- AC input (W)
+- AC output (W)
+- USB-C1 (W)
+- USB-C2 (W)
+- USB-C3 (W)
+- USB-A (W)
+- Car charger output (W)
+- Solar input (W)
+- Total input (W)
+- Total output (W)
+- Main firmware
+- Inverter firmware
+- MPPT firmware
+- PD firmware
+- BMS firmware
+- Firmware
+- AC output active
+- Input source
+- Temperature (°C)
+- Battery
+- Battery level (%)
+- Battery health (%)
+- USB-C1 state
+- USB-C2 state
+- USB-C3 state
+- USB-A state
+- Car charger state
+- AC input plugged in
+- Error code
+- Overload
+- Serial number
+- AC recharging power (W)
+- Device timeout (min)
+- Screen timeout (s)
+- AC output switch
+- Car charger switch
+- Screen brightness
+- AC frequency (Hz)
+- Light
+- Temperature unit
+- Screen
+- Firmware update in progress
+- Output port memory
+- Car charger power saving
+- Smart AC output
+
+</Columns>
+
+## What you can change
+
+### Controls
+
+| | Values |
+| --- | --- |
+| AC Output | On or off |
+| Car Charger Output | On or off |
+| AC Output Timer | 0 to 86100 s, in steps of 300 s |
+| Car Charger Timer | 0 to 86100 s, in steps of 300 s |
+| Light | Off, Low, Mid, High |
+| Screen | On or off |
+
+### Settings
+
+| | Values |
+| --- | --- |
+| AC Recharging Power | 100W, 200W, 300W, 330W |
+| AC Output Frequency | 50Hz, 60Hz (asks first) |
+| Device Timeout | 30mins, 1Hr, 2Hr, 4Hr, 6Hr, 12Hr, 24Hr, Never |
+| Car Charger Output Power Saving Mode | On or off |
+| Smart AC Output Mode | On or off |
+| Light SOS Mode | On or off |
+| Screen Brightness | Low, Mid, High |
+| Screen Timeout | 20s, 30s, 1min, 5mins, 30mins |
+| Output Port Memory | On or off |
+
+### General
+
+| | Values |
+| --- | --- |
+| Temperature | ℃, ℉ |
+| Restore Default Settings | An action (asks first, can't be undone) |
+
+Xilo checks every value against these limits before it sends anything, because the device itself accepts values it can't handle.
+
+## Automations
+
+- **Schedules** can switch AC Output, Car Charger Output, Light, Screen at set times, on the days you choose.
+- **Battery reserve** turns outputs off when the battery drops to a level you choose.
+- **USB wake** keeps the USB ports on, for devices that turn them off after a while at low load.
+- **Alerts** for errors, battery levels, AC power and connection.
+
+See [Automations](/docs/automations) for how they work.
+
+## Connection
+
+Xilo talks to the C300X with Anker's ZX Bluetooth protocol, encrypted. It finds the device by itself when you scan, and remembers it. The model number is A1723.
+
+[Download Xilo](/docs/install) for macOS, Windows or Linux.

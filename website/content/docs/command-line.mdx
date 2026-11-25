@@ -1,0 +1,28 @@
+---
+title: Command line
+description: The xilo command line tool reads and controls Anker SOLIX power stations over Bluetooth from a terminal or a script, with the same engine as the Xilo app.
+---
+
+The `xilo` tool comes with every download. See [Install](/docs/install) for where it is on your system.
+
+```sh
+xilo scan                                   # find nearby devices
+xilo --name C300X status                    # read every value once
+xilo --name C300X watch --secs 600          # print changes for 10 minutes
+xilo --name C300X set light_mode 1          # change a setting
+xilo --name C300X set ac_frequency 60 --confirm
+xilo --name C300X commands                  # list what you can change
+xilo models                                 # list the supported models
+```
+
+`--name` picks the device whose name contains the text. Without it, `xilo` uses the first Anker device it finds.
+
+`set` uses the same checks as the app: a value outside the limits of the model is refused, and risky settings need `--confirm`.
+
+To try it without a device, use the simulator:
+
+```sh
+xilo --sim A1723 status
+```
+
+Close the Xilo app first, or release the device in it, because a device accepts one Bluetooth connection at a time.

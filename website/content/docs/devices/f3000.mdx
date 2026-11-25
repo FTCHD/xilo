@@ -1,0 +1,138 @@
+---
+title: "Anker SOLIX F3000 (A1782)"
+description: "Monitor and control the Anker SOLIX F3000 (A1782) from macOS, Windows or Linux over Bluetooth, without an account: battery, power, settings and automations."
+---
+
+{/* Made by `cargo xtask site` from the model definitions. Changes here are overwritten. */}
+
+<DeviceImage src="/devices/f3000.webp" alt="Anker SOLIX F3000" />
+
+Xilo connects to the Anker SOLIX F3000 (A1782) over Bluetooth, with no account, cloud or internet. Xilo shows the F3000 on its general dashboard: the power in and out, the controls, and every value the device reports.
+
+## What Xilo shows
+
+<Columns>
+
+- Device SN
+- Wifi name
+- Wifi signal
+- AC input limit (W)
+- AC input limit max
+- AC output timeout (s)
+- AC frequency
+- AC output mode
+- DC output timeout (s)
+- DC 12V output mode
+- Device timeout (min)
+- Display timeout (s)
+- Display mode
+- Light mode
+- Temperature unit fahrenheit
+- Display switch
+- Port memory switch
+- Country code
+- Temperature (°C)
+- Battery status
+- Main battery SOC (%)
+- Output power total (W)
+- AC input power (W)
+- Bat charge power (W)
+- Battery SOC (%)
+- AC output power switch (W)
+- AC output power (W)
+- PV 1 status
+- PV 1 power (W)
+- PV 2 status
+- PV 2 power (W)
+- USB-C 1 status
+- USB-C 1 power (W)
+- USB-C 2 status
+- USB-C 2 power (W)
+- USB-A 1 status
+- USB-A 1 power (W)
+- USB-A 2 status
+- USB-A 2 power (W)
+- DC output power switch (W)
+- DC output power (W)
+- Exp 1 SN
+- Exp 1 temperature (°C)
+- Exp 1 SOC (%)
+- Exp 1 type
+- Exp 2 SN
+- Exp 2 temperature (°C)
+- Exp 2 SOC (%)
+- Exp 2 type
+- Exp 3 SN
+- Exp 3 temperature (°C)
+- Exp 3 SOC (%)
+- Exp 3 type
+- Usage mode
+- Backup SOC (%)
+- Backup charge SOC (%)
+- Battery power signed (W)
+- Bat discharge power (W)
+- Main ct number
+- Branch ct number
+- Grid power signed (W)
+- Max load (W)
+- Home load preset
+- Charge protect threshold
+- Discharge protect threshold
+- Max SOC (%)
+- Min SOC (%)
+- PV yield
+- Charged energy
+- Discharged energy
+- Output energy
+- Grid import energy
+- Home consumption
+
+</Columns>
+
+## What you can change
+
+### Controls
+
+| | Values |
+| --- | --- |
+| AC Output | On or off |
+| Car Charger Output | On or off |
+| Screen | On or off |
+| Light | High, Low, Medium, Off |
+
+### Settings
+
+| | Values |
+| --- | --- |
+| AC Output Timer | 0 to 86400 s, in steps of 300 s |
+| AC Recharging Power | 200 to 1800 W, in steps of 100 W |
+| AC Output Mode | Normal, Smart |
+| Car Charger Timer | 0 to 86400 s, in steps of 300 s |
+| Car Charger Output Mode | Normal, Smart |
+| Screen Brightness | High, Low, Medium |
+| Screen Timeout | 0 s, 10 s, 20 s, 30 s, 60 s, 300 s, 1800 s |
+| Device Timeout | 0 min, 30 min, 60 min, 120 min, 240 min, 360 min, 720 min, 1440 min |
+| Output Port Memory | On or off |
+
+### General
+
+| | Values |
+| --- | --- |
+| Temperature Unit | Celsius, Fahrenheit |
+
+Xilo checks every value against these limits before it sends anything, because the device itself accepts values it can't handle.
+
+## Automations
+
+- **Schedules** can switch AC Output, Car Charger Output, Screen, Light at set times, on the days you choose.
+- **Battery reserve** turns outputs off when the battery drops to a level you choose.
+- **USB wake** keeps the USB ports on, for devices that turn them off after a while at low load.
+- **Alerts** for errors, battery levels, AC power and connection.
+
+See [Automations](/docs/automations) for how they work.
+
+## Connection
+
+Xilo talks to the F3000 with Anker's ZX Bluetooth protocol, encrypted. It finds the device by itself when you scan, and remembers it. The model number is A1782.
+
+[Download Xilo](/docs/install) for macOS, Windows or Linux.

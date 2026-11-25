@@ -1,0 +1,46 @@
+---
+title: Automations
+description: Schedule the outputs of your Anker SOLIX power station, keep a battery reserve, keep USB ports on and get alerts, with Xilo on macOS, Windows and Linux.
+---
+
+Each device has an **Automations** tab. Automations run while Xilo is open or in the menu bar, and the device is in Bluetooth range.
+
+<Screenshot src="/screenshots/automations.webp" alt="The Automations tab of an Anker SOLIX C300X in Xilo" />
+
+## Schedules
+
+A schedule turns the AC output, the car output or the screen on or off, or sets the light, at a set time on the days you choose. Click **Add Schedule**, choose the control, the value, the time and the days, then **Add**.
+
+You can pause a schedule with its switch, without deleting it.
+
+If the device is out of range when a schedule is due, Xilo waits up to 10 minutes. After that, it notes the schedule as missed in the Activity list.
+
+<Screenshot src="/screenshots/schedule.webp" alt="Adding a schedule in Xilo" />
+
+## Battery reserve
+
+When the battery drops to 10, 20, 30 or 50% while it discharges, Xilo turns off the outputs you choose. This keeps some charge for when you need it.
+
+If you turn an output on again, Xilo leaves it on until the battery charges above the reserve. A schedule doesn't turn an output on while the battery is at the reserve.
+
+## USB wake
+
+Some devices, like the C300X, turn their USB ports off after about two hours of low load. A phone that trickle-charges overnight then stops charging.
+
+USB wake switches the car output on briefly before that happens, which keeps the ports on. If the car output was off, Xilo turns it off again 3 seconds later. You can choose when it wakes the ports, and a battery level below which it doesn't.
+
+## Alerts
+
+Xilo shows alerts in the app and as system notifications:
+
+- errors that the device reports
+- low battery, at 10, 20 or 30%
+- charged, at 80, 90 or 100%
+- AC power lost, and AC power back
+- a device out of reach for 10 minutes
+
+Choose the alerts in **Preferences**.
+
+## Activity
+
+The bottom of the Automations tab lists every automation and alert from the last 7 days.

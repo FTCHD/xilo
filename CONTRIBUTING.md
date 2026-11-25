@@ -30,6 +30,7 @@ To publish a release, set the version in `Cargo.toml` and push a tag with the sa
 - `XILO_LOG=debug` shows more in the log. Logs are in `~/Library/Application Support/dev.xilo.Xilo/logs`.
 - `cargo run -p xtask -- import solix-api` regenerates `crates/models/src/families/imported` from anker-solix-api.
 - `cargo run -p xtask -- check-public` fails if research files or device captures are tracked by git.
+- `cargo run -p xtask -- site` writes a website page for each model, from the model definitions. Run it after you change a model. CI fails if the pages are out of date.
 - The README images, `.github/showcase-wall.jpg` and `.github/automations.jpg`, are made with the screenshot scripts in `.demo/`. That folder is not in the repository.
 
 You can add or override models without rebuilding. Put TOML files in `~/Library/Application Support/dev.xilo.Xilo/models`, using the same format as `crates/models/src/families`.
@@ -46,3 +47,4 @@ You can add or override models without rebuilding. Put TOML files in `~/Library/
 | `crates/app`    | The GPUI desktop app                                                  |
 | `crates/cli`    | `xilo`, the command line tool                                         |
 | `xtask`         | Asset extraction, model import, bundling, checks                      |
+| `website`       | The website and documentation (Fumadocs). See `website/README.md`     |
