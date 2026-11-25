@@ -273,14 +273,18 @@ impl Root {
                 cx,
             ))
             .child(div().flex_1())
-            .child(go(
-                "nav-prefs",
-                "Preferences",
-                IconName::Settings,
-                Route::Preferences,
-                cx,
-            ))
-            .child(github)
+            .child(
+                v_flex()
+                    .gap(px(8.))
+                    .child(go(
+                        "nav-prefs",
+                        "Preferences",
+                        IconName::Settings,
+                        Route::Preferences,
+                        cx,
+                    ))
+                    .child(github),
+            )
     }
 }
 
