@@ -58,3 +58,85 @@ jobs:
         run: cargo run -p xtask -- site --check
       - if: matrix.name == 'macos'
         run: cargo build -p xilo --release
+
+  # Runs the install scripts against a fake release in the real layout, served on this runner.
+  install:
+    name: install ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macos
+            runner: macos-15
+          - name: linux
+            runner: ubuntu-22.04
+          - name: windows
+            runner: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test install.sh
+        if: runner.os != 'Windows'
+        run: |
+          root="$RUNNER_TEMP/release/latest/download"
+          stage="$RUNNER_TEMP/stage"
+          mkdir -p "$root" "$stage"
+          if [ "$RUNNER_OS" = Linux ]; then
+            shellcheck install.sh
+            asset=Xilo-0.0.0-linux-x64.tar.gz
+            mkdir -p "$stage/Xilo-0.0.0-linux-x64/bin"
+            printf '#!/bin/sh\necho xilo\n' > "$stage/Xilo-0.0.0-linux-x64/Xilo"
+            cp "$stage/Xilo-0.0.0-linux-x64/Xilo" "$stage/Xilo-0.0.0-linux-x64/bin/xilo"
+            chmod +x "$stage/Xilo-0.0.0-linux-x64/Xilo" "$stage/Xilo-0.0.0-linux-x64/bin/xilo"
+            tar -czf "$root/$asset" -C "$stage" Xilo-0.0.0-linux-x64
+            installed="$HOME/.local/bin/xilo-app"
+          else
+            asset=Xilo-0.0.0-macos-arm64.dmg
+            mkdir -p "$stage/Xilo.app/Contents/Helpers"
+            printf '#!/bin/sh\necho xilo\n' > "$stage/Xilo.app/Contents/Helpers/xilo"
+            chmod +x "$stage/Xilo.app/Contents/Helpers/xilo"
+            hdiutil create -quiet -volname Xilo -format UDZO -srcfolder "$stage" "$root/$asset"
+            installed="$HOME/Applications/Xilo.app"
+          fi
+          (cd "$root" && shasum -a 256 "$asset" > SHA256SUMS.txt)
+          python3 -m http.server 8766 --bind 127.0.0.1 --directory "$RUNNER_TEMP/release" &
+          sleep 2
+
+          XILO_DRY_RUN=1 sh install.sh
+          XILO_DOWNLOAD_URL=http://127.0.0.1:8766 XILO_NO_OPEN=1 sh install.sh
+          test -e "$installed"
+          # On macOS the command goes in /usr/local/bin when the runner can write there.
+          command=$(ls /usr/local/bin/xilo "$HOME/.local/bin/xilo" 2>/dev/null | head -n 1)
+          "$command"
+          sh install.sh --uninstall
+          test ! -e "$installed"
+          test ! -e "$command"
+
+      - name: Test install.ps1
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'release\latest\download'
+          $folder = Join-Path $env:RUNNER_TEMP 'stage\Xilo-0.0.0-windows-x64'
+          New-Item -ItemType Directory -Force -Path $root, (Join-Path $folder 'bin') | Out-Null
+          Copy-Item "$env:WINDIR\System32\whoami.exe" (Join-Path $folder 'Xilo.exe')
+          Copy-Item "$env:WINDIR\System32\whoami.exe" (Join-Path $folder 'bin\xilo.exe')
+          $zip = Join-Path $root 'Xilo-0.0.0-windows-x64.zip'
+          Compress-Archive -Path $folder -DestinationPath $zip
+          "$((Get-FileHash $zip).Hash.ToLowerInvariant())  Xilo-0.0.0-windows-x64.zip" | Set-Content (Join-Path $root 'SHA256SUMS.txt')
+          $server = Start-Process python -ArgumentList '-m', 'http.server', '8766', '--bind', '127.0.0.1', '--directory', (Join-Path $env:RUNNER_TEMP 'release') -PassThru
+          Start-Sleep -Seconds 2
+
+          $env:XILO_DRY_RUN = '1'
+          .\install.ps1
+          $env:XILO_DRY_RUN = $null
+          $env:XILO_DOWNLOAD_URL = 'http://127.0.0.1:8766'
+          $env:XILO_NO_OPEN = '1'
+          .\install.ps1
+          $installDir = Join-Path $env:LOCALAPPDATA 'Programs\Xilo'
+          if (-not (Test-Path (Join-Path $installDir 'bin\xilo.exe'))) { throw 'bin\xilo.exe is missing' }
+          .\install.ps1 -Uninstall
+          if (Test-Path $installDir) { throw 'Xilo is still installed' }
+          Stop-Process $server

@@ -54,3 +54,5 @@ You can add or override models without rebuilding. Put TOML files in `~/Library/
 | `crates/cli`    | `xilo`, the command line tool                                         |
 | `xtask`         | Asset extraction, model import, bundling, checks                      |
 | `website`       | The website and documentation (Fumadocs). See `website/README.md`     |
+| `install.sh`    | Installer for macOS and Linux. CI tests it against a fake release      |
+| `install.ps1`   | Installer for Windows. CI tests it against a fake release              |

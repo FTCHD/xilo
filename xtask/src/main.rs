@@ -358,6 +358,11 @@ fn dist(target: Option<String>) -> Result<()> {
             fs::create_dir_all(folder.join("bin"))?;
             fs::copy(bin.join("xilo-app"), folder.join("Xilo"))?;
             fs::copy(bin.join("xilo"), folder.join("bin/xilo"))?;
+            // For the app menu entry that install.sh writes.
+            fs::copy(
+                root.join("assets/builtin/icons/xilo.png"),
+                folder.join("xilo.png"),
+            )?;
             for doc in docs {
                 fs::copy(root.join(doc), folder.join(doc))?;
             }
