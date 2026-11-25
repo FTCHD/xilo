@@ -34,27 +34,6 @@ Most of these maps come from [anker-solix-api](https://github.com/thomluther/ank
 
 Protocols: ZX with ECDH and AES-CBC, ZX Gen 2, Prime with AES-GCM, the older AES key exchange, and the 2540 GATT service.
 
-## Build
-
-Requirements: macOS 13 or newer, Rust (the version is pinned in `rust-toolchain.toml`), and Python 3 for the model importer only.
-
-```sh
-cargo run -p xilo                  # the app
-cargo run -p xilo-cli -- scan      # the command line tool, xilo
-cargo test --workspace
-```
-
-### Release downloads
-
-```sh
-cargo run -p xtask -- dist                                   # this computer
-cargo run -p xtask -- dist --target x86_64-apple-darwin      # another target
-```
-
-This writes the downloads to `dist/release`: a disk image on macOS, a zip file on Windows, and a .deb, .rpm and tar.gz file on Linux. Each one contains the app and the `xilo` command line tool. On Linux, it needs `cargo install cargo-deb cargo-generate-rpm`. The package settings are in `crates/app/Cargo.toml`.
-
-To publish a release, set the version in `Cargo.toml` and push a tag with the same version, for example `v0.2.0`. The `release` workflow then builds macOS, Windows and Linux downloads for x64 and Arm, and creates a GitHub release with checksums. To build the downloads without a release, run the workflow by hand from the Actions tab.
-
 ## Command line
 
 In the downloads, `xilo` is in `Xilo.app/Contents/Helpers/` on macOS and in `bin/` on Windows and Linux.
@@ -70,28 +49,6 @@ xilo --sim A1723 status            # simulated device, no Bluetooth
 xilo models
 ```
 
-## Development
+## Contributing
 
-- `XILO_SIM=1 cargo run -p xilo` runs the app against simulated devices.
-- `XILO_HOME=/tmp/xilo cargo run -p xilo` keeps settings, history and logs in another folder.
-- `XILO_OPEN=device:<key>:settings` opens Xilo on a page. Other values: `add`, `preferences`, and the tabs `dashboard`, `history`, `automations`, `inspector`. A fourth part acts once the device is connected: `bottom` scrolls to the end, `schedule` opens the schedule editor, and `timer` opens the AC timer, for example `device:<key>:automations:schedule`.
-- `XILO_WINDOW=1200x1000` opens the window at that size, for screenshots.
-- `XILO_LOG=debug` shows more in the log. Logs are in `~/Library/Application Support/dev.xilo.Xilo/logs`.
-- `cargo run -p xtask -- import solix-api` regenerates `crates/models/src/families/imported` from anker-solix-api.
-- `cargo run -p xtask -- check-public` fails if research files or device captures are tracked by git.
-- `.demo/wall/shoot.sh` and `.demo/wall/render.sh` take new screenshots and rebuild the image at the top of this file. See [.demo/README.md](.demo/README.md).
-
-You can add or override models without rebuilding. Put TOML files in `~/Library/Application Support/dev.xilo.Xilo/models`, using the same format as `crates/models/src/families`.
-
-## Layout
-
-| Folder          | Content                                                               |
-| --------------- | --------------------------------------------------------------------- |
-| `crates/proto`  | Frames, TLV, encryption, the ZX, Prime and legacy handshakes. No I/O. |
-| `crates/models` | Model definitions (TOML), decoding, command validation, detection     |
-| `crates/engine` | Device actors, simulator, USB wake, alerts                            |
-| `crates/ble`    | Bluetooth transport (btleplug)                                        |
-| `crates/store`  | Settings, history (SQLite), capture files                             |
-| `crates/app`    | The GPUI desktop app                                                  |
-| `crates/cli`    | `xilo`, the command line tool                                         |
-| `xtask`         | Asset extraction, model import, bundling, checks                      |
+See [CONTRIBUTING.md](CONTRIBUTING.md) for building, development and the layout of the code.
