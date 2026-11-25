@@ -30,7 +30,6 @@ assets = [
     ["packaging/dev.xilo.Xilo.desktop", "usr/share/applications/", "644"],
     ["../../assets/builtin/icons/xilo.png", "usr/share/icons/hicolor/512x512/apps/dev.xilo.Xilo.png", "644"],
     ["../../README.md", "usr/share/doc/xilo/", "644"],
-    ["../../THIRD_PARTY_NOTICES.md", "usr/share/doc/xilo/", "644"],
 ]
 
 [package.metadata.generate-rpm]
@@ -40,7 +39,6 @@ assets = [
     { source = "packaging/dev.xilo.Xilo.desktop", dest = "/usr/share/applications/dev.xilo.Xilo.desktop", mode = "644" },
     { source = "../../assets/builtin/icons/xilo.png", dest = "/usr/share/icons/hicolor/512x512/apps/dev.xilo.Xilo.png", mode = "644" },
     { source = "../../README.md", dest = "/usr/share/doc/xilo/README.md", mode = "644", doc = true },
-    { source = "../../THIRD_PARTY_NOTICES.md", dest = "/usr/share/doc/xilo/THIRD_PARTY_NOTICES.md", mode = "644", doc = true },
 ]
 
 [package.metadata.generate-rpm.requires]

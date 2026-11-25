@@ -4,8 +4,6 @@
 
 Xilo is a desktop app for Anker SOLIX devices. It talks to them over Bluetooth only. You don't need an account, a cloud connection or the internet.
 
-It runs on macOS. The code is written to be cross-platform, but Windows and Linux are not built or tested yet.
-
 Xilo is not made by or affiliated with Anker.
 
 ## Features
@@ -25,16 +23,16 @@ Xilo is not made by or affiliated with Anker.
 
 ## Supported devices
 
-| Kind | Models |
-|---|---|
-| Power stations | C300, C300X, C300 DC, C300X DC, C200(X), C200 DC, C200X DC, C800, C800 Plus, C800X, C1000(X), C1000 Gen 2, C1000X Gen 2, C2000 Gen 2, C2000X Gen 2, S2000, F1200, F1500, F2000, F2000 Plus, F2600, F3000, F3800, F3800 Plus |
-| Solarbanks | E1600, 2 Pro, 2 AC, 2 Plus, 3 Pro, 4 Pro |
-| Home | Home Power Panel |
-| Prime and other | Prime Charger 160W and 250W, Prime Power Bank 20K, MagGo 3-in-1, Prime Charging Station 240W, EverFrost 2 40L and 58L |
+| Kind            | Models                                                                                                                                                                                                                      |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Power stations  | C300, C300X, C300 DC, C300X DC, C200(X), C200 DC, C200X DC, C800, C800 Plus, C800X, C1000(X), C1000 Gen 2, C1000X Gen 2, C2000 Gen 2, C2000X Gen 2, S2000, F1200, F1500, F2000, F2000 Plus, F2600, F3000, F3800, F3800 Plus |
+| Solarbanks      | E1600, 2 Pro, 2 AC, 2 Plus, 3 Pro, 4 Pro                                                                                                                                                                                    |
+| Home            | Home Power Panel                                                                                                                                                                                                            |
+| Prime and other | Prime Charger 160W and 250W, Prime Power Bank 20K, MagGo 3-in-1, Prime Charging Station 240W, EverFrost 2 40L and 58L                                                                                                       |
 
 Most of these maps come from [anker-solix-api](https://github.com/thomluther/anker-solix-api) and [SolixBLE](https://github.com/flip-dots/SolixBLE). Their published test payloads decode to the same values in Xilo (`crates/models/tests/solixble_values.rs`).
 
-Protocols: ZX with ECDH and AES-CBC, ZX Gen 2, Prime with AES-GCM, the older AES key exchange, and the 2540 GATT service. See [docs/variants.md](docs/variants.md).
+Protocols: ZX with ECDH and AES-CBC, ZX Gen 2, Prime with AES-GCM, the older AES key exchange, and the 2540 GATT service.
 
 ## Build
 
@@ -45,24 +43,6 @@ cargo run -p xilo                  # the app
 cargo run -p xilo-cli -- scan      # the command line tool, xilo
 cargo test --workspace
 ```
-
-### Anker images
-
-The dashboards use product, port and screen images from the Anker Android app. They are in `assets/vendor/` and built into the app. To update them from a newer version of the Anker app, put the unpacked `.xapk` in `.research/anker-apk/xapk/` and run:
-
-```sh
-cargo run -p xtask -- assets extract
-```
-
-Xilo uses the system font and no Anker animations. Models without an image get Xilo's own drawings.
-
-### App bundle
-
-```sh
-cargo run -p xtask -- bundle --release   # creates dist/Xilo.app
-```
-
-The bundle is signed ad hoc. macOS then asks for Bluetooth permission again after every rebuild. To avoid that, create a code signing certificate in Keychain Access and set `XILO_SIGN_IDENTITY` to its name before you bundle.
 
 ### Release downloads
 
@@ -105,18 +85,13 @@ You can add or override models without rebuilding. Put TOML files in `~/Library/
 
 ## Layout
 
-| Folder | Content |
-|---|---|
-| `crates/proto` | Frames, TLV, encryption, the ZX, Prime and legacy handshakes. No I/O. |
-| `crates/models` | Model definitions (TOML), decoding, command validation, detection |
-| `crates/engine` | Device actors, simulator, USB wake, alerts |
-| `crates/ble` | Bluetooth transport (btleplug) |
-| `crates/store` | Settings, history (SQLite), capture files |
-| `crates/app` | The GPUI desktop app |
-| `crates/cli` | `xilo`, the command line tool |
-| `xtask` | Asset extraction, model import, bundling, checks |
-| `docs` | Protocol and device notes |
-
-## Licenses
-
-Xilo ports protocol logic and field maps from SolixBLE (MIT, © 2026 Harvey Lelliott) and anker-solix-api (MIT, © 2024 thomluther). See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+| Folder          | Content                                                               |
+| --------------- | --------------------------------------------------------------------- |
+| `crates/proto`  | Frames, TLV, encryption, the ZX, Prime and legacy handshakes. No I/O. |
+| `crates/models` | Model definitions (TOML), decoding, command validation, detection     |
+| `crates/engine` | Device actors, simulator, USB wake, alerts                            |
+| `crates/ble`    | Bluetooth transport (btleplug)                                        |
+| `crates/store`  | Settings, history (SQLite), capture files                             |
+| `crates/app`    | The GPUI desktop app                                                  |
+| `crates/cli`    | `xilo`, the command line tool                                         |
+| `xtask`         | Asset extraction, model import, bundling, checks                      |

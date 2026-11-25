@@ -304,7 +304,7 @@ fn dist(target: Option<String>) -> Result<()> {
     let _ = fs::remove_dir_all(&out);
     fs::create_dir_all(&out)?;
     let name = format!("Xilo-{}-{os}-{arch}", env!("CARGO_PKG_VERSION"));
-    let docs = ["README.md", "THIRD_PARTY_NOTICES.md"];
+    let docs = ["README.md"];
     let file = match os {
         "macos" => {
             let stage = out.join("stage");
@@ -334,9 +334,9 @@ fn dist(target: Option<String>) -> Result<()> {
             let files = [
                 (bin.join("xilo-app.exe"), "Xilo.exe"),
                 (bin.join("xilo.exe"), "bin/xilo.exe"),
-                (root.join(docs[0]), docs[0]),
-                (root.join(docs[1]), docs[1]),
-            ];
+            ]
+            .into_iter()
+            .chain(docs.map(|doc| (root.join(doc), doc)));
             for (path, entry) in files {
                 zip.start_file(format!("{name}/{entry}"), options)?;
                 zip.write_all(&fs::read(&path).with_context(|| path.display().to_string())?)?;
