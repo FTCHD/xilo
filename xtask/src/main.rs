@@ -276,9 +276,11 @@ fn make_app(app: &Path, bin: &Path, vendor: bool) -> Result<()> {
     let _ = fs::remove_dir_all(app);
     fs::create_dir_all(contents.join("MacOS"))?;
     fs::create_dir_all(contents.join("Resources"))?;
-    fs::copy(bin.join("xilo"), contents.join("MacOS/Xilo"))?;
-    if bin.join("xilo-cli").exists() {
-        fs::copy(bin.join("xilo-cli"), contents.join("MacOS/xilo-cli"))?;
+    fs::copy(bin.join("xilo-app"), contents.join("MacOS/Xilo"))?;
+    // Not in MacOS/, where "xilo" and "Xilo" would be the same file.
+    if bin.join("xilo").exists() {
+        fs::create_dir_all(contents.join("Helpers"))?;
+        fs::copy(bin.join("xilo"), contents.join("Helpers/xilo"))?;
     }
     fs::write(
         contents.join("Info.plist"),
@@ -390,8 +392,8 @@ fn dist(target: Option<String>) -> Result<()> {
             let options = zip::write::SimpleFileOptions::default()
                 .compression_method(zip::CompressionMethod::Deflated);
             let files = [
-                (bin.join("xilo.exe"), "Xilo.exe"),
-                (bin.join("xilo-cli.exe"), "xilo-cli.exe"),
+                (bin.join("xilo-app.exe"), "Xilo.exe"),
+                (bin.join("xilo.exe"), "bin/xilo.exe"),
                 (root.join(docs[0]), docs[0]),
                 (root.join(docs[1]), docs[1]),
             ];
@@ -405,10 +407,9 @@ fn dist(target: Option<String>) -> Result<()> {
         _ => {
             let stage = out.join("stage");
             let folder = stage.join(&name);
-            fs::create_dir_all(&folder)?;
-            for exe in ["xilo", "xilo-cli"] {
-                fs::copy(bin.join(exe), folder.join(exe))?;
-            }
+            fs::create_dir_all(folder.join("bin"))?;
+            fs::copy(bin.join("xilo-app"), folder.join("Xilo"))?;
+            fs::copy(bin.join("xilo"), folder.join("bin/xilo"))?;
             for doc in docs {
                 fs::copy(root.join(doc), folder.join(doc))?;
             }

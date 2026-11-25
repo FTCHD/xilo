@@ -9,7 +9,13 @@
 | Linux, x64 | `Xilo-*-linux-x64.tar.gz` |
 | Linux, Arm | `Xilo-*-linux-arm64.tar.gz` |
 
-Each download contains the app and the `xilo-cli` command line tool. On macOS, the tool is in `Xilo.app/Contents/MacOS/xilo-cli`. `SHA256SUMS.txt` lists the checksums.
+Each download contains the app and the `xilo` command line tool. `SHA256SUMS.txt` lists the checksums.
+
+To use `xilo` from any folder:
+
+- **macOS**: `sudo mkdir -p /usr/local/bin && sudo ln -sf /Applications/Xilo.app/Contents/Helpers/xilo /usr/local/bin/xilo`
+- **Windows**: add the `bin` folder to your `Path`.
+- **Linux**: `ln -sf "$PWD/bin/xilo" ~/.local/bin/xilo` from the unpacked folder.
 
 The downloads are not signed by Apple or Microsoft, so the system warns you the first time you open Xilo:
 

@@ -19,7 +19,7 @@ Xilo is not made by or affiliated with Anker.
 - **History**: battery and power every 10 seconds, stored on this Mac. It includes charts, energy per day and CSV export.
 - **Menu bar**: battery level in the menu bar, quick AC and car output toggles, and "release to phone" so the Anker app can connect.
 - **Inspector** (developer mode): raw and decrypted frames, a per-message diff, redacted capture files and a guarded raw command console.
-- **`xilo-cli`**: the same engine on the command line.
+- **`xilo`**: the same engine on the command line.
 
 ## Supported devices
 
@@ -40,7 +40,7 @@ Requirements: macOS 13 or newer, Rust (the version is pinned in `rust-toolchain.
 
 ```sh
 cargo run -p xilo                  # the app
-cargo run -p xilo-cli -- scan      # the command line tool
+cargo run -p xilo-cli -- scan      # the command line tool, xilo
 cargo test --workspace
 ```
 
@@ -69,21 +69,23 @@ cargo run -p xtask -- dist                                   # this computer
 cargo run -p xtask -- dist --target x86_64-apple-darwin      # another target
 ```
 
-This writes one download to `dist/release`: a disk image on macOS, a zip file on Windows and a tar.gz file on Linux. Each one contains the app and `xilo-cli`. The downloads never include the Anker images and fonts, even when `assets/vendor` exists.
+This writes one download to `dist/release`: a disk image on macOS, a zip file on Windows and a tar.gz file on Linux. Each one contains the app and the `xilo` command line tool. The downloads never include the Anker images and fonts, even when `assets/vendor` exists.
 
 To publish a release, set the version in `Cargo.toml` and push a tag with the same version, for example `v0.2.0`. The `release` workflow then builds macOS, Windows and Linux downloads for x64 and Arm, and creates a GitHub release with checksums. To build the downloads without a release, run the workflow by hand from the Actions tab.
 
 ## Command line
 
+In the downloads, `xilo` is in `Xilo.app/Contents/Helpers/` on macOS and in `bin/` on Windows and Linux.
+
 ```sh
-xilo-cli scan
-xilo-cli --name C300X status
-xilo-cli --name C300X watch --secs 600
-xilo-cli --name C300X set light_mode 1
-xilo-cli --name C300X set ac_frequency 60 --confirm
-xilo-cli --name C300X capture --secs 30 -o c300x.xcap
-xilo-cli --sim A1723 status            # simulated device, no Bluetooth
-xilo-cli models
+xilo scan
+xilo --name C300X status
+xilo --name C300X watch --secs 600
+xilo --name C300X set light_mode 1
+xilo --name C300X set ac_frequency 60 --confirm
+xilo --name C300X capture --secs 30 -o c300x.xcap
+xilo --sim A1723 status            # simulated device, no Bluetooth
+xilo models
 ```
 
 ## Development
@@ -107,7 +109,7 @@ You can add or override models without rebuilding. Put TOML files in `~/Library/
 | `crates/ble` | Bluetooth transport (btleplug) |
 | `crates/store` | Settings, history (SQLite), capture files |
 | `crates/app` | The GPUI desktop app |
-| `crates/cli` | `xilo-cli` |
+| `crates/cli` | `xilo`, the command line tool |
 | `xtask` | Asset extraction, model import, bundling, checks |
 | `docs` | Protocol and device notes |
 

@@ -11,10 +11,7 @@ use xilo_models::{CommandRequest, Confirmed, Input, Registry};
 use xilo_proto::{Cipher, Frame, MsgId, Request, TimestampMode, tlv};
 
 #[derive(Parser)]
-#[command(
-    name = "xilo-cli",
-    about = "Talk to Anker SOLIX devices over Bluetooth"
-)]
+#[command(name = "xilo", about = "Talk to Anker SOLIX devices over Bluetooth")]
 struct Cli {
     /// Peripheral id from `scan`. Without it, the first SOLIX device found is used.
     #[arg(long, global = true)]
