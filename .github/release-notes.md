@@ -1,3 +1,19 @@
+## Install
+
+macOS and Linux:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/ftchd/xilo/main/install.sh | sh
+```
+
+Windows, in PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/ftchd/xilo/main/install.ps1 | iex
+```
+
+The scripts install the latest release and the `xilo` command for your user, and check the download against `SHA256SUMS.txt`.
+
 ## Downloads
 
 | System | File |

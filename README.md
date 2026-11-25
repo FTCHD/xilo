@@ -8,6 +8,22 @@ Xilo is a desktop app for Anker SOLIX devices. It talks to them over Bluetooth o
 
 Xilo is not made by or affiliated with Anker.
 
+## Install
+
+macOS and Linux:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/ftchd/xilo/main/install.sh | sh
+```
+
+Windows, in PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/ftchd/xilo/main/install.ps1 | iex
+```
+
+The scripts install the latest release for your user, with the `xilo` command, and check the download against its checksum. You can also download the disk image, zip, .deb, .rpm or tar.gz file from the [releases page](https://github.com/ftchd/xilo/releases/latest). See [Install Xilo](https://ftchd.github.io/xilo/docs/install/) for the options and for uninstalling.
+
 ## Features
 
 - **Dashboards** for the C300X and C1000 that follow the Anker app: battery, temperature, remaining time, port status, AC and car outputs with live graphs, light and screen controls, and error messages.

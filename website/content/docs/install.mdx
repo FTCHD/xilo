@@ -3,7 +3,63 @@ title: Install Xilo
 description: Download and install Xilo on macOS, Windows or Linux. The downloads include the app and the xilo command line tool, for Intel, AMD and Arm computers.
 ---
 
-Download Xilo from the [releases page](https://github.com/ftchd/xilo/releases/latest). Each download contains the app and the `xilo` command line tool.
+## Install with one command
+
+The install scripts download the latest release, check it against its checksum, and install Xilo and the `xilo` command for your user. They don't need administrator rights.
+
+<Tabs items={['macOS, Linux', 'Windows']}>
+  <Tab value="macOS, Linux">
+    ```sh
+    curl -fsSL https://raw.githubusercontent.com/ftchd/xilo/main/install.sh | sh
+    ```
+  </Tab>
+  <Tab value="Windows">
+    In PowerShell:
+
+    ```powershell
+    irm https://raw.githubusercontent.com/ftchd/xilo/main/install.ps1 | iex
+    ```
+  </Tab>
+</Tabs>
+
+| System | Where Xilo goes |
+| --- | --- |
+| macOS | `~/Applications/Xilo.app`, or `/Applications/Xilo.app` if you installed it there before. The `xilo` command goes in `/usr/local/bin` if you can write there, otherwise in `~/.local/bin`. |
+| Linux | `~/.local/bin/xilo-app` and `~/.local/bin/xilo`, with an entry in your app menu |
+| Windows | `%LOCALAPPDATA%\Programs\Xilo`, with a Start menu entry. The `bin` folder is added to your `Path`. |
+
+Run the same command again to update Xilo. The scripts don't change your settings or history.
+
+You can set these options as environment variables:
+
+| Option | What it does |
+| --- | --- |
+| `XILO_VERSION=v0.2.0` | Installs this release instead of the latest one. |
+| `XILO_NO_OPEN=1` | Doesn't open Xilo after installing. |
+| `XILO_DRY_RUN=1` | Shows what the script would do, and changes nothing. |
+
+For example: `curl -fsSL https://raw.githubusercontent.com/ftchd/xilo/main/install.sh | XILO_VERSION=v0.2.0 sh`. In PowerShell, set `$env:XILO_VERSION = 'v0.2.0'` before the command.
+
+### Uninstall
+
+<Tabs items={['macOS, Linux', 'Windows']}>
+  <Tab value="macOS, Linux">
+    ```sh
+    curl -fsSL https://raw.githubusercontent.com/ftchd/xilo/main/install.sh | sh -s -- --uninstall
+    ```
+  </Tab>
+  <Tab value="Windows">
+    ```powershell
+    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/ftchd/xilo/main/install.ps1))) -Uninstall
+    ```
+  </Tab>
+</Tabs>
+
+This removes Xilo, the `xilo` command and the login item. Your settings and history stay, and the script says where they are, so that you can delete them too.
+
+## Download
+
+You can also download Xilo from the [releases page](https://github.com/ftchd/xilo/releases/latest). Each download contains the app and the `xilo` command line tool.
 
 | System | Download |
 | --- | --- |
@@ -17,7 +73,7 @@ Download Xilo from the [releases page](https://github.com/ftchd/xilo/releases/la
 
 Your computer needs Bluetooth Low Energy. Most computers from the last ten years have it.
 
-## macOS
+### macOS
 
 Xilo needs macOS 13 or newer.
 
@@ -32,14 +88,14 @@ sudo mkdir -p /usr/local/bin
 sudo ln -sf /Applications/Xilo.app/Contents/Helpers/xilo /usr/local/bin/xilo
 ```
 
-## Windows
+### Windows
 
 1. Unpack the zip file, for example into your **Programs** folder.
 2. Open **Xilo.exe**. The download isn't signed by Microsoft, so Windows may warn you. Click **More info**, then **Run anyway**.
 
 The `xilo` tool is in the `bin` folder. Add that folder to your `Path` to use it in any terminal.
 
-## Linux
+### Linux
 
 Xilo uses BlueZ for Bluetooth, which most desktop systems include.
 
