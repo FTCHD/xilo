@@ -15,7 +15,7 @@ const HEADER: &str =
 const KINDS: [&str; 5] = [
     "Power stations",
     "Solarbanks",
-    "Home",
+    "Home power",
     "Chargers and power banks",
     "Coolers",
 ];
@@ -25,7 +25,7 @@ fn kind(model: &ModelSpec) -> &'static str {
     if name.contains("Solarbank") {
         "Solarbanks"
     } else if name.contains("Power Panel") {
-        "Home"
+        "Home power"
     } else if name.contains("EverFrost") {
         "Coolers"
     } else if name.contains("Prime") || name.contains("MagGo") {
@@ -86,6 +86,18 @@ fn image_name(model: &ModelSpec, src: &Path) -> String {
     format!("{}.{ext}", slug(model))
 }
 
+/// "a", "a and b", "a, b and c".
+fn list<T: AsRef<str>>(items: &[T]) -> String {
+    match items {
+        [] => String::new(),
+        [one] => one.as_ref().to_string(),
+        [rest @ .., last] => {
+            let rest: Vec<&str> = rest.iter().map(AsRef::as_ref).collect();
+            format!("{} and {}", rest.join(", "), last.as_ref())
+        }
+    }
+}
+
 /// What a command can be set to, in words.
 fn values(command: &CommandDef) -> String {
     let unit = command.unit.as_deref().unwrap_or("");
@@ -117,10 +129,13 @@ fn page(root: &Path, model: &ModelSpec) -> String {
     let name = full_name(model);
     let short = model.name.trim_start_matches("SOLIX ");
     let code = &model.code;
+    let has = |field: &str| model.fields.iter().any(|f| f.id == field);
+    let battery = has("battery_soc");
     let mut out = String::new();
     let description = format!(
         "Monitor and control the {name} ({code}) from macOS, Windows or Linux over Bluetooth, without an account: \
-         battery, power, settings and automations."
+         {}power, settings and automations.",
+        if battery { "battery, " } else { "" }
     );
     out += &format!(
         "---\ntitle: {}\ndescription: {}\n---\n\n{HEADER}\n\n",
@@ -193,13 +208,29 @@ fn page(root: &Path, model: &ModelSpec) -> String {
         out += "Xilo checks every value against these limits before it sends anything, because the device itself accepts values it can't handle.\n\n";
     }
 
-    let controls: Vec<String> = model
+    // The same choices as the Automations tab of the app.
+    let controls: Vec<&CommandDef> = model
         .commands
         .values()
         .filter(|c| c.group == Group::Control && c.danger == Danger::None)
         .filter(|c| c.input == Input::Switch || (c.input == Input::Choice && !c.options.is_empty()))
-        .map(|c| text(&c.label))
         .collect();
+    let reserve = battery
+        && controls
+            .iter()
+            .any(|c| c.input == Input::Switch && !c.id.contains("screen"));
+    let alerts = [
+        (has("error_code"), "errors"),
+        (battery, "battery levels"),
+        (has("input_source"), "AC power"),
+        (true, "connection"),
+    ]
+    .iter()
+    .filter(|(on, _)| *on)
+    .map(|(_, what)| *what)
+    .collect::<Vec<_>>();
+    let alerts = list(&alerts);
+    let controls: Vec<String> = controls.iter().map(|c| text(&c.label)).collect();
     let usb_wake = model.command("dc_switch").is_some()
         && model
             .fields
@@ -207,17 +238,21 @@ fn page(root: &Path, model: &ModelSpec) -> String {
             .any(|f| f.id.starts_with("usb_") && f.id.ends_with("_power"));
     out += "## Automations\n\n";
     if controls.is_empty() {
-        out += "This model has no controls that a schedule can switch. Alerts still work: errors, battery levels, AC power and connection.\n\n";
+        out += &format!(
+            "This model has no controls that a schedule can switch. Alerts still work, for {alerts}.\n\n"
+        );
     } else {
         out += &format!(
             "- **Schedules** can switch {} at set times, on the days you choose.\n",
-            controls.join(", ")
+            list(&controls)
         );
-        out += "- **Battery reserve** turns outputs off when the battery drops to a level you choose.\n";
+        if reserve {
+            out += "- **Battery reserve** turns outputs off when the battery drops to a level you choose.\n";
+        }
         if usb_wake {
             out += "- **USB wake** keeps the USB ports on, for devices that turn them off after a while at low load.\n";
         }
-        out += "- **Alerts** for errors, battery levels, AC power and connection.\n\n";
+        out += &format!("- **Alerts** for {alerts}.\n\n");
     }
     out += "See [Automations](/docs/automations) for how they work.\n\n";
 
