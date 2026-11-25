@@ -1,14 +1,12 @@
 use gpui_kit::assets::IconName;
 use gpui_kit::component::switch::Switch;
-use gpui_kit::component::{ActiveTheme as _, Icon, h_flex, v_flex};
+use gpui_kit::component::{ActiveTheme as _, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 use xilo_store::{Preferences, ThemeChoice};
 
 use crate::state::AppState;
-use crate::widgets::{caption, card, divided, icon_badge, pill, section, segment, segmented, tint};
-
-const LICENSES: &str = include_str!("../../../THIRD_PARTY_NOTICES.md");
+use crate::widgets::{caption, card, divided, icon_badge, section, segment, segmented};
 
 fn row(icon: IconName, label: &str, hint: &str, control: AnyElement, cx: &App) -> AnyElement {
     h_flex()
@@ -219,127 +217,5 @@ pub fn render(state: &Entity<AppState>, cx: &App) -> AnyElement {
             switch("dev", p.developer_mode, state, |p, v| p.developer_mode = v),
             cx,
         )))
-        .into_any_element()
-}
-
-pub fn about(cx: &App) -> AnyElement {
-    let primary = cx.theme().primary;
-    let credit = |name: &'static str,
-                  url: &'static str,
-                  holder: &'static str,
-                  what: &'static str,
-                  cx: &App| {
-        card(cx).flex_1().child(
-            v_flex()
-                .gap(px(8.))
-                .child(
-                    h_flex()
-                        .gap(px(10.))
-                        .items_center()
-                        .child(icon_badge(IconName::Github, cx.theme().foreground, px(32.)))
-                        .child(
-                            div()
-                                .text_size(px(15.))
-                                .font_weight(FontWeight::SEMIBOLD)
-                                .child(name),
-                        )
-                        .child(pill("MIT", cx.theme().success)),
-                )
-                .child(caption(what, cx))
-                .child(caption(holder, cx).text_size(px(12.)))
-                .child(
-                    div()
-                        .id(name)
-                        .text_size(px(12.))
-                        .text_color(primary)
-                        .cursor_pointer()
-                        .hover(|s| s.underline())
-                        .child(url)
-                        .on_click(move |_, _, cx| cx.open_url(url)),
-                ),
-        )
-    };
-    v_flex()
-        .id("about")
-        .size_full()
-        .overflow_y_scroll()
-        .p(px(24.))
-        .gap(px(16.))
-        .child(
-            card(cx)
-                .bg(linear_gradient(
-                    135.,
-                    linear_color_stop(tint(cx.theme().group_box, primary, 0.18), 0.),
-                    linear_color_stop(cx.theme().group_box, 1.),
-                ))
-                .p(px(24.))
-                .child(
-                    h_flex()
-                        .gap(px(20.))
-                        .items_center()
-                        .child(
-                            div()
-                                .size(px(80.))
-                                .flex_none()
-                                .rounded(px(22.))
-                                .bg(linear_gradient(
-                                    160.,
-                                    linear_color_stop(rgb(0x00cceb), 0.),
-                                    linear_color_stop(rgb(0x0073b3), 1.),
-                                ))
-                                .flex()
-                                .items_center()
-                                .justify_center()
-                                .child(Icon::new(IconName::Zap).size(px(40.)).text_color(white())),
-                        )
-                        .child(
-                            v_flex()
-                                .gap(px(6.))
-                                .child(
-                                    h_flex()
-                                        .gap(px(10.))
-                                        .items_center()
-                                        .child(div().text_size(px(28.)).font_weight(FontWeight::BOLD).child("Xilo"))
-                                        .child(pill(format!("Version {}", env!("CARGO_PKG_VERSION")), primary)),
-                                )
-                                .child(caption(
-                                    "Controls Anker SOLIX devices over Bluetooth. No account, no cloud, no internet.",
-                                    cx,
-                                ))
-                                .child(caption("Xilo is not made by or affiliated with Anker.", cx).text_size(px(12.))),
-                        ),
-                ),
-        )
-        .child(section("Built On", cx))
-        .child(
-            h_flex()
-                .gap(px(14.))
-                .items_stretch()
-                .child(credit(
-                    "SolixBLE",
-                    "https://github.com/flip-dots/SolixBLE",
-                    "© 2026 Harvey Lelliott",
-                    "Protocol logic, Prime support, field maps and test data.",
-                    cx,
-                ))
-                .child(credit(
-                    "anker-solix-api",
-                    "https://github.com/thomluther/anker-solix-api",
-                    "© 2024 thomluther",
-                    "Field and command maps for most models.",
-                    cx,
-                )),
-        )
-        .child(section("License Texts", cx))
-        .child(
-            card(cx).child(
-                div()
-                    .text_size(px(11.))
-                    .font_family(cx.theme().mono_font_family.clone())
-                    .text_color(cx.theme().muted_foreground)
-                    .whitespace_normal()
-                    .child(LICENSES),
-            ),
-        )
         .into_any_element()
 }

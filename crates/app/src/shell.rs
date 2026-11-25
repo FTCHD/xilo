@@ -18,6 +18,7 @@ use crate::theme;
 use crate::widgets::{asset, battery_avatar, battery_color, caption, section, status_dot, tint};
 
 pub const SIDEBAR_WIDTH: Pixels = px(260.);
+const GITHUB: &str = "https://github.com/ftchd/xilo";
 
 pub struct Root {
     state: Entity<AppState>,
@@ -206,9 +207,7 @@ impl Root {
             );
         }
         let nav =
-            |id: &'static str, label: &'static str, icon: IconName, target: Route, cx: &App| {
-                let state = self.state.clone();
-                let selected = route == target;
+            |id: &'static str, label: &'static str, icon: IconName, selected: bool, cx: &App| {
                 item(SharedString::from(id), selected, cx)
                     .child(
                         div()
@@ -234,11 +233,23 @@ impl Root {
                             .font_weight(FontWeight::MEDIUM)
                             .child(label),
                     )
-                    .on_click(move |_, _, cx| {
-                        let target = target.clone();
-                        state.update(cx, |s, cx| s.navigate(target, cx));
-                    })
             };
+        let go =
+            |id: &'static str, label: &'static str, icon: IconName, target: Route, cx: &App| {
+                let state = self.state.clone();
+                nav(id, label, icon, route == target, cx).on_click(move |_, _, cx| {
+                    let target = target.clone();
+                    state.update(cx, |s, cx| s.navigate(target, cx));
+                })
+            };
+        let github = nav("nav-github", "GitHub", IconName::Github, false, cx)
+            .child(div().flex_1())
+            .child(
+                Icon::new(IconName::ArrowUpRight)
+                    .size_4()
+                    .text_color(cx.theme().muted_foreground),
+            )
+            .on_click(|_, _, cx| cx.open_url(GITHUB));
         v_flex()
             .w(SIDEBAR_WIDTH)
             .flex_none()
@@ -254,7 +265,7 @@ impl Root {
             ))
             .child(section("Devices", cx).px(px(10.)).pt(px(8.)))
             .child(list)
-            .child(nav(
+            .child(go(
                 "nav-add",
                 "Add Device",
                 IconName::Plus,
@@ -262,14 +273,14 @@ impl Root {
                 cx,
             ))
             .child(div().flex_1())
-            .child(nav(
+            .child(go(
                 "nav-prefs",
                 "Preferences",
                 IconName::Settings,
                 Route::Preferences,
                 cx,
             ))
-            .child(nav("nav-about", "About", IconName::Info, Route::About, cx))
+            .child(github)
     }
 }
 
@@ -328,7 +339,6 @@ impl Render for Root {
                 .overflow_y_scroll()
                 .child(preferences::render(&self.state, cx))
                 .into_any_element(),
-            Route::About => preferences::about(cx),
         };
         v_flex()
             .size_full()

@@ -11,7 +11,7 @@ use xilo_engine::Snapshot;
 use xilo_models::{CommandDef, Danger, Group, Input, ModelSpec};
 use xilo_store::Automations;
 
-pub use schedules::Editor;
+pub use schedules::{Editor, add as add_schedule};
 
 use crate::device_view::DeviceView;
 use crate::history_view::time_text;

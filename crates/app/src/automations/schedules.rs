@@ -72,6 +72,27 @@ fn local_hour() -> u8 {
         .hour() as u8
 }
 
+/// Opens the editor for a new schedule with the first control, at the next full hour.
+pub fn add(view: &mut DeviceView, window: &mut Window, cx: &mut Context<DeviceView>) {
+    let snap = view.device.read(cx).snap.clone();
+    let Some(first) = snap
+        .model
+        .as_deref()
+        .and_then(|m| controls(m, &snap).into_iter().next())
+    else {
+        return;
+    };
+    let schedule = Schedule {
+        value: values(&first).first().map_or(0, |v| v.0),
+        command: first.id,
+        hour: (local_hour() + 1) % 24,
+        minute: 0,
+        days: EVERY_DAY,
+        enabled: true,
+    };
+    open(view, None, schedule, window, cx);
+}
+
 fn open(
     view: &mut DeviceView,
     index: Option<usize>,
@@ -131,23 +152,12 @@ pub fn render(
     let options = model.map(|m| controls(m, snap)).unwrap_or_default();
     let editing = view.schedule_editor.is_some();
 
-    let add = options.first().filter(|_| !editing).map(|first| {
-        let first = first.clone();
+    let add = (!options.is_empty() && !editing).then(|| {
         Button::new("add-schedule")
             .small()
             .icon(Icon::new(IconName::Plus))
             .label("Add Schedule")
-            .on_click(cx.listener(move |view, _, window, cx| {
-                let schedule = Schedule {
-                    command: first.id.clone(),
-                    value: values(&first).first().map_or(0, |v| v.0),
-                    hour: (local_hour() + 1) % 24,
-                    minute: 0,
-                    days: EVERY_DAY,
-                    enabled: true,
-                };
-                open(view, None, schedule, window, cx);
-            }))
+            .on_click(cx.listener(|view, _, window, cx| add(view, window, cx)))
     });
     let title = h_flex()
         .justify_between()

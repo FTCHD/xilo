@@ -29,6 +29,7 @@ pub struct DeviceView {
     pub history: Option<Entity<history_view::HistoryView>>,
     pub schedule_editor: Option<automations::Editor>,
     scroll: ScrollHandle,
+    start_view: Option<String>,
     _blink: Task<()>,
     _observe: Subscription,
 }
@@ -67,6 +68,7 @@ impl DeviceView {
             history: None,
             schedule_editor: None,
             scroll: ScrollHandle::new(),
+            start_view: crate::state::take_start_view(),
             _blink: blink,
             _observe: observe,
         }
@@ -392,6 +394,20 @@ fn text_width(text: &str, size: f32, weight: FontWeight, window: &Window, cx: &A
 
 impl Render for DeviceView {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let ready = {
+            let snap = &self.device.read(cx).snap;
+            snap.is_ready() && snap.model.is_some()
+        };
+        if ready && let Some(view) = self.start_view.take() {
+            match view.as_str() {
+                "bottom" => self.scroll.scroll_to_bottom(),
+                "schedule" => cx.defer_in(window, automations::add_schedule),
+                "timer" => cx.defer_in(window, |view, window, cx| {
+                    view.countdown_sheet("AC Output", "ac_timer", window, cx)
+                }),
+                other => tracing::warn!("XILO_OPEN: unknown view {other}"),
+            }
+        }
         let body = match self.tab {
             Tab::Dashboard => families::dashboard(self, window, cx),
             Tab::Settings => settings::render(self, window, cx),

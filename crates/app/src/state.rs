@@ -24,7 +24,6 @@ pub enum Route {
     Device(String, Tab),
     AddDevice,
     Preferences,
-    About,
 }
 
 pub struct AppState {
@@ -208,14 +207,28 @@ impl AppState {
     }
 }
 
+/// What the first device page shows once its device is ready, from the fourth part of
+/// `XILO_OPEN`: `bottom`, `schedule` (the schedule editor) or `timer` (the AC timer sheet).
+/// Only the first caller gets it.
+pub fn take_start_view() -> Option<String> {
+    static TAKEN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+    if TAKEN.swap(true, std::sync::atomic::Ordering::Relaxed) {
+        return None;
+    }
+    std::env::var("XILO_OPEN")
+        .ok()?
+        .splitn(4, ':')
+        .nth(3)
+        .map(str::to_string)
+}
+
 /// The first page: `XILO_OPEN` when set (for development), else the first device.
 fn start_route(config: &Config) -> Route {
     if let Ok(open) = std::env::var("XILO_OPEN") {
-        let mut parts = open.splitn(3, ':');
+        let mut parts = open.splitn(4, ':');
         match (parts.next(), parts.next(), parts.next()) {
             (Some("add"), ..) => return Route::AddDevice,
             (Some("preferences"), ..) => return Route::Preferences,
-            (Some("about"), ..) => return Route::About,
             (Some("device"), Some(key), tab) => {
                 let tab = match tab {
                     Some("settings") => Tab::Settings,
