@@ -4,10 +4,14 @@ use std::sync::OnceLock;
 
 use gpui_kit::*;
 
-/// Folder with the extracted Anker assets, if any.
+/// Folder with the extracted Anker assets, if any. `XILO_NO_VENDOR` hides them,
+/// for screenshots that will be published.
 pub fn vendor_dir() -> Option<&'static Path> {
     static DIR: OnceLock<Option<PathBuf>> = OnceLock::new();
     DIR.get_or_init(|| {
+        if std::env::var_os("XILO_NO_VENDOR").is_some() {
+            return None;
+        }
         let bundled = std::env::current_exe()
             .ok()
             .and_then(|exe| exe.parent().map(|p| p.join("../Resources/vendor")));

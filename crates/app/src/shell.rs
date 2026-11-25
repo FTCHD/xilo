@@ -15,7 +15,7 @@ use crate::runtime::Runtime;
 use crate::services::{AppEvent, EventKind, unix_now};
 use crate::state::{AppState, Route, Tab};
 use crate::theme;
-use crate::widgets::{asset, battery_color, caption, section, status_dot, tint};
+use crate::widgets::{asset, battery_avatar, battery_color, caption, section, status_dot, tint};
 
 pub const SIDEBAR_WIDTH: Pixels = px(260.);
 
@@ -140,12 +140,18 @@ impl Root {
                 .flex()
                 .items_center()
                 .justify_center()
-                .child(asset(
-                    &format!("{assets}/product"),
-                    px(32.),
-                    IconName::BatteryCharging,
-                    cx,
-                ))
+                .child(
+                    if crate::assets::vendor(&format!("{assets}/product")).is_some() {
+                        asset(
+                            &format!("{assets}/product"),
+                            px(32.),
+                            IconName::BatteryCharging,
+                            cx,
+                        )
+                    } else {
+                        battery_avatar(soc.map(|s| s as f32 / 100.), None, 26., cx)
+                    },
+                )
                 .child(
                     div()
                         .absolute()

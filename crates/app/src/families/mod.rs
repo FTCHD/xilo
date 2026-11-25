@@ -2,9 +2,11 @@ pub mod c300;
 pub mod generic;
 pub mod view_model;
 
+use gpui_kit::assets::IconName;
 use gpui_kit::*;
 
 use crate::device_view::DeviceView;
+use crate::widgets::{asset, battery_avatar};
 
 pub fn dashboard(
     view: &mut DeviceView,
@@ -29,12 +31,7 @@ pub fn dashboard(
 pub fn avatar(view: &DeviceView, size: f32, cx: &App) -> AnyElement {
     let snap = &view.device.read(cx).snap;
     let Some(model) = snap.model.as_ref() else {
-        return crate::widgets::asset(
-            "",
-            px(size),
-            gpui_kit::assets::IconName::BatteryCharging,
-            cx,
-        );
+        return battery_avatar(None, None, size, cx);
     };
     match model.family.dashboard.as_str() {
         "c1000" => c300::avatar(
@@ -47,11 +44,19 @@ pub fn avatar(view: &DeviceView, size: f32, cx: &App) -> AnyElement {
             size,
             cx,
         ),
-        _ => crate::widgets::asset(
-            &format!("{}/product", model.assets),
-            px(size),
-            gpui_kit::assets::IconName::BatteryCharging,
-            cx,
-        ),
+        _ => {
+            let product = format!("{}/product", model.assets);
+            if crate::assets::vendor(&product).is_some() {
+                asset(&product, px(size), IconName::BatteryCharging, cx)
+            } else {
+                let soc = snap.is_ready().then(|| snap.int("battery_soc")).flatten();
+                battery_avatar(
+                    soc.map(|s| s as f32 / 100.),
+                    soc.map(|s| format!("{s}%")),
+                    size,
+                    cx,
+                )
+            }
+        }
     }
 }

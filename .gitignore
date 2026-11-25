@@ -6,3 +6,4 @@
 *.xcap
 !**/fixtures/*.xcap
 .DS_Store
+.demo/out/

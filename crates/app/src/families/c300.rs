@@ -9,8 +9,8 @@ use xilo_models::CommandRequest;
 use crate::device_view::DeviceView;
 use crate::families::view_model::{self, Dashboard};
 use crate::widgets::{
-    self, asset, battery_gauge, big_value, caption, icon_badge, input_color, live_card,
-    output_color, pill, power_button, section, sparkline,
+    self, asset, battery_avatar, battery_gauge, big_value, caption, icon_badge, input_color,
+    live_card, output_color, pill, power_button, section, sparkline,
 };
 
 pub fn render(
@@ -157,16 +157,27 @@ pub fn avatar(d: &Dashboard, size: f32, cx: &App) -> AnyElement {
     } else {
         d.soc.map(|s| format!("{s}%"))
     };
+    let has_hero = crate::assets::vendor(&d.hero).is_some();
     div()
         .relative()
         .w(px(size))
         .h(px(h))
         .flex_none()
-        .child(asset(&d.hero, px(size), IconName::BatteryCharging, cx))
-        .when(d.connected && !d.loading && d.gauge, |el| {
+        .when(!has_hero, |el| {
+            el.child(battery_avatar(
+                d.connected.then_some(d.level),
+                if d.connected { label.clone() } else { None },
+                size,
+                cx,
+            ))
+        })
+        .when(has_hero, |el| {
+            el.child(asset(&d.hero, px(size), IconName::BatteryCharging, cx))
+        })
+        .when(has_hero && d.connected && !d.loading && d.gauge, |el| {
             el.child(screen(div()).child(battery_gauge(d.battery.key(), d.level, scale)))
         })
-        .when(d.connected && !d.loading, |el| {
+        .when(has_hero && d.connected && !d.loading, |el| {
             el.when_some(label, |el, label| {
                 el.child(
                     screen(v_flex())
@@ -227,6 +238,7 @@ fn ports(d: &Dashboard, cx: &App) -> Div {
             widgets::port_tile(
                 p.label,
                 p.icon.asset(),
+                p.icon.fallback(),
                 p.watts,
                 active,
                 p.icon.is_input(),

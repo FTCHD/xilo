@@ -182,6 +182,78 @@ pub fn asset(key: &str, size: Pixels, fallback: IconName, cx: &App) -> AnyElemen
     }
 }
 
+/// A battery that fills to the charge level, for when the Anker images are missing.
+pub fn battery_avatar(
+    level: Option<f32>,
+    label: Option<String>,
+    size: f32,
+    cx: &App,
+) -> AnyElement {
+    let theme = cx.theme();
+    let body_w = size * 0.56;
+    let body_h = size * 0.84;
+    let border = (size * 0.035).max(2.);
+    let inset = border + (size * 0.03).max(2.);
+    let fill = level.map(|l| l.clamp(0., 1.));
+    let color = fill.map_or(theme.muted_foreground, |l| {
+        battery_color((l * 100.).round() as i64, cx)
+    });
+    v_flex()
+        .w(px(size))
+        .h(px(size))
+        .flex_none()
+        .items_center()
+        .justify_center()
+        .child(
+            div()
+                .w(px(size * 0.22))
+                .h(px(size * 0.06))
+                .rounded_t(px(size * 0.03))
+                .bg(theme.foreground.alpha(0.35)),
+        )
+        .child(
+            div()
+                .relative()
+                .w(px(body_w))
+                .h(px(body_h))
+                .rounded(px(size * 0.12))
+                .border(px(border))
+                .border_color(theme.foreground.alpha(0.35))
+                .when_some(fill.filter(|l| *l > 0.), |el, l| {
+                    let inner = body_h - inset * 2.;
+                    el.child(
+                        div()
+                            .absolute()
+                            .left(px(inset - border))
+                            .right(px(inset - border))
+                            .bottom(px(inset - border))
+                            .h(px(inner * l))
+                            .rounded(px(size * 0.06))
+                            .bg(linear_gradient(
+                                180.,
+                                linear_color_stop(color, 0.),
+                                linear_color_stop(color.alpha(0.75), 1.),
+                            )),
+                    )
+                })
+                .when_some(label, |el, label| {
+                    el.child(
+                        div()
+                            .absolute()
+                            .inset_0()
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .text_size(px((size * 0.16).max(10.)))
+                            .font_weight(FontWeight::BOLD)
+                            .text_color(theme.foreground)
+                            .child(label),
+                    )
+                }),
+        )
+        .into_any_element()
+}
+
 /// The Anker battery animation: the outline with the column clipped to the level.
 pub fn battery_gauge(key: &str, level: f32, scale: f32) -> AnyElement {
     let (Some(base), Some(column)) = (
@@ -279,6 +351,7 @@ pub fn sparkline(values: &VecDeque<f64>, color: Hsla, height: Pixels) -> AnyElem
 pub fn port_tile(
     label: &str,
     icon_key: &str,
+    fallback: IconName,
     value: Option<i64>,
     active: bool,
     input: bool,
@@ -305,7 +378,7 @@ pub fn port_tile(
                     h_flex()
                         .justify_between()
                         .items_center()
-                        .child(
+                        .child(if assets::vendor(icon_key).is_some() {
                             div()
                                 .size(px(40.))
                                 .rounded_full()
@@ -314,8 +387,18 @@ pub fn port_tile(
                                 .justify_center()
                                 .bg(rgb(0xf3f7fb))
                                 .when(!active, |el| el.opacity(0.4))
-                                .child(asset(icon_key, px(28.), IconName::Plug, cx)),
-                        )
+                                .child(asset(icon_key, px(28.), fallback, cx))
+                        } else {
+                            icon_badge(
+                                fallback,
+                                if active {
+                                    color
+                                } else {
+                                    cx.theme().muted_foreground
+                                },
+                                px(40.),
+                            )
+                        })
                         .child(
                             div()
                                 .text_size(px(11.))

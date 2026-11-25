@@ -1,3 +1,4 @@
+use gpui_kit::assets::IconName;
 use xilo_engine::{LinkState, Snapshot};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -39,6 +40,16 @@ impl PortIcon {
         match self {
             PortIcon::UsbC(state) => state != 0,
             PortIcon::UsbA(on) | PortIcon::Solar(on) | PortIcon::AcInput(on) => on,
+        }
+    }
+
+    /// The built-in icon when the Anker port icons are missing.
+    pub fn fallback(self) -> IconName {
+        match self {
+            PortIcon::UsbC(_) => IconName::Cable,
+            PortIcon::UsbA(_) => IconName::Usb,
+            PortIcon::Solar(_) => IconName::SolarPanel,
+            PortIcon::AcInput(_) => IconName::PlugZap,
         }
     }
 
