@@ -4,8 +4,6 @@
 
 Xilo is a desktop app for Anker SOLIX devices. It talks to them over Bluetooth only. You don't need an account, a cloud connection or the internet.
 
-**Website and documentation: [ftchd.github.io/xilo](https://ftchd.github.io/xilo)**
-
 Xilo is not made by or affiliated with Anker.
 
 ## Install
