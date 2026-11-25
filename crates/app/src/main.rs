@@ -66,41 +66,29 @@ fn simulator(registry: &Registry) -> SimConnector {
     ] {
         if let Some(spec) = registry.get(code) {
             let mut device = SimDevice::new(spec.clone(), serial);
-            // A busy afternoon: charging from the wall and a solar panel, while a
-            // laptop, a phone, earbuds, a lamp and a car fridge draw power.
+            // An afternoon at a desk: charging from a solar panel, while a laptop
+            // and a lamp draw power.
             if addr == "sim-c300x" {
                 for (id, value) in [
                     ("battery_state", Value::Int(2)),
                     ("battery_soc", Value::Int(72)),
                     ("ac_switch", Value::Bool(true)),
-                    ("dc_switch", Value::Bool(true)),
-                    ("ac_output_power", Value::Int(24)),
-                    ("car_output_power", Value::Int(12)),
-                    ("car_state", Value::Int(1)),
-                    ("ac_input_power", Value::Int(118)),
-                    ("solar_input_power", Value::Int(64)),
-                    ("input_source", Value::Int(3)),
-                    ("total_input_power", Value::Int(182)),
-                    ("total_output_power", Value::Int(137)),
+                    ("ac_output_power", Value::Int(26)),
+                    ("solar_input_power", Value::Int(95)),
+                    ("input_source", Value::Int(1)),
+                    ("total_input_power", Value::Int(95)),
+                    ("total_output_power", Value::Int(74)),
                     ("usb_c1_state", Value::Int(1)),
-                    ("usb_c1_power", Value::Int(61)),
-                    ("usb_c2_state", Value::Int(1)),
-                    ("usb_c2_power", Value::Int(18)),
-                    ("usb_c3_state", Value::Int(1)),
-                    ("usb_c3_power", Value::Int(17)),
-                    ("usb_a_state", Value::Int(1)),
-                    ("usb_a_power", Value::Int(5)),
-                    ("remaining_time", Value::Float(1.8)),
+                    ("usb_c1_power", Value::Int(48)),
+                    ("remaining_time", Value::Float(4.3)),
                     ("light_mode", Value::Int(1)),
                 ] {
                     device.set(id, value);
                 }
                 device.drift = vec![
-                    Drift::new("ac_output_power", 24, 7.),
-                    Drift::new("car_output_power", 12, 4.),
-                    Drift::new("usb_c1_power", 61, 9.),
-                    Drift::new("usb_c2_power", 18, 3.),
-                    Drift::new("solar_input_power", 64, 10.),
+                    Drift::new("ac_output_power", 26, 6.),
+                    Drift::new("usb_c1_power", 48, 7.),
+                    Drift::new("solar_input_power", 92, 6.),
                 ];
             }
             sim.add(addr, device);
