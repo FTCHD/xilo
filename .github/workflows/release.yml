@@ -116,26 +116,38 @@ jobs:
         working-directory: dist
         run: sha256sum * > SHA256SUMS.txt
 
-      - name: Remove older drafts of this version
-        run: |
-          gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
-            --jq ".[] | select(.draft and .tag_name == \"$TAG\") | .id" |
-            while read -r id; do
-              gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$id"
-            done
-
       - name: Create the draft release
         run: |
+          # Older drafts of this version, and a draft that a failed attempt left.
+          remove_drafts() {
+            gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
+              --jq ".[] | select(.draft and .tag_name == \"$TAG\") | .id" |
+              while read -r id; do
+                gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$id"
+              done
+          }
           flags=()
           if [[ "$TAG" == *-* ]]; then
             flags+=(--prerelease)
           fi
           # The tag is made when the draft is published, on the commit that was built.
-          gh release create "$TAG" dist/* \
-            --repo "$GITHUB_REPOSITORY" \
-            --draft \
-            --target "$GITHUB_SHA" \
-            --title "Xilo ${TAG#v}" \
-            --notes-file .github/release-notes.md \
-            --generate-notes \
-            "${flags[@]}"
+          create() {
+            remove_drafts
+            gh release create "$TAG" dist/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --draft \
+              --target "$GITHUB_SHA" \
+              --title "Xilo ${TAG#v}" \
+              --notes-file .github/release-notes.md \
+              "${flags[@]}" "$@"
+          }
+          # GitHub's service for generated notes sometimes answers with a server error.
+          # Try it a few times, then make the draft with the notes file only.
+          for attempt in 1 2 3; do
+            if create --generate-notes; then
+              exit 0
+            fi
+            echo "::warning::Attempt $attempt with generated notes failed."
+            sleep 15
+          done
+          create
