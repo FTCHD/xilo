@@ -16,6 +16,8 @@ const config = {
   trailingSlash: true,
   images: { unoptimized: true },
   reactStrictMode: true,
+  // Next.js writes an AGENTS.md when an AI agent runs `next dev`. This project doesn't keep one.
+  agentRules: false,
   env: {
     NEXT_PUBLIC_SITE_URL: siteUrl,
     NEXT_PUBLIC_BASE_PATH: basePath,
