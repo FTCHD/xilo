@@ -1,16 +1,16 @@
 import type { MetadataRoute } from 'next';
+import { lastModified } from '@/lib/last-modified';
+import { absoluteUrl } from '@/lib/shared';
 import { source } from '@/lib/source';
-import { siteUrl } from '@/lib/shared';
 
 export const dynamic = 'force-static';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
-    { url: `${siteUrl}/`, changeFrequency: 'weekly', priority: 1 },
+    { url: absoluteUrl('/'), lastModified: lastModified('app/(home)') },
     ...source.getPages().map((page) => ({
-      url: `${siteUrl}${page.url}/`,
-      changeFrequency: 'monthly' as const,
-      priority: page.url === '/docs' ? 0.9 : 0.7,
+      url: absoluteUrl(page.url),
+      lastModified: lastModified(`content/docs/${page.path}`),
     })),
   ];
 }

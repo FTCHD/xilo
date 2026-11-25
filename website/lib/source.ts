@@ -23,10 +23,16 @@ export const source = loader({
   plugins: [],
 });
 
-export const docsLlms = llms(source, {
-  renderPage: async (page) => `# ${page.data.title} (${page.url})
+// Links in the Markdown start with "/", but AI crawlers read these files on their own, so they need
+// the full address of the site.
+function absoluteLinks(markdown: string) {
+  return markdown.replace(/\]\(\//g, `](${siteUrl}/`).replace(/src="\//g, `src="${siteUrl}/`);
+}
 
-${await page.data.getText('processed')}`,
+export const docsLlms = llms(source, {
+  renderPage: async (page) => `# ${page.data.title} (${siteUrl}${page.url}/)
+
+${absoluteLinks(await page.data.getText('processed'))}`,
   // full addresses, because AI crawlers read llms.txt on its own
   renderUrl: (item) =>
     /^\/.*\.(md|txt)$/.test(item.url) ? `${siteUrl}/llms.mdx${item.url}` : item.url.startsWith('/') ? `${siteUrl}${item.url}` : item.url,

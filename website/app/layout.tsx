@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { Provider } from '@/components/provider';
-import { appName, description, ogImage, siteUrl, tagline } from '@/lib/shared';
+import { appName, description, ogImage, openGraphBase, siteUrl, tagline } from '@/lib/shared';
 import './global.css';
 
 const inter = Inter({
@@ -33,8 +33,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: 'website',
-    siteName: appName,
-    locale: 'en',
+    ...openGraphBase,
     images: [ogImage],
   },
   twitter: { card: 'summary_large_image' },

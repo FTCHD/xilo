@@ -13,6 +13,11 @@ export function withBase(path: string) {
   return `${basePath}${path}`;
 }
 
+/** A full address, for the sitemap, structured data and llms.txt. Pages end with a slash, like the site. */
+export function absoluteUrl(path: string) {
+  return /\.[a-z]+$/.test(path) || path.endsWith('/') ? `${siteUrl}${path}` : `${siteUrl}${path}/`;
+}
+
 export const gitConfig = {
   user: 'ftchd',
   repo: 'xilo',
@@ -21,10 +26,18 @@ export const gitConfig = {
 
 export const repoUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}`;
 export const downloadUrl = `${repoUrl}/releases/latest`;
+export const licenseUrl = `${repoUrl}/blob/${gitConfig.branch}/LICENSE`;
+export const noticeUrl = `${repoUrl}/blob/${gitConfig.branch}/NOTICE`;
 
 export const tagline = 'The desktop app for Anker SOLIX power stations';
 /** The picture for links shared on social media, for pages without their own. */
 export const ogImage = { url: '/og.png', width: 1200, height: 630, alt: `Xilo: ${tagline}` };
+
+/**
+ * The parts of the Open Graph tags that every page has. A page that sets `openGraph`
+ * replaces the whole object from the layout, so each page spreads this in.
+ */
+export const openGraphBase = { siteName: appName, locale: 'en_US' } as const;
 export const description =
   'Monitor and control Anker SOLIX power stations, Solarbanks and chargers from macOS, Windows and Linux. Over Bluetooth, with no account, no cloud and no internet.';
 

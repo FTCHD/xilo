@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
@@ -19,11 +20,13 @@ import {
   WifiOff,
 } from 'lucide-react';
 import { source } from '@/lib/source';
-import { appName, description, downloadUrl, ogImage, repoUrl, siteUrl, tagline, withBase } from '@/lib/shared';
+import { JsonLd } from '@/lib/json-ld';
+import { absoluteUrl, appName, description, downloadUrl, ogImage, openGraphBase, repoUrl, tagline, withBase } from '@/lib/shared';
 
 export const metadata: Metadata = {
   alternates: { canonical: '/' },
-  openGraph: { url: '/', images: [ogImage] },
+  openGraph: { ...openGraphBase, type: 'website', url: '/', images: [ogImage] },
+  twitter: { card: 'summary_large_image' },
 };
 
 const features = [
@@ -59,8 +62,8 @@ const features = [
   },
   {
     icon: PanelTop,
-    title: 'Menu bar',
-    text: 'The battery level at a glance and quick output switches, without opening the window.',
+    title: 'Menu bar and tray',
+    text: 'The battery level at a glance and quick output switches, in the macOS menu bar or the Windows and Linux system tray.',
   },
   {
     icon: SquareTerminal,
@@ -99,35 +102,49 @@ const faq = [
   },
 ];
 
-function JsonLd() {
-  const data = [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      name: appName,
-      description,
-      url: `${siteUrl}/`,
-      applicationCategory: 'UtilitiesApplication',
-      operatingSystem: 'macOS, Windows, Linux',
-      image: `${siteUrl}/og.png`,
-      screenshot: `${siteUrl}/screenshots/wall.webp`,
-      downloadUrl,
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: faq.map((item) => ({
-        '@type': 'Question',
-        name: item.question,
-        acceptedAnswer: { '@type': 'Answer', text: item.answer },
-      })),
-    },
-  ];
+// The version of the app, from the workspace Cargo.toml.
+const version = readFileSync('../Cargo.toml', 'utf8').match(/^version = "(.+)"$/m)?.[1];
+
+function StructuredData() {
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, '\\u003c') }}
+    <JsonLd
+      data={{
+        '@graph': [
+          {
+            '@type': 'WebSite',
+            '@id': absoluteUrl('/#website'),
+            name: appName,
+            url: absoluteUrl('/'),
+            description,
+            inLanguage: 'en',
+          },
+          {
+            '@type': 'SoftwareApplication',
+            name: appName,
+            description,
+            url: absoluteUrl('/'),
+            applicationCategory: 'UtilitiesApplication',
+            operatingSystem: 'macOS, Windows, Linux',
+            softwareVersion: version,
+            image: absoluteUrl('/og.png'),
+            screenshot: absoluteUrl('/screenshots/wall.webp'),
+            downloadUrl,
+            installUrl: absoluteUrl('/docs/install'),
+            license: 'https://opensource.org/licenses/MIT',
+            isAccessibleForFree: true,
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+            sameAs: [repoUrl],
+          },
+          {
+            '@type': 'FAQPage',
+            mainEntity: faq.map((item) => ({
+              '@type': 'Question',
+              name: item.question,
+              acceptedAnswer: { '@type': 'Answer', text: item.answer },
+            })),
+          },
+        ],
+      }}
     />
   );
 }
@@ -288,7 +305,7 @@ function Automations() {
           <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-fd-primary">Automations</p>
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Let Xilo look after your devices</h2>
           <p className="mt-4 text-lg text-fd-muted-foreground">
-            Automations run while Xilo is open or in the menu bar, and the device is in Bluetooth range.
+            Automations run while Xilo is open, or in the menu bar or system tray, and the device is in Bluetooth range.
           </p>
           <dl className="mt-8 space-y-5">
             {points.map(([term, text]) => (
@@ -404,24 +421,6 @@ function Closing() {
           How to install
         </Link>
       </div>
-      <footer className="mt-20 border-t border-fd-border pt-8 text-sm text-fd-muted-foreground">
-        <p>
-          {appName} is not made by or affiliated with Anker. Anker and SOLIX are trademarks of Anker Innovations.
-        </p>
-        <p className="mt-2">
-          <a href={repoUrl} className="hover:text-fd-foreground">
-            GitHub
-          </a>
-          {' · '}
-          <Link href="/docs" className="hover:text-fd-foreground">
-            Documentation
-          </Link>
-          {' · '}
-          <Link href="/docs/devices" className="hover:text-fd-foreground">
-            Devices
-          </Link>
-        </p>
-      </footer>
     </Section>
   );
 }
@@ -429,7 +428,7 @@ function Closing() {
 export default function HomePage() {
   return (
     <main className="flex flex-1 flex-col">
-      <JsonLd />
+      <StructuredData />
       <Hero />
       <Devices />
       <Features />

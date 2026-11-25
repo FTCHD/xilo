@@ -1,42 +1,69 @@
 name: pages
 
+# Builds the website for every pull request that changes it, and publishes it to GitHub Pages
+# from main. In the repository settings, set Pages > Source to GitHub Actions. The address
+# comes from the Pages settings: https://ftchd.github.io/xilo, or the custom domain if one is set.
 on:
   push:
     branches: [main]
+    paths: ["website/**", ".github/workflows/pages.yml"]
+  pull_request:
     paths: ["website/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
+# Pull requests stop their old run. Deployments from main finish in order.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: pages-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: website
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # The full history gives the sitemap the date when each page last changed.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: website/package-lock.json
+
+      # The origin and the base path of the site: /xilo on github.io, empty on a custom domain.
+      - id: pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+
       - run: npm ci
+
+      # Checks the types and writes the static site to website/out.
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ steps.pages.outputs.origin }}
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
         with:
           path: website/out
 
   deploy:
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
