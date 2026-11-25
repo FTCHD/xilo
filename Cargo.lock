@@ -9354,6 +9354,7 @@ dependencies = [
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
+ "windows-registry 0.6.1",
  "xilo-ble",
  "xilo-engine",
  "xilo-models",

@@ -22,11 +22,80 @@ pub fn set(enabled: bool) -> std::io::Result<()> {
     std::fs::write(&plist, agent(&program))
 }
 
-#[cfg(not(target_os = "macos"))]
+/// Adds or removes the desktop entry that starts Xilo when the user logs in.
+#[cfg(target_os = "linux")]
+pub fn set(enabled: bool) -> std::io::Result<()> {
+    let dir = directories::BaseDirs::new()
+        .map(|d| d.config_dir().join("autostart"))
+        .ok_or_else(|| std::io::Error::other("no home folder"))?;
+    let exe = std::env::current_exe()?;
+    autostart::set(&dir, &exe.to_string_lossy(), enabled)
+}
+
+/// Adds or removes Xilo in the programs that Windows starts when the user logs in.
+#[cfg(windows)]
+pub fn set(enabled: bool) -> std::io::Result<()> {
+    const NAME: &str = "Xilo";
+    let run = windows_registry::CURRENT_USER
+        .create(r"Software\Microsoft\Windows\CurrentVersion\Run")
+        .map_err(std::io::Error::other)?;
+    let result = if enabled {
+        let exe = std::env::current_exe()?;
+        run.set_string(NAME, format!("\"{}\"", exe.display()))
+    } else if run.get_string(NAME).is_ok() {
+        run.remove_value(NAME)
+    } else {
+        Ok(())
+    };
+    result.map_err(std::io::Error::other)
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "linux", windows)))]
 pub fn set(_enabled: bool) -> std::io::Result<()> {
     Err(std::io::Error::other(
         "open at login is not supported on this system yet",
     ))
+}
+
+/// The XDG autostart entry that Linux desktops read at login.
+#[cfg(any(target_os = "linux", test))]
+mod autostart {
+    use std::path::Path;
+
+    const FILE: &str = "dev.xilo.Xilo.desktop";
+
+    pub fn set(dir: &Path, exe: &str, enabled: bool) -> std::io::Result<()> {
+        let file = dir.join(FILE);
+        if !enabled {
+            return match std::fs::remove_file(&file) {
+                Err(e) if e.kind() != std::io::ErrorKind::NotFound => Err(e),
+                _ => Ok(()),
+            };
+        }
+        std::fs::create_dir_all(dir)?;
+        std::fs::write(file, entry(exe))
+    }
+
+    pub fn entry(exe: &str) -> String {
+        format!(
+            "[Desktop Entry]\nType=Application\nName=Xilo\nExec={}\nX-GNOME-Autostart-enabled=true\n",
+            exec(exe)
+        )
+    }
+
+    /// A path for the Exec key. In the quotes, `"`, `` ` ``, `$` and `\` take a backslash.
+    /// Then the file format doubles every backslash, and `%` becomes `%%`.
+    fn exec(path: &str) -> String {
+        let mut quoted = String::from("\"");
+        for c in path.chars() {
+            if matches!(c, '"' | '`' | '$' | '\\') {
+                quoted.push('\\');
+            }
+            quoted.push(c);
+        }
+        quoted.push('"');
+        quoted.replace('\\', "\\\\").replace('%', "%%")
+    }
 }
 
 /// The app bundle when running from one, else the executable.
@@ -78,12 +147,34 @@ fn agent(program: &[String]) -> String {
     )
 }
 
-#[cfg(all(test, target_os = "macos"))]
+#[cfg(test)]
 mod tests {
+    #[cfg(target_os = "macos")]
     #[test]
     fn agent_escapes_paths() {
         let text = super::agent(&["/Apps/A&B.app".into()]);
         assert!(text.contains("<string>/Apps/A&amp;B.app</string>"));
         assert!(text.contains("<key>RunAtLoad</key>"));
+    }
+
+    #[test]
+    fn autostart_entry_quotes_the_path() {
+        let entry = super::autostart::entry("/opt/My Apps/50% \"x\"/xilo-app");
+        assert!(
+            entry.contains(r#"Exec="/opt/My Apps/50%% \\"x\\"/xilo-app""#),
+            "{entry}"
+        );
+    }
+
+    #[test]
+    fn autostart_adds_and_removes_the_entry() {
+        let dir = std::env::temp_dir().join(format!("xilo-autostart-{}", std::process::id()));
+        let file = dir.join("dev.xilo.Xilo.desktop");
+        super::autostart::set(&dir, "/usr/bin/xilo-app", true).expect("add");
+        assert!(file.exists());
+        super::autostart::set(&dir, "/usr/bin/xilo-app", false).expect("remove");
+        assert!(!file.exists());
+        super::autostart::set(&dir, "/usr/bin/xilo-app", false).expect("already gone");
+        std::fs::remove_dir_all(&dir).expect("clean up");
     }
 }

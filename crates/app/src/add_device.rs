@@ -11,6 +11,15 @@ use crate::runtime::Runtime;
 use crate::state::AppState;
 use crate::widgets::{asset, caption, card, icon_badge, live_card, pill, section};
 
+/// Where to check that Xilo may use Bluetooth.
+const BLUETOOTH_TIP: &str = if cfg!(target_os = "macos") {
+    "• Check that Xilo may use Bluetooth in System Settings > Privacy & Security."
+} else if cfg!(windows) {
+    "• Check that Bluetooth is on in Settings > Bluetooth & devices."
+} else {
+    "• Check that Bluetooth is on, and that the bluetooth service is running."
+};
+
 const SCAN_WINDOW: Duration = Duration::from_secs(6);
 const SOLIX_COMPANY: u16 = 0xffff;
 
@@ -198,7 +207,7 @@ impl Render for AddDevice {
                                         .child("No SOLIX devices found"),
                                 ),
                         )
-                        .child(caption("• Turn the device on and keep it near this Mac.", cx))
+                        .child(caption("• Turn the device on and keep it near this computer.", cx))
                         .child(caption(
                             "• A device that is connected to the Anker app on a phone does not advertise. Close the app or turn off Bluetooth on the phone.",
                             cx,
@@ -207,10 +216,7 @@ impl Render for AddDevice {
                             "• Some devices stop advertising after they are set up for Wi-Fi. Press the IoT button on the device to make it visible again.",
                             cx,
                         ))
-                        .child(caption(
-                            "• Check that Xilo may use Bluetooth in System Settings > Privacy & Security.",
-                            cx,
-                        )),
+                        .child(caption(BLUETOOTH_TIP, cx)),
                 ))
             })
     }

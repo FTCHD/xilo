@@ -20,6 +20,13 @@ pub struct ToggleOutput {
 #[action(namespace = xilo, no_json)]
 pub struct ReleaseAll;
 
+/// Where the Xilo icon is: the menu bar on macOS, the system tray on Windows and Linux.
+pub const PLACE: &str = if cfg!(target_os = "macos") {
+    "menu bar"
+} else {
+    "system tray"
+};
+
 struct TrayHandle(Tray);
 
 impl Global for TrayHandle {}
@@ -121,7 +128,7 @@ pub fn init(state: Entity<AppState>, cx: &mut App) {
     let tray = match builder.build(cx) {
         Ok(tray) => tray,
         Err(err) => {
-            tracing::warn!("menu bar icon unavailable: {err}");
+            tracing::warn!("{PLACE} icon unavailable: {err}");
             return;
         }
     };
@@ -136,7 +143,7 @@ pub fn init(state: Entity<AppState>, cx: &mut App) {
         let request = CommandRequest::new(action.command.clone(), Some(i64::from(action.on)));
         Runtime::spawn(cx, async move {
             if let Err(err) = handle.send(request).await {
-                tracing::warn!("menu bar command failed: {err}");
+                tracing::warn!("{PLACE} command failed: {err}");
             }
         });
     });

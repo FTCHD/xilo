@@ -113,7 +113,7 @@ pub fn render(state: &Entity<AppState>, cx: &App) -> AnyElement {
                 ),
                 row(
                     IconName::PanelTop,
-                    "Keep running in the menu bar",
+                    &format!("Keep running in the {}", crate::tray::PLACE),
                     "Closing the window keeps Xilo connected and running its automations.",
                     switch("tray", p.keep_running_in_tray, state, |p, v| {
                         p.keep_running_in_tray = v
@@ -186,7 +186,7 @@ pub fn render(state: &Entity<AppState>, cx: &App) -> AnyElement {
                 row(
                     IconName::ChartLine,
                     "Record history",
-                    "Battery and power every 10 seconds, stored only on this Mac.",
+                    "Battery and power every 10 seconds, stored only on this computer.",
                     switch("record", p.record_history, state, |p, v| {
                         p.record_history = v
                     }),
