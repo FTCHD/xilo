@@ -4,7 +4,8 @@ use std::time::Duration;
 use xilo_models::{CommandError, CommandRequest, Registry, Value};
 use xilo_proto::{MsgId, TimestampMode};
 
-use crate::sim::{SimConnector, SimDevice, UsbIdle};
+use crate::automations::{self, AutomationConfig, ReserveConfig, UsbWakeConfig};
+use crate::sim::{Drift, SimConnector, SimDevice, UsbIdle};
 use crate::{
     DeviceAddr, DeviceHandle, DeviceSetup, Engine, EngineConfig, LinkState, Outcome, SendError,
     Snapshot,
@@ -179,4 +180,82 @@ async fn connects_with_legacy_aes() {
         .await
         .expect("sent");
     assert_eq!(outcome, Outcome::Acked);
+}
+
+#[tokio::test(start_paused = true)]
+async fn usb_wake_leaves_dc_off_after_the_reserve() {
+    let (_engine, handle, device) = engine("A1723", "ALFSBK1G33300077");
+    {
+        let mut d = device.lock().expect("lock");
+        d.set("battery_soc", Value::Int(15));
+        d.set("dc_switch", Value::Bool(true));
+    }
+    wait_for(&handle, |s| s.is_ready() && s.updated.is_some()).await;
+    let (_config, rx) = tokio::sync::watch::channel(AutomationConfig {
+        usb_wake: UsbWakeConfig {
+            enabled: true,
+            ..Default::default()
+        },
+        reserve: ReserveConfig {
+            enabled: true,
+            level: 20,
+            outputs: vec!["dc_switch".into()],
+        },
+        schedules: Vec::new(),
+    });
+    let (events, mut log) = tokio::sync::mpsc::unbounded_channel();
+    let _task = automations::spawn(handle.clone(), rx, events);
+    tokio::time::sleep(Duration::from_secs(60)).await;
+
+    let mut texts = Vec::new();
+    while let Ok(event) = log.try_recv() {
+        texts.push(event.text);
+    }
+    assert!(
+        texts.iter().any(|t| t.starts_with("Battery reserve")),
+        "{texts:?}"
+    );
+    assert_eq!(
+        device.lock().expect("lock").state.get("dc_switch"),
+        Some(&Value::Bool(false)),
+        "{texts:?}"
+    );
+}
+
+#[tokio::test(start_paused = true)]
+async fn simulated_readings_follow_their_switch() {
+    let registry = Registry::builtin();
+    let mut device = SimDevice::new(
+        registry.get("A1723").expect("model").clone(),
+        "ALFSBK1G33300077",
+    );
+    device.set("ac_switch", Value::Bool(true));
+    device.drift = vec![Drift::new("ac_output_power", 26, 6.).when("ac_switch")];
+    let sim = SimConnector::new();
+    sim.add("sim-1", device);
+    let engine = Engine::new(
+        Arc::new(sim.clone()),
+        Arc::new(sim),
+        Arc::new(registry.clone()),
+        EngineConfig {
+            client_id: crate::identity::new_client_id(),
+            timestamps: TimestampMode::Utc,
+            timezone: "UTC0".into(),
+            country: "US".into(),
+        },
+    );
+    let handle = engine.add(DeviceSetup {
+        key: "dev".into(),
+        addr: DeviceAddr::new("sim-1"),
+        name: None,
+        model: None,
+        auto_connect: true,
+    });
+    wait_for(&handle, |s| s.int("ac_output_power").is_some_and(|w| w > 0)).await;
+    handle
+        .send(CommandRequest::new("ac_switch", Some(0)))
+        .await
+        .expect("ac off");
+    tokio::time::sleep(Duration::from_secs(5)).await;
+    assert_eq!(handle.snapshot().int("ac_output_power"), Some(0));
 }

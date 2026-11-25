@@ -75,8 +75,9 @@ pub fn spawn(
             let snap = snaps.borrow().clone();
             let model = snap.model.as_deref();
 
-            let ready = snap.is_ready() && model.is_some();
-            for step in scheduler.tick(local_now(), ready) {
+            // After a connect, the state is ready a moment before the first status arrives.
+            let ready = snap.is_ready() && model.is_some() && snap.updated.is_some();
+            for step in scheduler.tick(&local_now(), ready) {
                 match step {
                     Step::Run(rule) => {
                         let action = Action::new(model, &rule.command, rule.value);
@@ -93,7 +94,7 @@ pub fn spawn(
                         match send(&handle, &rule.command, rule.value).await {
                             Ok(()) => report(format!("Schedule {}.", action.sentence()), false),
                             Err(why) => report(
-                                format!("Schedule could not {}: {why}.", action.sentence()),
+                                format!("Schedule could not {}: {why}.", action.command()),
                                 true,
                             ),
                         }
@@ -102,8 +103,9 @@ pub fn spawn(
                         let action = Action::new(model, &rule.command, rule.value);
                         report(
                             format!(
-                                "Schedule missed: the device was out of reach, so Xilo could not {}.",
-                                action.sentence()
+                                "Schedule missed: Xilo could not {} at {}. The device was out of reach, or the computer was asleep.",
+                                action.command(),
+                                rule.time.strftime("%H:%M")
                             ),
                             true,
                         );
@@ -122,10 +124,14 @@ pub fn spawn(
                     let label = Action::new(model, &command, value).label;
                     match send(&handle, &command, value).await {
                         Ok(()) => done.push(label),
-                        Err(why) => report(
-                            format!("Battery reserve could not turn {label} off: {why}."),
-                            true,
-                        ),
+                        Err(why) => {
+                            if !reserve.failed() {
+                                report(
+                                    format!("Battery reserve could not turn {label} off: {why}."),
+                                    true,
+                                );
+                            }
+                        }
                     }
                 }
                 if !done.is_empty() {
@@ -139,6 +145,9 @@ pub fn spawn(
                 }
             }
 
+            // The commands above change the state, and USB wake must see the new state.
+            // Otherwise it would turn DC on again right after the reserve turned it off.
+            let snap = snaps.borrow().clone();
             if let Some(pulse) = wake.observe(Instant::now(), &snap) {
                 match send(&handle, "dc_switch", 1).await {
                     Ok(()) => {
@@ -155,8 +164,6 @@ pub fn spawn(
     })
 }
 
-fn local_now() -> jiff::civil::DateTime {
-    jiff::Timestamp::now()
-        .to_zoned_datetime(jiff::tz::TimeZone::system())
-        .datetime()
+fn local_now() -> jiff::ZonedDateTime {
+    jiff::Timestamp::now().to_zoned_datetime(jiff::tz::TimeZone::system())
 }

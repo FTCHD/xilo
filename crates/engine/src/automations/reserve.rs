@@ -4,6 +4,8 @@ use crate::Snapshot;
 
 /// Points above the reserve level the battery must reach before the reserve acts again.
 const REARM: i64 = 5;
+/// How many more times the reserve tries when a device does not turn an output off.
+const RETRIES: u8 = 3;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ReserveConfig {
@@ -28,6 +30,7 @@ impl Default for ReserveConfig {
 pub struct Reserve {
     config: ReserveConfig,
     tripped: bool,
+    retries: u8,
 }
 
 fn charging(snap: &Snapshot) -> bool {
@@ -44,7 +47,7 @@ impl Reserve {
     pub fn new(config: ReserveConfig) -> Self {
         Self {
             config,
-            tripped: false,
+            ..Default::default()
         }
     }
 
@@ -52,7 +55,18 @@ impl Reserve {
         if config != self.config {
             self.config = config;
             self.tripped = false;
+            self.retries = 0;
         }
+    }
+
+    /// Call when an output did not turn off. Returns true if the reserve tries again.
+    pub fn failed(&mut self) -> bool {
+        if self.retries >= RETRIES {
+            return false;
+        }
+        self.retries += 1;
+        self.tripped = false;
+        true
     }
 
     /// The outputs to switch off now.
@@ -66,6 +80,7 @@ impl Reserve {
         if self.tripped {
             if soc > self.config.level + REARM {
                 self.tripped = false;
+                self.retries = 0;
             }
             return Vec::new();
         }
@@ -145,6 +160,18 @@ mod tests {
             r.observe(&snap(20, true, true)),
             vec!["ac_switch", "dc_switch"]
         );
+    }
+
+    #[test]
+    fn tries_again_when_an_output_does_not_turn_off() {
+        let mut r = enabled(20);
+        assert_eq!(r.observe(&snap(20, true, false)), vec!["ac_switch"]);
+        for _ in 0..RETRIES {
+            assert!(r.failed());
+            assert_eq!(r.observe(&snap(20, true, false)), vec!["ac_switch"]);
+        }
+        assert!(!r.failed(), "gives up");
+        assert!(r.observe(&snap(20, true, false)).is_empty());
     }
 
     #[test]

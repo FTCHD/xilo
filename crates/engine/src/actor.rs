@@ -474,6 +474,8 @@ impl Actor {
                 Output::Ready(info) => {
                     tracing::info!(device = %self.setup.addr, serial = ?info.serial, "session ready");
                     self.snap.info = Some(info);
+                    // The values are from the last session until the first status arrives.
+                    self.snap.updated = None;
                     self.detect(None);
                     self.set_link(LinkState::Ready);
                     self.last_keepalive = None;
