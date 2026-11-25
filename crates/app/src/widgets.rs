@@ -161,7 +161,7 @@ pub fn battery_color(soc: i64, cx: &App) -> Hsla {
     }
 }
 
-/// An extracted Anker image, or a fallback icon when vendor assets are missing.
+/// An Anker image, or a fallback icon for keys without one.
 pub fn asset(key: &str, size: Pixels, fallback: IconName, cx: &App) -> AnyElement {
     match assets::vendor(key) {
         Some(path) => img(path)
@@ -250,44 +250,6 @@ pub fn battery_avatar(
                             .child(label),
                     )
                 }),
-        )
-        .into_any_element()
-}
-
-/// The Anker battery animation: the outline with the column clipped to the level.
-pub fn battery_gauge(key: &str, level: f32, scale: f32) -> AnyElement {
-    let (Some(base), Some(column)) = (
-        assets::vendor(&format!("{key}_base")),
-        assets::vendor(&format!("{key}_column")),
-    ) else {
-        return div().into_any_element();
-    };
-    let w = 100.0 * scale;
-    let h = 106.0 * scale;
-    let clip_top = 8.0 * scale;
-    let clip_h = 97.0 * scale;
-    let offset = (1.0 - level.clamp(0.0, 1.0)) * 97.0 * scale;
-    div()
-        .relative()
-        .w(px(w))
-        .h(px(h))
-        .child(img(base).absolute().top_0().left_0().w(px(w)).h(px(h)))
-        .child(
-            div()
-                .absolute()
-                .left_0()
-                .top(px(clip_top))
-                .w(px(w))
-                .h(px(clip_h))
-                .overflow_hidden()
-                .child(
-                    img(column)
-                        .absolute()
-                        .left_0()
-                        .top(px(offset - clip_top))
-                        .w(px(w))
-                        .h(px(h)),
-                ),
         )
         .into_any_element()
 }

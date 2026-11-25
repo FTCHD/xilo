@@ -26,5 +26,3 @@ The downloads are not signed by Apple or Microsoft, so the system warns you the 
 - **macOS**: open Xilo once, then go to System Settings → Privacy & Security and click **Open Anyway**.
 - **Windows**: click **More info**, then **Run anyway**.
 - **Linux**: Xilo needs BlueZ, which most desktop systems include.
-
-The downloads do not include the Anker images and fonts. Xilo shows its own icons instead.

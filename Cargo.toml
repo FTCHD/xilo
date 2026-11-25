@@ -43,6 +43,7 @@ directories = "6"
 serde_json = "1"
 jiff = "1"
 zip = { version = "9", default-features = false, features = ["deflate"] }
+rust-embed = { version = "8", features = ["include-exclude"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-appender = "0.2"

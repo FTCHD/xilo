@@ -46,15 +46,15 @@ cargo run -p xilo-cli -- scan      # the command line tool, xilo
 cargo test --workspace
 ```
 
-### Anker images and fonts
+### Anker images
 
-The dashboards use images, fonts and animations from the Anker Android app. They are not in this repository. To add them, put the unpacked `.xapk` in `.research/anker-apk/xapk/` and run:
+The dashboards use product, port and screen images from the Anker Android app. They are in `assets/vendor/` and built into the app. To update them from a newer version of the Anker app, put the unpacked `.xapk` in `.research/anker-apk/xapk/` and run:
 
 ```sh
 cargo run -p xtask -- assets extract
 ```
 
-Without them, Xilo shows its own icons and the system font.
+Xilo uses the system font and no Anker animations. Models without an image get Xilo's own drawings.
 
 ### App bundle
 
@@ -71,7 +71,7 @@ cargo run -p xtask -- dist                                   # this computer
 cargo run -p xtask -- dist --target x86_64-apple-darwin      # another target
 ```
 
-This writes the downloads to `dist/release`: a disk image on macOS, a zip file on Windows, and a .deb, .rpm and tar.gz file on Linux. Each one contains the app and the `xilo` command line tool. On Linux, it needs `cargo install cargo-deb cargo-generate-rpm`. The package settings are in `crates/app/Cargo.toml`. The downloads never include the Anker images and fonts, even when `assets/vendor` exists.
+This writes the downloads to `dist/release`: a disk image on macOS, a zip file on Windows, and a .deb, .rpm and tar.gz file on Linux. Each one contains the app and the `xilo` command line tool. On Linux, it needs `cargo install cargo-deb cargo-generate-rpm`. The package settings are in `crates/app/Cargo.toml`.
 
 To publish a release, set the version in `Cargo.toml` and push a tag with the same version, for example `v0.2.0`. The `release` workflow then builds macOS, Windows and Linux downloads for x64 and Arm, and creates a GitHub release with checksums. To build the downloads without a release, run the workflow by hand from the Actions tab.
 
@@ -95,10 +95,9 @@ xilo models
 - `XILO_SIM=1 cargo run -p xilo` runs the app against simulated devices.
 - `XILO_HOME=/tmp/xilo cargo run -p xilo` keeps settings, history and logs in another folder.
 - `XILO_OPEN=device:<key>:settings` opens Xilo on a page. Other values: `add`, `preferences`, `about`, and the tabs `dashboard`, `history`, `automations`, `inspector`.
-- `XILO_NO_VENDOR=1` hides the Anker images and fonts, as in the public downloads.
 - `XILO_LOG=debug` shows more in the log. Logs are in `~/Library/Application Support/dev.xilo.Xilo/logs`.
 - `cargo run -p xtask -- import solix-api` regenerates `crates/models/src/families/imported` from anker-solix-api.
-- `cargo run -p xtask -- check-public` fails if Anker files or captures are tracked by git.
+- `cargo run -p xtask -- check-public` fails if research files or device captures are tracked by git.
 - `.demo/showcase.sh` takes new screenshots and rebuilds the image at the top of this file. See [.demo/README.md](.demo/README.md).
 
 You can add or override models without rebuilding. Put TOML files in `~/Library/Application Support/dev.xilo.Xilo/models`, using the same format as `crates/models/src/families`.

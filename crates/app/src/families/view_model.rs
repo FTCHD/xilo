@@ -9,17 +9,6 @@ pub enum Battery {
     Empty,
 }
 
-impl Battery {
-    pub fn key(self) -> &'static str {
-        match self {
-            Battery::Normal => "c300/battery_normal",
-            Battery::LowTemp => "c300/battery_low_temp",
-            Battery::HighTemp => "c300/battery_high_temp",
-            Battery::Empty => "c300/battery_low_battery",
-        }
-    }
-}
-
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum PortIcon {
     UsbC(i64),

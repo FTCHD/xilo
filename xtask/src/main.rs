@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fs::{self, File};
-use std::io::{Cursor, Read, Write};
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command as Process;
 
@@ -37,7 +37,6 @@ enum Command {
         release: bool,
     },
     /// Build the release downloads for one target in dist/release.
-    /// They never contain Anker assets.
     Dist {
         /// Rust target triple. The default is this computer.
         #[arg(long)]
@@ -140,15 +139,11 @@ fn extract(apks: &Path) -> Result<()> {
             .extension()
             .and_then(|e| e.to_str())
             .unwrap_or("bin");
-        if ext == "zip" {
-            split_lottie(&bytes, &vendor.join(&asset.key))?;
-        } else {
-            let out = vendor.join(format!("{}.{ext}", asset.key));
-            if let Some(dir) = out.parent() {
-                fs::create_dir_all(dir)?;
-            }
-            fs::write(out, bytes)?;
+        let out = vendor.join(format!("{}.{ext}", asset.key));
+        if let Some(dir) = out.parent() {
+            fs::create_dir_all(dir)?;
         }
+        fs::write(out, bytes)?;
         copied += 1;
     }
     println!(
@@ -156,51 +151,6 @@ fn extract(apks: &Path) -> Result<()> {
         manifest.asset.len(),
         vendor.display()
     );
-    Ok(())
-}
-
-/// Stores the two images of an image-based Lottie: the layer drawn under a
-/// track matte ("column") and the plain layer below it ("base").
-fn split_lottie(bytes: &[u8], out: &Path) -> Result<()> {
-    let mut zip = zip::ZipArchive::new(Cursor::new(bytes))?;
-    let mut json = None;
-    let mut images = HashMap::new();
-    for i in 0..zip.len() {
-        let mut entry = zip.by_index(i)?;
-        let name = entry.name()?.to_string();
-        let mut data = Vec::new();
-        entry.read_to_end(&mut data)?;
-        if name.ends_with(".json") {
-            json = Some(data);
-        } else if name.ends_with(".png") {
-            let file = name.rsplit('/').next().unwrap_or(&name).to_string();
-            images.insert(file, data);
-        }
-    }
-    let json: serde_json::Value = serde_json::from_slice(&json.context("lottie without json")?)?;
-    let assets: HashMap<String, String> = json["assets"]
-        .as_array()
-        .into_iter()
-        .flatten()
-        .filter_map(|a| Some((a["id"].as_str()?.to_string(), a["p"].as_str()?.to_string())))
-        .collect();
-    if let Some(dir) = out.parent() {
-        fs::create_dir_all(dir)?;
-    }
-    for layer in json["layers"].as_array().into_iter().flatten() {
-        let Some(asset) = layer["refId"].as_str().and_then(|r| assets.get(r)) else {
-            continue;
-        };
-        let role = if layer["tt"].is_null() {
-            "base"
-        } else {
-            "column"
-        };
-        if let Some(data) = images.get(asset) {
-            let stem = out.file_name().and_then(|s| s.to_str()).unwrap_or("lottie");
-            fs::write(out.with_file_name(format!("{stem}_{role}.png")), data)?;
-        }
-    }
     Ok(())
 }
 
@@ -213,12 +163,7 @@ fn check() -> Result<()> {
             .extension()
             .and_then(|e| e.to_str())
             .unwrap_or("bin");
-        let present = if ext == "zip" {
-            vendor.join(format!("{}_base.png", asset.key)).exists()
-        } else {
-            vendor.join(format!("{}.{ext}", asset.key)).exists()
-        };
-        if !present {
+        if !vendor.join(format!("{}.{ext}", asset.key)).exists() {
             println!("missing {}", asset.key);
             missing += 1;
         }
@@ -236,8 +181,7 @@ fn check_public() -> Result<()> {
     let bad: Vec<&str> = files
         .lines()
         .filter(|f| {
-            f.starts_with("assets/vendor/")
-                || f.starts_with(".research/")
+            f.starts_with(".research/")
                 || f.starts_with("captures/")
                 || (f.ends_with(".xcap") && !f.contains("/fixtures/"))
         })
@@ -264,13 +208,13 @@ fn bundle(release: bool) -> Result<()> {
         bail!("build failed");
     }
     let app = root.join("dist/Xilo.app");
-    make_app(&app, &root.join(format!("target/{profile}")), true)?;
+    make_app(&app, &root.join(format!("target/{profile}")))?;
     println!("built {}", app.display());
     Ok(())
 }
 
 /// Writes a signed Xilo.app from the binaries in `bin`.
-fn make_app(app: &Path, bin: &Path, vendor: bool) -> Result<()> {
+fn make_app(app: &Path, bin: &Path) -> Result<()> {
     let root = root();
     let contents = app.join("Contents");
     let _ = fs::remove_dir_all(app);
@@ -289,10 +233,6 @@ fn make_app(app: &Path, bin: &Path, vendor: bool) -> Result<()> {
     let icon = root.join("assets/builtin/icons/Xilo.icns");
     if icon.exists() {
         fs::copy(&icon, contents.join("Resources/Xilo.icns"))?;
-    }
-    let vendor_dir = root.join("assets/vendor");
-    if vendor && vendor_dir.exists() {
-        copy_dir(&vendor_dir, &contents.join("Resources/vendor"))?;
     }
     let identity = std::env::var("XILO_SIGN_IDENTITY").unwrap_or_else(|_| "-".into());
     let status = Process::new("codesign")
@@ -368,7 +308,7 @@ fn dist(target: Option<String>) -> Result<()> {
     let file = match os {
         "macos" => {
             let stage = out.join("stage");
-            make_app(&stage.join("Xilo.app"), &bin, false)?;
+            make_app(&stage.join("Xilo.app"), &bin)?;
             for doc in docs {
                 fs::copy(root.join(doc), stage.join(doc))?;
             }
@@ -478,20 +418,6 @@ fn applications_link(stage: &Path) -> Result<()> {
 #[cfg(not(unix))]
 fn applications_link(_stage: &Path) -> Result<()> {
     bail!("macOS disk images can only be built on macOS")
-}
-
-fn copy_dir(from: &Path, to: &Path) -> Result<()> {
-    fs::create_dir_all(to)?;
-    for entry in fs::read_dir(from)? {
-        let entry = entry?;
-        let target = to.join(entry.file_name());
-        if entry.file_type()?.is_dir() {
-            copy_dir(&entry.path(), &target)?;
-        } else {
-            fs::copy(entry.path(), target)?;
-        }
-    }
-    Ok(())
 }
 
 const INFO_PLIST: &str = r#"<?xml version="1.0" encoding="UTF-8"?>

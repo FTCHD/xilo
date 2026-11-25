@@ -7,10 +7,10 @@ use gpui_kit::*;
 use xilo_models::CommandRequest;
 
 use crate::device_view::DeviceView;
-use crate::families::view_model::{self, Dashboard};
+use crate::families::view_model::{self, Battery, Dashboard};
 use crate::widgets::{
-    self, asset, battery_avatar, battery_gauge, big_value, caption, icon_badge, input_color,
-    live_card, output_color, pill, power_button, section, sparkline,
+    self, asset, battery_avatar, big_value, caption, icon_badge, input_color, live_card,
+    output_color, pill, power_button, section, sparkline,
 };
 
 pub fn render(
@@ -175,7 +175,7 @@ pub fn avatar(d: &Dashboard, size: f32, cx: &App) -> AnyElement {
             el.child(asset(&d.hero, px(size), IconName::BatteryCharging, cx))
         })
         .when(has_hero && d.connected && !d.loading && d.gauge, |el| {
-            el.child(screen(div()).child(battery_gauge(d.battery.key(), d.level, scale)))
+            el.child(screen(div()).child(screen_level(d.level, screen_color(d.battery), scale)))
         })
         .when(has_hero && d.connected && !d.loading, |el| {
             el.when_some(label, |el, label| {
@@ -184,13 +184,51 @@ pub fn avatar(d: &Dashboard, size: f32, cx: &App) -> AnyElement {
                         .items_center()
                         .justify_center()
                         .text_color(white())
-                        .text_size(px((40.0 * scale).max(11.)))
+                        .text_size(px((32.0 * scale).max(11.)))
                         .font_weight(FontWeight::BOLD)
                         .child(label),
                 )
             })
         })
         .into_any_element()
+}
+
+/// The fill color on the device screen, which is dark in both themes.
+fn screen_color(battery: Battery) -> Hsla {
+    match battery {
+        Battery::Normal => rgb(0x00cbeb).into(),
+        Battery::LowTemp => rgb(0x4d8bf5).into(),
+        Battery::HighTemp | Battery::Empty => rgb(0xf0504a).into(),
+    }
+}
+
+/// A battery outline on the device screen, filled to the charge level.
+fn screen_level(level: f32, color: Hsla, scale: f32) -> Div {
+    let inset = 12.0 * scale;
+    let border = (2.5 * scale).max(1.);
+    div().size_full().p(px(inset)).child(
+        div()
+            .relative()
+            .size_full()
+            .rounded(px(12.0 * scale))
+            .border(px(border))
+            .border_color(color.alpha(0.55))
+            .p(px(border * 1.5))
+            .flex()
+            .flex_col()
+            .justify_end()
+            .child(
+                div()
+                    .w_full()
+                    .h(relative(level.clamp(0., 1.)))
+                    .rounded(px(8.0 * scale))
+                    .bg(linear_gradient(
+                        180.,
+                        linear_color_stop(color, 0.),
+                        linear_color_stop(color.alpha(0.55), 1.),
+                    )),
+            ),
+    )
 }
 
 fn total(label: &'static str, value: Option<i64>, input: bool, cx: &App) -> Div {

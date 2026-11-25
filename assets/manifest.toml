@@ -1,5 +1,5 @@
 # Logical asset keys and where they live inside the Anker app package.
-# `cargo xtask assets extract` copies them into the gitignored assets/vendor/.
+# `cargo xtask assets extract` copies them into assets/vendor/, which is built into the app.
 
 [apks]
 images = "flutter_assets_pack.apk"
@@ -166,16 +166,6 @@ apk = "images"
 path = "assets/flutter_assets/packages/resource/assets/img/a1753/icl_A761_device_tips.png"
 
 [[asset]]
-key = "shared/bottom_charging"
-apk = "images"
-path = "assets/flutter_assets/packages/resource/assets/img/a1790/a1790_bottom_charging_animate.webp"
-
-[[asset]]
-key = "shared/bottom_charging_red"
-apk = "images"
-path = "assets/flutter_assets/packages/resource/assets/img/a1790/a1790_bottom_red_charging_animate.webp"
-
-[[asset]]
 key = "shared/home_bg"
 apk = "images"
 path = "assets/flutter_assets/packages/resource/assets/img/station/home/device_home_bg.webp"
@@ -284,46 +274,6 @@ path = "assets/flutter_assets/packages/resource/assets/img/a1753/picl_A1761_devi
 key = "a1761/product"
 apk = "images"
 path = "assets/flutter_assets/packages/resource_core/assets/img/shared/picl_A1761_normal.png"
-
-[[asset]]
-key = "fonts/MontForAnker-Regular"
-apk = "base"
-path = "assets/flutter_assets/packages/flutter_ank_uikit/assets/fonts/MontForAnker-Regular.ttf"
-
-[[asset]]
-key = "fonts/MontForAnker-SemiBold"
-apk = "base"
-path = "assets/flutter_assets/packages/flutter_ank_uikit/assets/fonts/MontForAnker-SemiBold.ttf"
-
-[[asset]]
-key = "fonts/MontForAnker-Bold"
-apk = "base"
-path = "assets/flutter_assets/packages/flutter_ank_uikit/assets/fonts/MontForAnker-Bold.ttf"
-
-[[asset]]
-key = "c300/battery_normal"
-apk = "base"
-path = "assets/flutter_assets/assets/lottie/1722_normal_lottie.zip"
-
-[[asset]]
-key = "c300/battery_low_temp"
-apk = "base"
-path = "assets/flutter_assets/assets/lottie/1722_low_temp_lottie.zip"
-
-[[asset]]
-key = "c300/battery_high_temp"
-apk = "base"
-path = "assets/flutter_assets/assets/lottie/1722_high_temp_lottie.zip"
-
-[[asset]]
-key = "c300/battery_low_battery"
-apk = "base"
-path = "assets/flutter_assets/assets/lottie/1722_low_battery_lottie.zip"
-
-[[asset]]
-key = "shared/reconnect"
-apk = "base"
-path = "assets/flutter_assets/assets/lottie/1781_reconnect_lottie.zip"
 
 # Product images for imported models.
 [[asset]]

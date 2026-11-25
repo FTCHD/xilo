@@ -9349,6 +9349,7 @@ dependencies = [
  "gpui-tray",
  "hex",
  "jiff",
+ "rust-embed",
  "tokio",
  "tracing",
  "tracing-appender",

@@ -206,7 +206,7 @@ fn main() -> anyhow::Result<()> {
         .flatten()
         .or_else(|| History::open(&paths.history_file()).ok());
 
-    let app = gpui_kit::application().with_assets(gpui_kit::assets::AllAssets);
+    let app = gpui_kit::application().with_assets(assets::Assets);
     app.on_reopen(|cx| cx.dispatch_action(&ShowWindow));
     app.run(move |cx| {
         gpui_kit::init(cx);
