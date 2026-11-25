@@ -1,5 +1,6 @@
 use gpui_kit::assets::IconName;
 use gpui_kit::component::{ActiveTheme as _, h_flex};
+use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 use xilo_engine::Snapshot;
 use xilo_models::Input;
@@ -23,8 +24,15 @@ pub fn render(snap: &Snapshot, base: &Automations, cx: &mut Context<DeviceView>)
         .filter(|c| c.input == Input::Switch && !c.id.contains("screen"))
         .collect();
     let soc = snap.int("battery_soc");
+    let chosen = outputs
+        .iter()
+        .filter(|c| reserve.outputs.contains(&c.id))
+        .count();
     let status = match soc {
         _ if !reserve.enabled => ("Off".to_string(), cx.theme().muted_foreground),
+        _ if chosen == 0 && !outputs.is_empty() => {
+            ("Choose an output".to_string(), cx.theme().warning)
+        }
         Some(soc) if snap.is_ready() && soc <= i64::from(reserve.level) => (
             format!("Battery {soc}% · At the reserve"),
             cx.theme().warning,
@@ -66,13 +74,17 @@ pub fn render(snap: &Snapshot, base: &Automations, cx: &mut Context<DeviceView>)
         } else {
             next.reserve.outputs.push(c.id.clone());
         }
+        // The last chosen output stays, so the reserve always has something to turn off.
+        let last = selected && chosen == 1;
         segment(
             SharedString::from(format!("reserve-{}", c.id)),
             c.label.clone(),
             selected,
             cx,
         )
-        .on_click(cx.listener(move |view, _, _, cx| save(view, next.clone(), cx)))
+        .when(!last, |chip| {
+            chip.on_click(cx.listener(move |view, _, _, cx| save(view, next.clone(), cx)))
+        })
     }));
     let turn_off = h_flex()
         .px(px(14.))

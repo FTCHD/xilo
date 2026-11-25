@@ -64,10 +64,7 @@ impl Root {
     ) -> Option<Entity<DeviceView>> {
         if let Some(view) = self.views.get(key) {
             if view.read(cx).tab != tab {
-                view.update(cx, |v, cx| {
-                    v.tab = tab;
-                    cx.notify();
-                });
+                view.update(cx, |v, cx| v.show_tab(tab, cx));
             }
             return Some(view.clone());
         }

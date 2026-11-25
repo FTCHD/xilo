@@ -24,7 +24,9 @@ const WEEKEND: u8 = 0x60;
 
 /// A schedule that is being added or changed.
 pub struct Editor {
-    index: Option<usize>,
+    /// The rule being edited, as it is in the list. None for a new rule.
+    original: Option<Schedule>,
+    enabled: bool,
     command: String,
     value: i64,
     days: u8,
@@ -95,7 +97,7 @@ pub fn add(view: &mut DeviceView, window: &mut Window, cx: &mut Context<DeviceVi
 
 fn open(
     view: &mut DeviceView,
-    index: Option<usize>,
+    original: Option<Schedule>,
     schedule: Schedule,
     window: &mut Window,
     cx: &mut Context<DeviceView>,
@@ -104,7 +106,8 @@ fn open(
     let time = cx.new(|cx| TimeFieldState::new(window, cx));
     time.update(cx, |t, cx| t.set_time(at, window, cx));
     view.schedule_editor = Some(Editor {
-        index,
+        original,
+        enabled: schedule.enabled,
         command: schedule.command,
         value: schedule.value,
         days: schedule.days,
@@ -131,11 +134,15 @@ fn commit(view: &mut DeviceView, mut next: Automations, cx: &mut Context<DeviceV
         hour: time.hour() as u8,
         minute: time.minute() as u8,
         days: editor.days,
-        enabled: true,
+        enabled: editor.enabled,
     };
-    match editor.index {
-        Some(i) if i < next.schedules.len() => next.schedules[i] = schedule,
-        _ => next.schedules.push(schedule),
+    let at = editor
+        .original
+        .as_ref()
+        .and_then(|o| next.schedules.iter().position(|s| s == o));
+    match at {
+        Some(i) => next.schedules[i] = schedule,
+        None => next.schedules.push(schedule),
     }
     next.schedules.sort_by_key(|s| (s.hour, s.minute));
     save(view, next, cx);
@@ -175,10 +182,13 @@ pub fn render(
     let empty = (base.schedules.is_empty() && !editing).then(|| {
         card(cx).child(caption(
             if options.is_empty() {
-                "This model has no controls that a schedule can use."
+                "This model has no controls that a schedule can use.".to_string()
             } else {
-                "Turn outputs on or off at set times, for example the AC output off at night. \
-                 Schedules run while Xilo is open or in the menu bar, and the device is in Bluetooth range."
+                format!(
+                    "Turn outputs on or off at set times, for example the AC output off at night. \
+                     Schedules run while Xilo is open or in the {}, and the device is in Bluetooth range.",
+                    crate::tray::PLACE
+                )
             },
             cx,
         ))
@@ -248,25 +258,50 @@ fn row(
                 .ghost()
                 .small()
                 .icon(Icon::new(IconName::Pencil))
-                .on_click(cx.listener(move |view, _, window, cx| {
-                    open(view, Some(index), schedule.clone(), window, cx)
-                })),
+                .on_click({
+                    let schedule = schedule.clone();
+                    cx.listener(move |view, _, window, cx| {
+                        open(view, Some(schedule.clone()), schedule.clone(), window, cx)
+                    })
+                }),
         )
         .child(
             Button::new(("remove-schedule", index))
                 .ghost()
                 .small()
                 .icon(Icon::new(IconName::Trash))
-                .on_click(cx.listener(move |view, _, _, cx| save(view, removed.clone(), cx))),
+                .on_click({
+                    let schedule = schedule.clone();
+                    cx.listener(move |view, _, _, cx| {
+                        if editing(view, &schedule) {
+                            view.schedule_editor = None;
+                        }
+                        save(view, removed.clone(), cx)
+                    })
+                }),
         )
         .child(
             Switch::new(("schedule", index))
                 .checked(s.enabled)
-                .on_click(
-                    cx.listener(move |view, _: &bool, _, cx| save(view, toggled.clone(), cx)),
-                ),
+                .on_click(cx.listener(move |view, _: &bool, _, cx| {
+                    if editing(view, &schedule)
+                        && let Some(e) = view.schedule_editor.as_mut()
+                        && let Some(o) = e.original.as_mut()
+                    {
+                        o.enabled = !o.enabled;
+                        e.enabled = o.enabled;
+                    }
+                    save(view, toggled.clone(), cx)
+                })),
         )
         .into_any_element()
+}
+
+/// True when the editor is open for this rule.
+fn editing(view: &DeviceView, schedule: &Schedule) -> bool {
+    view.schedule_editor
+        .as_ref()
+        .is_some_and(|e| e.original.as_ref() == Some(schedule))
 }
 
 fn field(label: &'static str, control: impl IntoElement) -> AnyElement {
@@ -344,7 +379,7 @@ fn editor(
         .child(
             Button::new("save-schedule")
                 .primary()
-                .label(if e.index.is_some() { "Save" } else { "Add" })
+                .label(if e.original.is_some() { "Save" } else { "Add" })
                 .disabled(e.days == 0)
                 .on_click(cx.listener(move |view, _, _, cx| commit(view, next.clone(), cx))),
         );

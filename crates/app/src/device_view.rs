@@ -82,13 +82,18 @@ impl DeviceView {
         self.device.read(cx).is_busy(command)
     }
 
-    pub fn set_tab(&mut self, tab: Tab, cx: &mut Context<Self>) {
+    /// Shows a tab from its top, without changing the route.
+    pub fn show_tab(&mut self, tab: Tab, cx: &mut Context<Self>) {
         self.tab = tab;
         self.scroll.set_offset(point(px(0.), px(0.)));
+        cx.notify();
+    }
+
+    pub fn set_tab(&mut self, tab: Tab, cx: &mut Context<Self>) {
+        self.show_tab(tab, cx);
         let key = self.device.read(cx).key.clone();
         self.state
             .update(cx, |s, cx| s.navigate(Route::Device(key, tab), cx));
-        cx.notify();
     }
 
     /// The Anker app's countdown sheet: Off, 1Hr, 2Hr, 3Hr or a custom time.
