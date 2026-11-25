@@ -1,6 +1,6 @@
 # Xilo
 
-![Xilo with simulated devices: the dashboard of a C300X, and its history behind it](.demo/showcase.png)
+![Xilo with simulated devices: the C300X dashboard in front of a wall of other screens](.demo/showcase-wall.jpg)
 
 Xilo is a desktop app for Anker SOLIX devices. It talks to them over Bluetooth only. You don't need an account, a cloud connection or the internet.
 
@@ -94,11 +94,11 @@ xilo models
 
 - `XILO_SIM=1 cargo run -p xilo` runs the app against simulated devices.
 - `XILO_HOME=/tmp/xilo cargo run -p xilo` keeps settings, history and logs in another folder.
-- `XILO_OPEN=device:<key>:settings` opens Xilo on a page. Other values: `add`, `preferences`, `about`, and the tabs `dashboard`, `history`, `automations`, `inspector`.
+- `XILO_OPEN=device:<key>:settings` opens Xilo on a page. Other values: `add`, `preferences`, and the tabs `dashboard`, `history`, `automations`, `inspector`. A fourth part acts once the device is connected: `bottom` scrolls to the end, `schedule` opens the schedule editor, and `timer` opens the AC timer, for example `device:<key>:automations:schedule`.
 - `XILO_LOG=debug` shows more in the log. Logs are in `~/Library/Application Support/dev.xilo.Xilo/logs`.
 - `cargo run -p xtask -- import solix-api` regenerates `crates/models/src/families/imported` from anker-solix-api.
 - `cargo run -p xtask -- check-public` fails if research files or device captures are tracked by git.
-- `.demo/showcase.sh` takes new screenshots and rebuilds the image at the top of this file. See [.demo/README.md](.demo/README.md).
+- `.demo/wall/shoot.sh` and `.demo/wall/render.sh` take new screenshots and rebuild the image at the top of this file. See [.demo/README.md](.demo/README.md).
 
 You can add or override models without rebuilding. Put TOML files in `~/Library/Application Support/dev.xilo.Xilo/models`, using the same format as `crates/models/src/families`.
 
