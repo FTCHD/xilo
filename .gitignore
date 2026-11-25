@@ -1,8 +1,9 @@
 /target
 /.research/
+/.demo/
+/.work/
 /captures/
 /dist/
 *.xcap
 !**/fixtures/*.xcap
 .DS_Store
-.demo/out/

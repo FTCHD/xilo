@@ -1,6 +1,6 @@
 # Xilo
 
-![Xilo with simulated devices: the C300X dashboard in front of a wall of other screens](.demo/showcase-wall.jpg)
+![Xilo with simulated devices: the C300X dashboard in front of a wall of other screens](.github/showcase-wall.jpg)
 
 Xilo is a desktop app for Anker SOLIX devices. It talks to them over Bluetooth only. You don't need an account, a cloud connection or the internet.
 
@@ -21,7 +21,7 @@ Xilo is not made by or affiliated with Anker.
 
 Xilo can look after your devices while it runs, in its window or in the menu bar. Each device has its own Automations tab.
 
-![The Automations tab of a C300X: three schedules, a battery reserve at 20% and USB wake](.demo/sections/automations.jpg)
+![The Automations tab of a C300X: three schedules, a battery reserve at 20% and USB wake](.github/automations.jpg)
 
 - **Schedules**: turn the AC output, the car output or the screen on or off, or set the light, at a set time on the days you choose. You can pause a schedule without deleting it.
 - **Battery reserve**: when the battery drops to 10, 20, 30 or 50% while it discharges, Xilo turns off the outputs you choose. If you turn an output on again, Xilo leaves it on until the battery charges above the reserve. A schedule doesn't turn an output on while the battery is at the reserve.

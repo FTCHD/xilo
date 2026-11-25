@@ -30,7 +30,7 @@ To publish a release, set the version in `Cargo.toml` and push a tag with the sa
 - `XILO_LOG=debug` shows more in the log. Logs are in `~/Library/Application Support/dev.xilo.Xilo/logs`.
 - `cargo run -p xtask -- import solix-api` regenerates `crates/models/src/families/imported` from anker-solix-api.
 - `cargo run -p xtask -- check-public` fails if research files or device captures are tracked by git.
-- `.demo/wall/shoot.sh` and `.demo/wall/render.sh` take new screenshots and rebuild the image at the top of the README. See [.demo/README.md](.demo/README.md).
+- The README images, `.github/showcase-wall.jpg` and `.github/automations.jpg`, are made with the screenshot scripts in `.demo/`. That folder is not in the repository.
 
 You can add or override models without rebuilding. Put TOML files in `~/Library/Application Support/dev.xilo.Xilo/models`, using the same format as `crates/models/src/families`.
 
