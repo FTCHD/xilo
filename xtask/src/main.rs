@@ -312,7 +312,7 @@ fn dist(target: Option<String>) -> Result<()> {
     let _ = fs::remove_dir_all(&out);
     fs::create_dir_all(&out)?;
     let name = format!("Xilo-{}-{os}-{arch}", env!("CARGO_PKG_VERSION"));
-    let docs = ["README.md"];
+    let docs = ["README.md", "LICENSE", "NOTICE"];
     let file = match os {
         "macos" => {
             let stage = out.join("stage");

@@ -62,3 +62,7 @@ xilo models
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for building, development and the layout of the code.
+
+## License
+
+Xilo is under the [MIT License](LICENSE). It includes work from [anker-solix-api](https://github.com/thomluther/anker-solix-api) and [SolixBLE](https://github.com/flip-dots/SolixBLE), which are also under the MIT License. Their notices are in [NOTICE](NOTICE).

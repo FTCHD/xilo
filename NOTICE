@@ -1,0 +1,37 @@
+Xilo includes work from the projects below. Both are under the MIT License,
+and their copyright notices and license follow.
+
+anker-solix-api
+https://github.com/thomluther/anker-solix-api
+Copyright (c) 2024 thomluther
+
+  The field and command maps of the models in crates/models/src/families/imported
+  come from this project. `cargo xtask import solix-api` makes them.
+
+SolixBLE
+https://github.com/flip-dots/SolixBLE
+Copyright (c) 2026 Harvey Lelliott
+
+  The test vectors in crates/proto/tests and crates/models/tests, the Prime model
+  maps, and the fixed base timestamp that `xilo --solix-timestamps` uses come from
+  this project.
+
+The license of both projects:
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
