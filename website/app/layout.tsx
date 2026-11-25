@@ -39,6 +39,8 @@ export const metadata: Metadata = {
   },
   twitter: { card: 'summary_large_image' },
   robots: { index: true, follow: true },
+  // Google Search Console, for the https://ftchd.github.io/xilo/ property
+  verification: { google: 'I8RYFqXbU94T7UiVvAIEtCeS81CYvVXzYIuha9fBjfE' },
 };
 
 export const viewport: Viewport = {
