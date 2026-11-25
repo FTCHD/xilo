@@ -69,7 +69,7 @@ cargo run -p xtask -- dist                                   # this computer
 cargo run -p xtask -- dist --target x86_64-apple-darwin      # another target
 ```
 
-This writes one download to `dist/release`: a disk image on macOS, a zip file on Windows and a tar.gz file on Linux. Each one contains the app and the `xilo` command line tool. The downloads never include the Anker images and fonts, even when `assets/vendor` exists.
+This writes the downloads to `dist/release`: a disk image on macOS, a zip file on Windows, and a .deb, .rpm and tar.gz file on Linux. Each one contains the app and the `xilo` command line tool. On Linux, it needs `cargo install cargo-deb cargo-generate-rpm`. The package settings are in `crates/app/Cargo.toml`. The downloads never include the Anker images and fonts, even when `assets/vendor` exists.
 
 To publish a release, set the version in `Cargo.toml` and push a tag with the same version, for example `v0.2.0`. The `release` workflow then builds macOS, Windows and Linux downloads for x64 and Arm, and creates a GitHub release with checksums. To build the downloads without a release, run the workflow by hand from the Actions tab.
 

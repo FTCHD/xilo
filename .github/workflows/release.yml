@@ -74,6 +74,10 @@ jobs:
             libwayland-dev libx11-xcb-dev libxcb1-dev libxkbcommon-dev \
             libxkbcommon-x11-dev libvulkan-dev
 
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        run: cargo install --locked cargo-deb@3.8.0 cargo-generate-rpm@0.21.1
+
       - name: Build the download
         run: cargo run -p xtask -- dist --target ${{ matrix.target }}
 

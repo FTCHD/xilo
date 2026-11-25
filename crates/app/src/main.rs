@@ -170,6 +170,7 @@ pub fn open_main_window(state: Entity<AppState>, cx: &mut App) {
             cx,
         ))),
         window_min_size: Some(size(px(800.), px(600.))),
+        app_id: Some("dev.xilo.Xilo".into()),
         ..TitleBar::window_options()
     };
     if let Err(err) = gpui_kit::open_window(options, cx, |window, cx| {

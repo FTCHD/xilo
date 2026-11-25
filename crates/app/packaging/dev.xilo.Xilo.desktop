@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Xilo
+GenericName=Power Station Control
+Comment=Control Anker SOLIX devices over Bluetooth
+Exec=xilo-app
+Icon=dev.xilo.Xilo
+Terminal=false
+Categories=Utility;
+Keywords=Anker;SOLIX;Bluetooth;Battery;Power;
+StartupWMClass=dev.xilo.Xilo

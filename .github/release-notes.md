@@ -6,8 +6,12 @@
 | macOS, Intel | `Xilo-*-macos-x64.dmg` |
 | Windows, x64 | `Xilo-*-windows-x64.zip` |
 | Windows, Arm | `Xilo-*-windows-arm64.zip` |
-| Linux, x64 | `Xilo-*-linux-x64.tar.gz` |
-| Linux, Arm | `Xilo-*-linux-arm64.tar.gz` |
+| Debian, Ubuntu, x64 | `Xilo-*-linux-x64.deb` |
+| Debian, Ubuntu, Arm | `Xilo-*-linux-arm64.deb` |
+| Fedora, openSUSE, x64 | `Xilo-*-linux-x64.rpm` |
+| Fedora, openSUSE, Arm | `Xilo-*-linux-arm64.rpm` |
+| Other Linux, x64 | `Xilo-*-linux-x64.tar.gz` |
+| Other Linux, Arm | `Xilo-*-linux-arm64.tar.gz` |
 
 Each download contains the app and the `xilo` command line tool. `SHA256SUMS.txt` lists the checksums.
 
@@ -15,7 +19,7 @@ To use `xilo` from any folder:
 
 - **macOS**: `sudo mkdir -p /usr/local/bin && sudo ln -sf /Applications/Xilo.app/Contents/Helpers/xilo /usr/local/bin/xilo`
 - **Windows**: add the `bin` folder to your `Path`.
-- **Linux**: `ln -sf "$PWD/bin/xilo" ~/.local/bin/xilo` from the unpacked folder.
+- **Linux**: the .deb and .rpm packages install `xilo` in `/usr/bin` and add Xilo to the app menu. For the .tar.gz file, run `ln -sf "$PWD/bin/xilo" ~/.local/bin/xilo` in the unpacked folder.
 
 The downloads are not signed by Apple or Microsoft, so the system warns you the first time you open Xilo:
 

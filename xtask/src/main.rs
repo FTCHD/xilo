@@ -425,10 +425,46 @@ fn dist(target: Option<String>) -> Result<()> {
             if !status.success() {
                 bail!("tar failed");
             }
+            linux_packages(&root, &target, &out, &name)?;
             tar
         }
     };
     println!("built {}", file.display());
+    Ok(())
+}
+
+/// The .deb and .rpm packages, with the settings in crates/app/Cargo.toml.
+fn linux_packages(root: &Path, target: &str, out: &Path, name: &str) -> Result<()> {
+    let deb = out.join(format!("{name}.deb"));
+    let status = Process::new("cargo")
+        .args(["deb", "-p", "xilo", "--no-build", "--no-strip"])
+        .args(["--target", target, "--output"])
+        .arg(&deb)
+        .current_dir(root)
+        .status()?;
+    if !status.success() {
+        bail!("cargo deb failed. It needs cargo-deb: cargo install cargo-deb");
+    }
+    let rpm = out.join(format!("{name}.rpm"));
+    let status = Process::new("cargo")
+        .args([
+            "generate-rpm",
+            "-p",
+            "crates/app",
+            "--payload-compress",
+            "xz",
+        ])
+        .args(["--target", target, "--output"])
+        .arg(&rpm)
+        .current_dir(root)
+        .status()?;
+    if !status.success() {
+        bail!(
+            "cargo generate-rpm failed. It needs cargo-generate-rpm: cargo install cargo-generate-rpm"
+        );
+    }
+    println!("built {}", deb.display());
+    println!("built {}", rpm.display());
     Ok(())
 }
 

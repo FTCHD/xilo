@@ -5,10 +5,46 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 publish.workspace = true
+description = "Controls Anker SOLIX devices over Bluetooth"
 
 [[bin]]
 name = "xilo-app"
 path = "src/main.rs"
+
+# Linux packages, built by `cargo xtask dist`. Library dependencies are found
+# from the binaries when the packages are built.
+[package.metadata.deb]
+name = "xilo"
+maintainer = "Xilo"
+copyright = "Xilo contributors"
+extended-description = """\
+Xilo is a desktop app for Anker SOLIX power stations and solar banks. \
+It talks to them over Bluetooth only, without an account or the internet. \
+The xilo command line tool is included."""
+section = "utils"
+priority = "optional"
+depends = "$auto, bluez"
+assets = [
+    ["target/release/xilo-app", "usr/bin/", "755"],
+    ["target/release/xilo", "usr/bin/", "755"],
+    ["packaging/dev.xilo.Xilo.desktop", "usr/share/applications/", "644"],
+    ["../../assets/builtin/icons/xilo.png", "usr/share/icons/hicolor/512x512/apps/dev.xilo.Xilo.png", "644"],
+    ["../../README.md", "usr/share/doc/xilo/", "644"],
+    ["../../THIRD_PARTY_NOTICES.md", "usr/share/doc/xilo/", "644"],
+]
+
+[package.metadata.generate-rpm]
+assets = [
+    { source = "target/release/xilo-app", dest = "/usr/bin/xilo-app", mode = "755" },
+    { source = "target/release/xilo", dest = "/usr/bin/xilo", mode = "755" },
+    { source = "packaging/dev.xilo.Xilo.desktop", dest = "/usr/share/applications/dev.xilo.Xilo.desktop", mode = "644" },
+    { source = "../../assets/builtin/icons/xilo.png", dest = "/usr/share/icons/hicolor/512x512/apps/dev.xilo.Xilo.png", mode = "644" },
+    { source = "../../README.md", dest = "/usr/share/doc/xilo/README.md", mode = "644", doc = true },
+    { source = "../../THIRD_PARTY_NOTICES.md", dest = "/usr/share/doc/xilo/THIRD_PARTY_NOTICES.md", mode = "644", doc = true },
+]
+
+[package.metadata.generate-rpm.requires]
+bluez = "*"
 
 [dependencies]
 gpui-kit = { workspace = true }
