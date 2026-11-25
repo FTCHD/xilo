@@ -55,6 +55,8 @@ pub struct Drift {
     pub field: String,
     pub base: i64,
     pub spread: f64,
+    /// The switch or port state that must be on. The reading is 0 while it is off.
+    pub when: Option<String>,
 }
 
 impl Drift {
@@ -63,7 +65,13 @@ impl Drift {
             field: field.into(),
             base,
             spread,
+            when: None,
         }
+    }
+
+    pub fn when(mut self, field: &str) -> Self {
+        self.when = Some(field.into());
+        self
     }
 }
 
@@ -150,9 +158,18 @@ impl SimDevice {
         self.drift_step += 1;
         let step = f64::from(self.drift_step);
         for (i, d) in self.drift.iter().enumerate() {
+            let off = d.when.as_ref().is_some_and(|f| match self.state.get(f) {
+                Some(Value::Bool(on)) => !on,
+                Some(v) => v.as_i64() == Some(0),
+                None => false,
+            });
             let phase = i as f64 * 1.7;
             let wave = 0.7 * (step * 0.45 + phase).sin() + 0.3 * (step * 1.3 + phase).sin();
-            let value = (d.base as f64 + d.spread * wave).round().max(0.0) as i64;
+            let value = if off {
+                0
+            } else {
+                (d.base as f64 + d.spread * wave).round().max(0.0) as i64
+            };
             self.state.insert(d.field.clone(), Value::Int(value));
         }
         let sum = |fields: &[&str]| -> i64 {

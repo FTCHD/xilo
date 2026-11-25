@@ -86,8 +86,8 @@ fn simulator(registry: &Registry) -> SimConnector {
                     device.set(id, value);
                 }
                 device.drift = vec![
-                    Drift::new("ac_output_power", 26, 6.),
-                    Drift::new("usb_c1_power", 48, 7.),
+                    Drift::new("ac_output_power", 26, 6.).when("ac_switch"),
+                    Drift::new("usb_c1_power", 48, 7.).when("usb_c1_state"),
                     Drift::new("solar_input_power", 92, 6.),
                 ];
             }
