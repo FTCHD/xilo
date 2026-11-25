@@ -4,8 +4,10 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+homepage.workspace = true
+repository.workspace = true
 publish.workspace = true
-description = "Controls Anker SOLIX devices over Bluetooth"
+description = "Monitor and control Anker SOLIX power stations, Solarbanks and chargers over Bluetooth"
 
 [[bin]]
 name = "xilo-app"

@@ -8,6 +8,8 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.100"
 license = "MIT"
+homepage = "https://ftchd.github.io/xilo"
+repository = "https://github.com/ftchd/xilo"
 publish = false
 
 [workspace.dependencies]
