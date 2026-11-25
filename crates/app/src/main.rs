@@ -27,7 +27,7 @@ use std::time::Duration;
 use gpui_kit::component::TitleBar;
 use gpui_kit::*;
 use tokio::sync::mpsc;
-use xilo_engine::sim::{SimConnector, SimDevice};
+use xilo_engine::sim::{Drift, SimConnector, SimDevice};
 use xilo_engine::{Connector, Engine, EngineConfig, Scanner};
 use xilo_models::{Registry, Value};
 use xilo_proto::TimestampMode;
@@ -66,23 +66,42 @@ fn simulator(registry: &Registry) -> SimConnector {
     ] {
         if let Some(spec) = registry.get(code) {
             let mut device = SimDevice::new(spec.clone(), serial);
+            // A busy afternoon: charging from the wall and a solar panel, while a
+            // laptop, a phone, earbuds, a lamp and a car fridge draw power.
             if addr == "sim-c300x" {
                 for (id, value) in [
                     ("battery_state", Value::Int(2)),
                     ("battery_soc", Value::Int(72)),
                     ("ac_switch", Value::Bool(true)),
+                    ("dc_switch", Value::Bool(true)),
                     ("ac_output_power", Value::Int(24)),
+                    ("car_output_power", Value::Int(12)),
+                    ("car_state", Value::Int(1)),
                     ("ac_input_power", Value::Int(118)),
-                    ("input_source", Value::Int(2)),
-                    ("total_input_power", Value::Int(118)),
-                    ("total_output_power", Value::Int(41)),
+                    ("solar_input_power", Value::Int(64)),
+                    ("input_source", Value::Int(3)),
+                    ("total_input_power", Value::Int(182)),
+                    ("total_output_power", Value::Int(137)),
+                    ("usb_c1_state", Value::Int(1)),
+                    ("usb_c1_power", Value::Int(61)),
+                    ("usb_c2_state", Value::Int(1)),
+                    ("usb_c2_power", Value::Int(18)),
                     ("usb_c3_state", Value::Int(1)),
                     ("usb_c3_power", Value::Int(17)),
-                    ("remaining_time", Value::Float(1.3)),
+                    ("usb_a_state", Value::Int(1)),
+                    ("usb_a_power", Value::Int(5)),
+                    ("remaining_time", Value::Float(1.8)),
                     ("light_mode", Value::Int(1)),
                 ] {
                     device.set(id, value);
                 }
+                device.drift = vec![
+                    Drift::new("ac_output_power", 24, 7.),
+                    Drift::new("car_output_power", 12, 4.),
+                    Drift::new("usb_c1_power", 61, 9.),
+                    Drift::new("usb_c2_power", 18, 3.),
+                    Drift::new("solar_input_power", 64, 10.),
+                ];
             }
             sim.add(addr, device);
         }
@@ -157,6 +176,13 @@ fn open_history(paths: &Paths, days: u32) -> Option<History> {
     }
 }
 
+/// The window size from `XILO_WINDOW`, for example `1200x1000`, for screenshots.
+fn window_size() -> Option<Size<Pixels>> {
+    let text = std::env::var("XILO_WINDOW").ok()?;
+    let (width, height) = text.split_once('x')?;
+    Some(size(px(width.parse().ok()?), px(height.parse().ok()?)))
+}
+
 pub fn open_main_window(state: Entity<AppState>, cx: &mut App) {
     if let Some(window) = cx.windows().first().copied() {
         let _ = window.update(cx, |_, window, _| window.activate_window());
@@ -166,7 +192,7 @@ pub fn open_main_window(state: Entity<AppState>, cx: &mut App) {
     let options = WindowOptions {
         window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
             None,
-            size(px(1200.), px(820.)),
+            window_size().unwrap_or(size(px(1200.), px(820.))),
             cx,
         ))),
         window_min_size: Some(size(px(800.), px(600.))),

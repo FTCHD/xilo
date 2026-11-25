@@ -32,6 +32,10 @@ pub struct SimDevice {
     pub ignore: HashSet<u16>,
     pub usb_idle: Option<UsbIdle>,
     pub usb_dead: bool,
+    /// Power readings that move around their value, so live charts in the app move.
+    pub drift: Vec<Drift>,
+    drift_at: Option<Instant>,
+    drift_step: u32,
     pub drop_next_connect: bool,
     /// Old firmware without ECDH: the key comes from `0022`.
     pub legacy: bool,
@@ -41,6 +45,26 @@ pub struct SimDevice {
     keys: KeyPair,
     cipher: Option<Cipher>,
     decoder: StreamDecoder,
+}
+
+const DRIFT_EVERY: Duration = Duration::from_secs(1);
+
+/// A reading that moves by up to `spread` around `base`.
+#[derive(Clone, Debug)]
+pub struct Drift {
+    pub field: String,
+    pub base: i64,
+    pub spread: f64,
+}
+
+impl Drift {
+    pub fn new(field: &str, base: i64, spread: f64) -> Self {
+        Self {
+            field: field.into(),
+            base,
+            spread,
+        }
+    }
 }
 
 impl SimDevice {
@@ -79,6 +103,9 @@ impl SimDevice {
             ignore: HashSet::new(),
             usb_idle: None,
             usb_dead: false,
+            drift: Vec::new(),
+            drift_at: None,
+            drift_step: 0,
             drop_next_connect: false,
             legacy: false,
             client_id: None,
@@ -102,6 +129,58 @@ impl SimDevice {
 
     /// Advances simulated time and returns pushes the device would send.
     pub fn tick(&mut self, now: Instant) -> Vec<Vec<u8>> {
+        let mut out = self.drift(now);
+        out.extend(self.usb_tick(now));
+        out
+    }
+
+    /// Moves the drifting readings once a second, keeps the totals equal to the
+    /// sum of the ports, and pushes the new state.
+    fn drift(&mut self, now: Instant) -> Vec<Vec<u8>> {
+        if self.drift.is_empty() || self.cipher.is_none() {
+            return Vec::new();
+        }
+        if self
+            .drift_at
+            .is_some_and(|at| now.duration_since(at) < DRIFT_EVERY)
+        {
+            return Vec::new();
+        }
+        self.drift_at = Some(now);
+        self.drift_step += 1;
+        let step = f64::from(self.drift_step);
+        for (i, d) in self.drift.iter().enumerate() {
+            let phase = i as f64 * 1.7;
+            let wave = 0.7 * (step * 0.45 + phase).sin() + 0.3 * (step * 1.3 + phase).sin();
+            let value = (d.base as f64 + d.spread * wave).round().max(0.0) as i64;
+            self.state.insert(d.field.clone(), Value::Int(value));
+        }
+        let sum = |fields: &[&str]| -> i64 {
+            fields
+                .iter()
+                .filter_map(|f| self.state.get(*f).and_then(Value::as_i64))
+                .sum()
+        };
+        let output = sum(&[
+            "ac_output_power",
+            "car_output_power",
+            "usb_c1_power",
+            "usb_c2_power",
+            "usb_c3_power",
+            "usb_a_power",
+            "usb_a1_power",
+            "usb_a2_power",
+        ]);
+        let input = sum(&["ac_input_power", "solar_input_power"]);
+        for (id, value) in [("total_output_power", output), ("total_input_power", input)] {
+            if self.spec.field(id).is_some() {
+                self.state.insert(id.into(), Value::Int(value));
+            }
+        }
+        self.state_reply(0xc405)
+    }
+
+    fn usb_tick(&mut self, now: Instant) -> Vec<Vec<u8>> {
         let Some(idle) = self.usb_idle else {
             return Vec::new();
         };

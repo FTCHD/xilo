@@ -95,6 +95,7 @@ xilo models
 - `XILO_SIM=1 cargo run -p xilo` runs the app against simulated devices.
 - `XILO_HOME=/tmp/xilo cargo run -p xilo` keeps settings, history and logs in another folder.
 - `XILO_OPEN=device:<key>:settings` opens Xilo on a page. Other values: `add`, `preferences`, and the tabs `dashboard`, `history`, `automations`, `inspector`. A fourth part acts once the device is connected: `bottom` scrolls to the end, `schedule` opens the schedule editor, and `timer` opens the AC timer, for example `device:<key>:automations:schedule`.
+- `XILO_WINDOW=1200x1000` opens the window at that size, for screenshots.
 - `XILO_LOG=debug` shows more in the log. Logs are in `~/Library/Application Support/dev.xilo.Xilo/logs`.
 - `cargo run -p xtask -- import solix-api` regenerates `crates/models/src/families/imported` from anker-solix-api.
 - `cargo run -p xtask -- check-public` fails if research files or device captures are tracked by git.
